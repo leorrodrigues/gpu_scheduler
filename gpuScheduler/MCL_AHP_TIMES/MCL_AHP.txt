@@ -1,0 +1,1633 @@
+FAT TREE K= 4
+#1
+Parser: 1.05412 seconds.
+Cluster: 0.116593 seconds.
+Multicriteria: 0.000276136 seconds.
+Cluster Resource: 3.8912e-05 seconds.
+Multicriteria Resource: 3.051e-06 seconds.
+All: 0.116912 seconds.
+#2
+Parser: 1.03336 seconds.
+Cluster: 0.117041 seconds.
+Multicriteria: 0.000272912 seconds.
+Cluster Resource: 4.0009e-05 seconds.
+Multicriteria Resource: 2.935e-06 seconds.
+All: 0.117357 seconds.
+#3
+Parser: 1.03251 seconds.
+Cluster: 0.117703 seconds.
+Multicriteria: 0.00027595 seconds.
+Cluster Resource: 3.7742e-05 seconds.
+Multicriteria Resource: 2.899e-06 seconds.
+All: 0.11802 seconds.
+#4
+Parser: 1.04881 seconds.
+Cluster: 0.116218 seconds.
+Multicriteria: 0.000293113 seconds.
+Cluster Resource: 3.7944e-05 seconds.
+Multicriteria Resource: 2.855e-06 seconds.
+All: 0.116552 seconds.
+#5
+Parser: 1.03297 seconds.
+Cluster: 0.117038 seconds.
+Multicriteria: 0.000274658 seconds.
+Cluster Resource: 3.8181e-05 seconds.
+Multicriteria Resource: 2.918e-06 seconds.
+All: 0.117354 seconds.
+#6
+Parser: 1.04879 seconds.
+Cluster: 0.116796 seconds.
+Multicriteria: 0.000277069 seconds.
+Cluster Resource: 3.6884e-05 seconds.
+Multicriteria Resource: 2.851e-06 seconds.
+All: 0.117113 seconds.
+#7
+Parser: 1.04816 seconds.
+Cluster: 0.116416 seconds.
+Multicriteria: 0.000281331 seconds.
+Cluster Resource: 3.7683e-05 seconds.
+Multicriteria Resource: 2.857e-06 seconds.
+All: 0.116738 seconds.
+#8
+Parser: 1.04996 seconds.
+Cluster: 0.116786 seconds.
+Multicriteria: 0.000287992 seconds.
+Cluster Resource: 3.9219e-05 seconds.
+Multicriteria Resource: 3.029e-06 seconds.
+All: 0.117117 seconds.
+#9
+Parser: 1.033 seconds.
+Cluster: 0.116748 seconds.
+Multicriteria: 0.000273759 seconds.
+Cluster Resource: 3.6475e-05 seconds.
+Multicriteria Resource: 2.871e-06 seconds.
+All: 0.117062 seconds.
+#10
+Parser: 1.03318 seconds.
+Cluster: 0.116425 seconds.
+Multicriteria: 0.000284109 seconds.
+Cluster Resource: 3.764e-05 seconds.
+Multicriteria Resource: 2.874e-06 seconds.
+All: 0.11675 seconds.
+FAT TREE K= 6
+#1
+Parser: 1.05031 seconds.
+Cluster: 0.122266 seconds.
+Multicriteria: 0.00027925 seconds.
+Cluster Resource: 7.4982e-05 seconds.
+Multicriteria Resource: 2.847e-06 seconds.
+All: 0.122623 seconds.
+#2
+Parser: 1.03849 seconds.
+Cluster: 0.123005 seconds.
+Multicriteria: 0.000275339 seconds.
+Cluster Resource: 7.5136e-05 seconds.
+Multicriteria Resource: 2.876e-06 seconds.
+All: 0.123359 seconds.
+#3
+Parser: 1.0376 seconds.
+Cluster: 0.122082 seconds.
+Multicriteria: 0.000274643 seconds.
+Cluster Resource: 7.5431e-05 seconds.
+Multicriteria Resource: 2.94e-06 seconds.
+All: 0.122436 seconds.
+#4
+Parser: 1.0387 seconds.
+Cluster: 0.122024 seconds.
+Multicriteria: 0.000282469 seconds.
+Cluster Resource: 7.5183e-05 seconds.
+Multicriteria Resource: 2.847e-06 seconds.
+All: 0.122384 seconds.
+#5
+Parser: 1.03818 seconds.
+Cluster: 0.123412 seconds.
+Multicriteria: 0.000275016 seconds.
+Cluster Resource: 7.608e-05 seconds.
+Multicriteria Resource: 2.98e-06 seconds.
+All: 0.123766 seconds.
+#6
+Parser: 1.03846 seconds.
+Cluster: 0.122494 seconds.
+Multicriteria: 0.000277853 seconds.
+Cluster Resource: 7.5568e-05 seconds.
+Multicriteria Resource: 2.842e-06 seconds.
+All: 0.12285 seconds.
+#7
+Parser: 1.03834 seconds.
+Cluster: 0.123323 seconds.
+Multicriteria: 0.000279576 seconds.
+Cluster Resource: 7.505e-05 seconds.
+Multicriteria Resource: 3.01e-06 seconds.
+All: 0.123681 seconds.
+#8
+Parser: 1.03799 seconds.
+Cluster: 0.122803 seconds.
+Multicriteria: 0.000275344 seconds.
+Cluster Resource: 7.539e-05 seconds.
+Multicriteria Resource: 2.923e-06 seconds.
+All: 0.123157 seconds.
+#9
+Parser: 1.03719 seconds.
+Cluster: 0.122647 seconds.
+Multicriteria: 0.000271501 seconds.
+Cluster Resource: 7.5528e-05 seconds.
+Multicriteria Resource: 2.786e-06 seconds.
+All: 0.122997 seconds.
+#10
+Parser: 1.03819 seconds.
+Cluster: 0.123091 seconds.
+Multicriteria: 0.000277382 seconds.
+Cluster Resource: 7.6121e-05 seconds.
+Multicriteria Resource: 2.851e-06 seconds.
+All: 0.123447 seconds.
+FAT TREE K= 8
+#1
+Parser: 1.0374 seconds.
+Cluster: 0.129838 seconds.
+Multicriteria: 0.000272288 seconds.
+Cluster Resource: 0.000149824 seconds.
+Multicriteria Resource: 2.866e-06 seconds.
+All: 0.130263 seconds.
+#2
+Parser: 1.0539 seconds.
+Cluster: 0.129546 seconds.
+Multicriteria: 0.000273489 seconds.
+Cluster Resource: 0.000150837 seconds.
+Multicriteria Resource: 3.077e-06 seconds.
+All: 0.129973 seconds.
+#3
+Parser: 1.03649 seconds.
+Cluster: 0.133116 seconds.
+Multicriteria: 0.000275908 seconds.
+Cluster Resource: 0.000155907 seconds.
+Multicriteria Resource: 2.864e-06 seconds.
+All: 0.133551 seconds.
+#4
+Parser: 1.03789 seconds.
+Cluster: 0.130714 seconds.
+Multicriteria: 0.000273159 seconds.
+Cluster Resource: 0.000150349 seconds.
+Multicriteria Resource: 2.806e-06 seconds.
+All: 0.131141 seconds.
+#5
+Parser: 1.03444 seconds.
+Cluster: 0.131244 seconds.
+Multicriteria: 0.000274808 seconds.
+Cluster Resource: 0.000148824 seconds.
+Multicriteria Resource: 2.92e-06 seconds.
+All: 0.131671 seconds.
+#6
+Parser: 1.0396 seconds.
+Cluster: 0.129714 seconds.
+Multicriteria: 0.00027513 seconds.
+Cluster Resource: 0.000148818 seconds.
+Multicriteria Resource: 2.862e-06 seconds.
+All: 0.130141 seconds.
+#7
+Parser: 1.03801 seconds.
+Cluster: 0.130239 seconds.
+Multicriteria: 0.000275997 seconds.
+Cluster Resource: 0.000150167 seconds.
+Multicriteria Resource: 2.858e-06 seconds.
+All: 0.130668 seconds.
+#8
+Parser: 1.05082 seconds.
+Cluster: 0.130387 seconds.
+Multicriteria: 0.000276618 seconds.
+Cluster Resource: 0.000150057 seconds.
+Multicriteria Resource: 2.831e-06 seconds.
+All: 0.130816 seconds.
+#9
+Parser: 1.03798 seconds.
+Cluster: 0.130522 seconds.
+Multicriteria: 0.000283244 seconds.
+Cluster Resource: 0.000149974 seconds.
+Multicriteria Resource: 2.92e-06 seconds.
+All: 0.130958 seconds.
+#10
+Parser: 1.03869 seconds.
+Cluster: 0.12956 seconds.
+Multicriteria: 0.000275424 seconds.
+Cluster Resource: 0.0001509 seconds.
+Multicriteria Resource: 2.897e-06 seconds.
+All: 0.129989 seconds.
+FAT TREE K= 10
+#1
+Parser: 1.03977 seconds.
+Cluster: 0.145124 seconds.
+Multicriteria: 0.000278968 seconds.
+Cluster Resource: 0.000265322 seconds.
+Multicriteria Resource: 2.971e-06 seconds.
+All: 0.145671 seconds.
+#2
+Parser: 1.03886 seconds.
+Cluster: 0.145687 seconds.
+Multicriteria: 0.000282117 seconds.
+Cluster Resource: 0.000269565 seconds.
+Multicriteria Resource: 2.967e-06 seconds.
+All: 0.146242 seconds.
+#3
+Parser: 1.03909 seconds.
+Cluster: 0.1458 seconds.
+Multicriteria: 0.000271737 seconds.
+Cluster Resource: 0.000267563 seconds.
+Multicriteria Resource: 3.162e-06 seconds.
+All: 0.146343 seconds.
+#4
+Parser: 1.05671 seconds.
+Cluster: 0.145377 seconds.
+Multicriteria: 0.000279095 seconds.
+Cluster Resource: 0.000261771 seconds.
+Multicriteria Resource: 3.208e-06 seconds.
+All: 0.145921 seconds.
+#5
+Parser: 1.03936 seconds.
+Cluster: 0.145052 seconds.
+Multicriteria: 0.000271351 seconds.
+Cluster Resource: 0.000270027 seconds.
+Multicriteria Resource: 3.005e-06 seconds.
+All: 0.145596 seconds.
+#6
+Parser: 1.04074 seconds.
+Cluster: 0.145983 seconds.
+Multicriteria: 0.000276034 seconds.
+Cluster Resource: 0.000265304 seconds.
+Multicriteria Resource: 2.92e-06 seconds.
+All: 0.146527 seconds.
+#7
+Parser: 1.03915 seconds.
+Cluster: 0.146404 seconds.
+Multicriteria: 0.000275276 seconds.
+Cluster Resource: 0.000273646 seconds.
+Multicriteria Resource: 2.823e-06 seconds.
+All: 0.146956 seconds.
+#8
+Parser: 1.03954 seconds.
+Cluster: 0.145333 seconds.
+Multicriteria: 0.000280343 seconds.
+Cluster Resource: 0.000267792 seconds.
+Multicriteria Resource: 2.839e-06 seconds.
+All: 0.145884 seconds.
+#9
+Parser: 1.03926 seconds.
+Cluster: 0.145917 seconds.
+Multicriteria: 0.000273169 seconds.
+Cluster Resource: 0.000268095 seconds.
+Multicriteria Resource: 2.887e-06 seconds.
+All: 0.146462 seconds.
+#10
+Parser: 1.04013 seconds.
+Cluster: 0.145814 seconds.
+Multicriteria: 0.000278145 seconds.
+Cluster Resource: 0.000270353 seconds.
+Multicriteria Resource: 2.922e-06 seconds.
+All: 0.146365 seconds.
+FAT TREE K= 12
+#1
+Parser: 1.04011 seconds.
+Cluster: 0.174558 seconds.
+Multicriteria: 0.000275413 seconds.
+Cluster Resource: 0.0004323 seconds.
+Multicriteria Resource: 2.937e-06 seconds.
+All: 0.175269 seconds.
+#2
+Parser: 1.05696 seconds.
+Cluster: 0.179753 seconds.
+Multicriteria: 0.000308435 seconds.
+Cluster Resource: 0.000499099 seconds.
+Multicriteria Resource: 2.83e-06 seconds.
+All: 0.180564 seconds.
+#3
+Parser: 1.05308 seconds.
+Cluster: 0.173142 seconds.
+Multicriteria: 0.000277445 seconds.
+Cluster Resource: 0.000467853 seconds.
+Multicriteria Resource: 2.937e-06 seconds.
+All: 0.17389 seconds.
+#4
+Parser: 1.05285 seconds.
+Cluster: 0.174281 seconds.
+Multicriteria: 0.000273925 seconds.
+Cluster Resource: 0.000430663 seconds.
+Multicriteria Resource: 2.863e-06 seconds.
+All: 0.174989 seconds.
+#5
+Parser: 1.05433 seconds.
+Cluster: 0.174256 seconds.
+Multicriteria: 0.00027186 seconds.
+Cluster Resource: 0.000431072 seconds.
+Multicriteria Resource: 2.859e-06 seconds.
+All: 0.174962 seconds.
+#6
+Parser: 1.05221 seconds.
+Cluster: 0.17428 seconds.
+Multicriteria: 0.000276657 seconds.
+Cluster Resource: 0.000424455 seconds.
+Multicriteria Resource: 2.812e-06 seconds.
+All: 0.174985 seconds.
+#7
+Parser: 1.05407 seconds.
+Cluster: 0.180274 seconds.
+Multicriteria: 0.000308047 seconds.
+Cluster Resource: 0.000502004 seconds.
+Multicriteria Resource: 3.185e-06 seconds.
+All: 0.181087 seconds.
+#8
+Parser: 1.05254 seconds.
+Cluster: 0.17456 seconds.
+Multicriteria: 0.000279689 seconds.
+Cluster Resource: 0.000426684 seconds.
+Multicriteria Resource: 2.859e-06 seconds.
+All: 0.17527 seconds.
+#9
+Parser: 1.07009 seconds.
+Cluster: 0.174077 seconds.
+Multicriteria: 0.000276249 seconds.
+Cluster Resource: 0.00042982 seconds.
+Multicriteria Resource: 3.081e-06 seconds.
+All: 0.174786 seconds.
+#10
+Parser: 1.05262 seconds.
+Cluster: 0.174032 seconds.
+Multicriteria: 0.00028097 seconds.
+Cluster Resource: 0.000430282 seconds.
+Multicriteria Resource: 2.878e-06 seconds.
+All: 0.174746 seconds.
+FAT TREE K= 14
+#1
+Parser: 1.05541 seconds.
+Cluster: 0.23649 seconds.
+Multicriteria: 0.000281801 seconds.
+Cluster Resource: 0.000651018 seconds.
+Multicriteria Resource: 2.937e-06 seconds.
+All: 0.237426 seconds.
+#2
+Parser: 1.04267 seconds.
+Cluster: 0.239047 seconds.
+Multicriteria: 0.000289713 seconds.
+Cluster Resource: 0.000750554 seconds.
+Multicriteria Resource: 2.893e-06 seconds.
+All: 0.24009 seconds.
+#3
+Parser: 1.07505 seconds.
+Cluster: 0.23634 seconds.
+Multicriteria: 0.000284173 seconds.
+Cluster Resource: 0.000649934 seconds.
+Multicriteria Resource: 2.84e-06 seconds.
+All: 0.237277 seconds.
+#4
+Parser: 1.05922 seconds.
+Cluster: 0.236834 seconds.
+Multicriteria: 0.000276019 seconds.
+Cluster Resource: 0.000653136 seconds.
+Multicriteria Resource: 2.93e-06 seconds.
+All: 0.237766 seconds.
+#5
+Parser: 1.05708 seconds.
+Cluster: 0.237664 seconds.
+Multicriteria: 0.00027532 seconds.
+Cluster Resource: 0.000654549 seconds.
+Multicriteria Resource: 2.907e-06 seconds.
+All: 0.238597 seconds.
+#6
+Parser: 1.04276 seconds.
+Cluster: 0.239042 seconds.
+Multicriteria: 0.000294488 seconds.
+Cluster Resource: 0.000743564 seconds.
+Multicriteria Resource: 2.881e-06 seconds.
+All: 0.240083 seconds.
+#7
+Parser: 1.04257 seconds.
+Cluster: 0.237993 seconds.
+Multicriteria: 0.000277741 seconds.
+Cluster Resource: 0.000654341 seconds.
+Multicriteria Resource: 2.789e-06 seconds.
+All: 0.238928 seconds.
+#8
+Parser: 1.04182 seconds.
+Cluster: 0.237279 seconds.
+Multicriteria: 0.000272675 seconds.
+Cluster Resource: 0.00066548 seconds.
+Multicriteria Resource: 2.806e-06 seconds.
+All: 0.23822 seconds.
+#9
+Parser: 1.04295 seconds.
+Cluster: 0.236848 seconds.
+Multicriteria: 0.000282402 seconds.
+Cluster Resource: 0.000660778 seconds.
+Multicriteria Resource: 2.901e-06 seconds.
+All: 0.237795 seconds.
+#10
+Parser: 1.05949 seconds.
+Cluster: 0.237592 seconds.
+Multicriteria: 0.000288455 seconds.
+Cluster Resource: 0.00065591 seconds.
+Multicriteria Resource: 2.946e-06 seconds.
+All: 0.238539 seconds.
+FAT TREE K= 16
+#1
+Parser: 1.05861 seconds.
+Cluster: 0.304559 seconds.
+Multicriteria: 0.000276472 seconds.
+Cluster Resource: 0.000973474 seconds.
+Multicriteria Resource: 2.923e-06 seconds.
+All: 0.305812 seconds.
+#2
+Parser: 1.07356 seconds.
+Cluster: 0.302738 seconds.
+Multicriteria: 0.000273966 seconds.
+Cluster Resource: 0.000960848 seconds.
+Multicriteria Resource: 2.79e-06 seconds.
+All: 0.303976 seconds.
+#3
+Parser: 1.04322 seconds.
+Cluster: 0.306513 seconds.
+Multicriteria: 0.000275446 seconds.
+Cluster Resource: 0.00099419 seconds.
+Multicriteria Resource: 2.927e-06 seconds.
+All: 0.307785 seconds.
+#4
+Parser: 1.04334 seconds.
+Cluster: 0.304715 seconds.
+Multicriteria: 0.000285081 seconds.
+Cluster Resource: 0.000942374 seconds.
+Multicriteria Resource: 2.935e-06 seconds.
+All: 0.305946 seconds.
+#5
+Parser: 1.0551 seconds.
+Cluster: 0.302543 seconds.
+Multicriteria: 0.000280039 seconds.
+Cluster Resource: 0.000975274 seconds.
+Multicriteria Resource: 2.98e-06 seconds.
+All: 0.303802 seconds.
+#6
+Parser: 1.05456 seconds.
+Cluster: 0.304019 seconds.
+Multicriteria: 0.000297494 seconds.
+Cluster Resource: 0.000948598 seconds.
+Multicriteria Resource: 2.979e-06 seconds.
+All: 0.305268 seconds.
+#7
+Parser: 1.05539 seconds.
+Cluster: 0.304275 seconds.
+Multicriteria: 0.000276801 seconds.
+Cluster Resource: 0.000951855 seconds.
+Multicriteria Resource: 3.073e-06 seconds.
+All: 0.305507 seconds.
+#8
+Parser: 1.05371 seconds.
+Cluster: 0.305737 seconds.
+Multicriteria: 0.000288201 seconds.
+Cluster Resource: 0.000982595 seconds.
+Multicriteria Resource: 3.148e-06 seconds.
+All: 0.307011 seconds.
+#9
+Parser: 1.0541 seconds.
+Cluster: 0.305044 seconds.
+Multicriteria: 0.000274168 seconds.
+Cluster Resource: 0.000951063 seconds.
+Multicriteria Resource: 2.844e-06 seconds.
+All: 0.306273 seconds.
+#10
+Parser: 1.05441 seconds.
+Cluster: 0.304024 seconds.
+Multicriteria: 0.000285863 seconds.
+Cluster Resource: 0.000958937 seconds.
+Multicriteria Resource: 2.917e-06 seconds.
+All: 0.305271 seconds.
+FAT TREE K= 18
+#1
+Parser: 1.05774 seconds.
+Cluster: 0.524981 seconds.
+Multicriteria: 0.00115795 seconds.
+Cluster Resource: 0.00150711 seconds.
+Multicriteria Resource: 1.5154e-05 seconds.
+All: 0.527661 seconds.
+#2
+Parser: 1.06125 seconds.
+Cluster: 0.519997 seconds.
+Multicriteria: 0.00116142 seconds.
+Cluster Resource: 0.0015233 seconds.
+Multicriteria Resource: 1.4978e-05 seconds.
+All: 0.522697 seconds.
+#3
+Parser: 1.06255 seconds.
+Cluster: 0.523412 seconds.
+Multicriteria: 0.00115237 seconds.
+Cluster Resource: 0.00150407 seconds.
+Multicriteria Resource: 1.4956e-05 seconds.
+All: 0.526084 seconds.
+#4
+Parser: 1.06215 seconds.
+Cluster: 0.519279 seconds.
+Multicriteria: 0.00114613 seconds.
+Cluster Resource: 0.0015128 seconds.
+Multicriteria Resource: 1.5068e-05 seconds.
+All: 0.521953 seconds.
+#5
+Parser: 1.06187 seconds.
+Cluster: 0.517349 seconds.
+Multicriteria: 0.00115497 seconds.
+Cluster Resource: 0.00157305 seconds.
+Multicriteria Resource: 1.5741e-05 seconds.
+All: 0.520093 seconds.
+#6
+Parser: 1.06094 seconds.
+Cluster: 0.519225 seconds.
+Multicriteria: 0.00115125 seconds.
+Cluster Resource: 0.00150966 seconds.
+Multicriteria Resource: 1.4902e-05 seconds.
+All: 0.521901 seconds.
+#7
+Parser: 1.05894 seconds.
+Cluster: 0.518008 seconds.
+Multicriteria: 0.0011598 seconds.
+Cluster Resource: 0.00165165 seconds.
+Multicriteria Resource: 1.5427e-05 seconds.
+All: 0.520835 seconds.
+#8
+Parser: 1.06129 seconds.
+Cluster: 0.525473 seconds.
+Multicriteria: 0.00114575 seconds.
+Cluster Resource: 0.00153583 seconds.
+Multicriteria Resource: 1.5266e-05 seconds.
+All: 0.52817 seconds.
+#9
+Parser: 1.05897 seconds.
+Cluster: 0.524734 seconds.
+Multicriteria: 0.00114696 seconds.
+Cluster Resource: 0.00150554 seconds.
+Multicriteria Resource: 1.5158e-05 seconds.
+All: 0.527401 seconds.
+#10
+Parser: 1.05755 seconds.
+Cluster: 0.525626 seconds.
+Multicriteria: 0.00115872 seconds.
+Cluster Resource: 0.00153255 seconds.
+Multicriteria Resource: 1.5278e-05 seconds.
+All: 0.528333 seconds.
+FAT TREE K= 20
+#1
+Parser: 1.06253 seconds.
+Cluster: 0.810956 seconds.
+Multicriteria: 0.00139974 seconds.
+Cluster Resource: 0.00209028 seconds.
+Multicriteria Resource: 1.7892e-05 seconds.
+All: 0.814464 seconds.
+#2
+Parser: 1.0635 seconds.
+Cluster: 0.793542 seconds.
+Multicriteria: 0.00139746 seconds.
+Cluster Resource: 0.00208458 seconds.
+Multicriteria Resource: 1.7852e-05 seconds.
+All: 0.797042 seconds.
+#3
+Parser: 1.06005 seconds.
+Cluster: 0.810454 seconds.
+Multicriteria: 0.00140452 seconds.
+Cluster Resource: 0.00206281 seconds.
+Multicriteria Resource: 1.8446e-05 seconds.
+All: 0.81394 seconds.
+#4
+Parser: 1.06527 seconds.
+Cluster: 0.796666 seconds.
+Multicriteria: 0.00140245 seconds.
+Cluster Resource: 0.00208759 seconds.
+Multicriteria Resource: 1.7772e-05 seconds.
+All: 0.800174 seconds.
+#5
+Parser: 1.05966 seconds.
+Cluster: 0.79719 seconds.
+Multicriteria: 0.00140091 seconds.
+Cluster Resource: 0.0021062 seconds.
+Multicriteria Resource: 1.7918e-05 seconds.
+All: 0.800716 seconds.
+#6
+Parser: 1.06326 seconds.
+Cluster: 0.798794 seconds.
+Multicriteria: 0.00140083 seconds.
+Cluster Resource: 0.00208274 seconds.
+Multicriteria Resource: 1.7591e-05 seconds.
+All: 0.802295 seconds.
+#7
+Parser: 1.06392 seconds.
+Cluster: 0.798513 seconds.
+Multicriteria: 0.00140678 seconds.
+Cluster Resource: 0.00206109 seconds.
+Multicriteria Resource: 1.804e-05 seconds.
+All: 0.801999 seconds.
+#8
+Parser: 1.05881 seconds.
+Cluster: 0.796524 seconds.
+Multicriteria: 0.00139902 seconds.
+Cluster Resource: 0.00211104 seconds.
+Multicriteria Resource: 1.7932e-05 seconds.
+All: 0.800053 seconds.
+#9
+Parser: 1.05985 seconds.
+Cluster: 0.795679 seconds.
+Multicriteria: 0.00141196 seconds.
+Cluster Resource: 0.00214139 seconds.
+Multicriteria Resource: 1.8103e-05 seconds.
+All: 0.799251 seconds.
+#10
+Parser: 1.06065 seconds.
+Cluster: 0.810922 seconds.
+Multicriteria: 0.00139136 seconds.
+Cluster Resource: 0.00207635 seconds.
+Multicriteria Resource: 1.8957e-05 seconds.
+All: 0.814408 seconds.
+FAT TREE K= 22
+#1
+Parser: 1.06609 seconds.
+Cluster: 1.39364 seconds.
+Multicriteria: 0.00164011 seconds.
+Cluster Resource: 0.00278708 seconds.
+Multicriteria Resource: 1.9541e-05 seconds.
+All: 1.39809 seconds.
+#2
+Parser: 1.0666 seconds.
+Cluster: 1.39733 seconds.
+Multicriteria: 0.00165433 seconds.
+Cluster Resource: 0.0027631 seconds.
+Multicriteria Resource: 1.9722e-05 seconds.
+All: 1.40177 seconds.
+#3
+Parser: 1.06556 seconds.
+Cluster: 1.42669 seconds.
+Multicriteria: 0.00165252 seconds.
+Cluster Resource: 0.00274657 seconds.
+Multicriteria Resource: 1.9474e-05 seconds.
+All: 1.43111 seconds.
+#4
+Parser: 1.06397 seconds.
+Cluster: 1.39703 seconds.
+Multicriteria: 0.00165375 seconds.
+Cluster Resource: 0.00291974 seconds.
+Multicriteria Resource: 1.9702e-05 seconds.
+All: 1.40162 seconds.
+#5
+Parser: 1.06528 seconds.
+Cluster: 1.3987 seconds.
+Multicriteria: 0.00165677 seconds.
+Cluster Resource: 0.00274376 seconds.
+Multicriteria Resource: 1.997e-05 seconds.
+All: 1.40312 seconds.
+#6
+Parser: 1.06601 seconds.
+Cluster: 1.3989 seconds.
+Multicriteria: 0.00164434 seconds.
+Cluster Resource: 0.0028337 seconds.
+Multicriteria Resource: 1.9387e-05 seconds.
+All: 1.4034 seconds.
+#7
+Parser: 1.06556 seconds.
+Cluster: 1.4434 seconds.
+Multicriteria: 0.00165776 seconds.
+Cluster Resource: 0.00274918 seconds.
+Multicriteria Resource: 1.9899e-05 seconds.
+All: 1.44783 seconds.
+#8
+Parser: 1.07523 seconds.
+Cluster: 1.44119 seconds.
+Multicriteria: 0.00165244 seconds.
+Cluster Resource: 0.00276858 seconds.
+Multicriteria Resource: 1.9898e-05 seconds.
+All: 1.44563 seconds.
+#9
+Parser: 1.07522 seconds.
+Cluster: 1.39858 seconds.
+Multicriteria: 0.00164847 seconds.
+Cluster Resource: 0.00281304 seconds.
+Multicriteria Resource: 1.9682e-05 seconds.
+All: 1.40306 seconds.
+#10
+Parser: 1.08391 seconds.
+Cluster: 1.40889 seconds.
+Multicriteria: 0.00165662 seconds.
+Cluster Resource: 0.0027759 seconds.
+Multicriteria Resource: 1.972e-05 seconds.
+All: 1.41335 seconds.
+FAT TREE K= 24
+#1
+Parser: 1.06912 seconds.
+Cluster: 2.2869 seconds.
+Multicriteria: 0.00192512 seconds.
+Cluster Resource: 0.00357806 seconds.
+Multicriteria Resource: 2.1101e-05 seconds.
+All: 2.29243 seconds.
+#2
+Parser: 1.06928 seconds.
+Cluster: 2.26284 seconds.
+Multicriteria: 0.00191456 seconds.
+Cluster Resource: 0.00358981 seconds.
+Multicriteria Resource: 2.0605e-05 seconds.
+All: 2.26837 seconds.
+#3
+Parser: 1.06986 seconds.
+Cluster: 2.22139 seconds.
+Multicriteria: 0.0019359 seconds.
+Cluster Resource: 0.00358047 seconds.
+Multicriteria Resource: 2.1244e-05 seconds.
+All: 2.22693 seconds.
+#4
+Parser: 1.08475 seconds.
+Cluster: 2.22492 seconds.
+Multicriteria: 0.00191984 seconds.
+Cluster Resource: 0.00359294 seconds.
+Multicriteria Resource: 2.0891e-05 seconds.
+All: 2.23045 seconds.
+#5
+Parser: 1.08154 seconds.
+Cluster: 2.23467 seconds.
+Multicriteria: 0.00191771 seconds.
+Cluster Resource: 0.00359787 seconds.
+Multicriteria Resource: 2.1339e-05 seconds.
+All: 2.2402 seconds.
+#6
+Parser: 1.08182 seconds.
+Cluster: 2.26986 seconds.
+Multicriteria: 0.0019217 seconds.
+Cluster Resource: 0.00359954 seconds.
+Multicriteria Resource: 2.0957e-05 seconds.
+All: 2.2754 seconds.
+#7
+Parser: 1.12759 seconds.
+Cluster: 2.22786 seconds.
+Multicriteria: 0.00193595 seconds.
+Cluster Resource: 0.00359016 seconds.
+Multicriteria Resource: 2.0839e-05 seconds.
+All: 2.23341 seconds.
+#8
+Parser: 1.08709 seconds.
+Cluster: 2.24238 seconds.
+Multicriteria: 0.00191482 seconds.
+Cluster Resource: 0.00361573 seconds.
+Multicriteria Resource: 2.099e-05 seconds.
+All: 2.24793 seconds.
+#9
+Parser: 1.09926 seconds.
+Cluster: 2.25217 seconds.
+Multicriteria: 0.00191527 seconds.
+Cluster Resource: 0.00358095 seconds.
+Multicriteria Resource: 2.0973e-05 seconds.
+All: 2.25768 seconds.
+#10
+Parser: 1.08651 seconds.
+Cluster: 2.24783 seconds.
+Multicriteria: 0.00191202 seconds.
+Cluster Resource: 0.00359229 seconds.
+Multicriteria Resource: 2.1042e-05 seconds.
+All: 2.25336 seconds.
+FAT TREE K= 26
+#1
+Parser: 1.10745 seconds.
+Cluster: 5.07853 seconds.
+Multicriteria: 0.00220592 seconds.
+Cluster Resource: 0.00460072 seconds.
+Multicriteria Resource: 2.3081e-05 seconds.
+All: 5.08536 seconds.
+#2
+Parser: 1.08673 seconds.
+Cluster: 5.09699 seconds.
+Multicriteria: 0.00220553 seconds.
+Cluster Resource: 0.00459526 seconds.
+Multicriteria Resource: 2.234e-05 seconds.
+All: 5.10381 seconds.
+#3
+Parser: 1.08657 seconds.
+Cluster: 5.09182 seconds.
+Multicriteria: 0.00221368 seconds.
+Cluster Resource: 0.00459033 seconds.
+Multicriteria Resource: 2.2637e-05 seconds.
+All: 5.09865 seconds.
+#4
+Parser: 1.10297 seconds.
+Cluster: 5.08036 seconds.
+Multicriteria: 0.00221627 seconds.
+Cluster Resource: 0.00458755 seconds.
+Multicriteria Resource: 2.2388e-05 seconds.
+All: 5.08719 seconds.
+#5
+Parser: 1.08616 seconds.
+Cluster: 5.10826 seconds.
+Multicriteria: 0.00221714 seconds.
+Cluster Resource: 0.00458595 seconds.
+Multicriteria Resource: 2.2794e-05 seconds.
+All: 5.11509 seconds.
+#6
+Parser: 1.09063 seconds.
+Cluster: 5.10391 seconds.
+Multicriteria: 0.0022075 seconds.
+Cluster Resource: 0.00469736 seconds.
+Multicriteria Resource: 2.2217e-05 seconds.
+All: 5.11084 seconds.
+#7
+Parser: 1.08561 seconds.
+Cluster: 5.09578 seconds.
+Multicriteria: 0.00221736 seconds.
+Cluster Resource: 0.00461389 seconds.
+Multicriteria Resource: 2.2623e-05 seconds.
+All: 5.10263 seconds.
+#8
+Parser: 1.08693 seconds.
+Cluster: 5.09716 seconds.
+Multicriteria: 0.00222205 seconds.
+Cluster Resource: 0.00460578 seconds.
+Multicriteria Resource: 2.2586e-05 seconds.
+All: 5.10401 seconds.
+#9
+Parser: 1.08702 seconds.
+Cluster: 5.10259 seconds.
+Multicriteria: 0.00222144 seconds.
+Cluster Resource: 0.00458297 seconds.
+Multicriteria Resource: 2.2256e-05 seconds.
+All: 5.10942 seconds.
+#10
+Parser: 1.08638 seconds.
+Cluster: 5.10197 seconds.
+Multicriteria: 0.00221303 seconds.
+Cluster Resource: 0.00461841 seconds.
+Multicriteria Resource: 2.2683e-05 seconds.
+All: 5.10882 seconds.
+FAT TREE K= 28
+#1
+Parser: 1.09161 seconds.
+Cluster: 8.62379 seconds.
+Multicriteria: 0.00254767 seconds.
+Cluster Resource: 0.00576693 seconds.
+Multicriteria Resource: 2.4181e-05 seconds.
+All: 8.63213 seconds.
+#2
+Parser: 1.09742 seconds.
+Cluster: 8.63614 seconds.
+Multicriteria: 0.00252533 seconds.
+Cluster Resource: 0.00580951 seconds.
+Multicriteria Resource: 2.3934e-05 seconds.
+All: 8.6445 seconds.
+#3
+Parser: 1.09488 seconds.
+Cluster: 8.64879 seconds.
+Multicriteria: 0.00253197 seconds.
+Cluster Resource: 0.0057638 seconds.
+Multicriteria Resource: 2.4266e-05 seconds.
+All: 8.65711 seconds.
+#4
+Parser: 1.10764 seconds.
+Cluster: 8.58923 seconds.
+Multicriteria: 0.00253565 seconds.
+Cluster Resource: 0.0057896 seconds.
+Multicriteria Resource: 2.4262e-05 seconds.
+All: 8.59758 seconds.
+#5
+Parser: 1.09886 seconds.
+Cluster: 8.65297 seconds.
+Multicriteria: 0.002539 seconds.
+Cluster Resource: 0.00578252 seconds.
+Multicriteria Resource: 2.4299e-05 seconds.
+All: 8.66131 seconds.
+#6
+Parser: 1.07555 seconds.
+Cluster: 8.69418 seconds.
+Multicriteria: 0.00252423 seconds.
+Cluster Resource: 0.00581565 seconds.
+Multicriteria Resource: 2.4094e-05 seconds.
+All: 8.70254 seconds.
+#7
+Parser: 1.09755 seconds.
+Cluster: 8.64742 seconds.
+Multicriteria: 0.00252924 seconds.
+Cluster Resource: 0.00599253 seconds.
+Multicriteria Resource: 2.3771e-05 seconds.
+All: 8.65596 seconds.
+#8
+Parser: 1.111 seconds.
+Cluster: 8.64387 seconds.
+Multicriteria: 0.00252384 seconds.
+Cluster Resource: 0.00579036 seconds.
+Multicriteria Resource: 2.4198e-05 seconds.
+All: 8.65221 seconds.
+#9
+Parser: 1.09845 seconds.
+Cluster: 8.64698 seconds.
+Multicriteria: 0.00253153 seconds.
+Cluster Resource: 0.00590281 seconds.
+Multicriteria Resource: 2.3827e-05 seconds.
+All: 8.65544 seconds.
+#10
+Parser: 1.076 seconds.
+Cluster: 8.66061 seconds.
+Multicriteria: 0.00253708 seconds.
+Cluster Resource: 0.00575498 seconds.
+Multicriteria Resource: 2.4132e-05 seconds.
+All: 8.66893 seconds.
+FAT TREE K= 30
+#1
+Parser: 1.09527 seconds.
+Cluster: 10.7357 seconds.
+Multicriteria: 0.00288446 seconds.
+Cluster Resource: 0.00730959 seconds.
+Multicriteria Resource: 2.5108e-05 seconds.
+All: 10.7459 seconds.
+#2
+Parser: 1.09748 seconds.
+Cluster: 10.7337 seconds.
+Multicriteria: 0.00288908 seconds.
+Cluster Resource: 0.00721748 seconds.
+Multicriteria Resource: 2.5254e-05 seconds.
+All: 10.7438 seconds.
+#3
+Parser: 1.13043 seconds.
+Cluster: 10.7449 seconds.
+Multicriteria: 0.00287366 seconds.
+Cluster Resource: 0.00712346 seconds.
+Multicriteria Resource: 2.5501e-05 seconds.
+All: 10.7549 seconds.
+#4
+Parser: 1.098 seconds.
+Cluster: 10.724 seconds.
+Multicriteria: 0.00315706 seconds.
+Cluster Resource: 0.00745007 seconds.
+Multicriteria Resource: 2.8271e-05 seconds.
+All: 10.7346 seconds.
+#5
+Parser: 1.11688 seconds.
+Cluster: 10.7619 seconds.
+Multicriteria: 0.00287713 seconds.
+Cluster Resource: 0.00720226 seconds.
+Multicriteria Resource: 2.5358e-05 seconds.
+All: 10.772 seconds.
+#6
+Parser: 1.08432 seconds.
+Cluster: 10.764 seconds.
+Multicriteria: 0.00286038 seconds.
+Cluster Resource: 0.00717323 seconds.
+Multicriteria Resource: 2.5354e-05 seconds.
+All: 10.774 seconds.
+#7
+Parser: 1.09764 seconds.
+Cluster: 10.752 seconds.
+Multicriteria: 0.00287231 seconds.
+Cluster Resource: 0.0071818 seconds.
+Multicriteria Resource: 2.5037e-05 seconds.
+All: 10.762 seconds.
+#8
+Parser: 1.09618 seconds.
+Cluster: 10.7541 seconds.
+Multicriteria: 0.00288576 seconds.
+Cluster Resource: 0.00721288 seconds.
+Multicriteria Resource: 2.4956e-05 seconds.
+All: 10.7643 seconds.
+#9
+Parser: 1.0973 seconds.
+Cluster: 10.754 seconds.
+Multicriteria: 0.00290536 seconds.
+Cluster Resource: 0.00771762 seconds.
+Multicriteria Resource: 2.6062e-05 seconds.
+All: 10.7646 seconds.
+#10
+Parser: 1.10167 seconds.
+Cluster: 10.8177 seconds.
+Multicriteria: 0.00287675 seconds.
+Cluster Resource: 0.00731344 seconds.
+Multicriteria Resource: 2.5706e-05 seconds.
+All: 10.8279 seconds.
+FAT TREE K= 32
+#1
+Parser: 1.10212 seconds.
+Cluster: 17.2729 seconds.
+Multicriteria: 0.00324159 seconds.
+Cluster Resource: 0.00877051 seconds.
+Multicriteria Resource: 2.747e-05 seconds.
+All: 17.285 seconds.
+#2
+Parser: 1.11215 seconds.
+Cluster: 17.2709 seconds.
+Multicriteria: 0.00323834 seconds.
+Cluster Resource: 0.00884319 seconds.
+Multicriteria Resource: 2.7575e-05 seconds.
+All: 17.283 seconds.
+#3
+Parser: 1.12495 seconds.
+Cluster: 17.3039 seconds.
+Multicriteria: 0.00323564 seconds.
+Cluster Resource: 0.00882711 seconds.
+Multicriteria Resource: 2.7331e-05 seconds.
+All: 17.316 seconds.
+#4
+Parser: 1.10626 seconds.
+Cluster: 17.3642 seconds.
+Multicriteria: 0.00326803 seconds.
+Cluster Resource: 0.00883435 seconds.
+Multicriteria Resource: 2.7398e-05 seconds.
+All: 17.3763 seconds.
+#5
+Parser: 1.11126 seconds.
+Cluster: 17.493 seconds.
+Multicriteria: 0.00324189 seconds.
+Cluster Resource: 0.00884895 seconds.
+Multicriteria Resource: 2.703e-05 seconds.
+All: 17.5051 seconds.
+#6
+Parser: 1.13033 seconds.
+Cluster: 17.3305 seconds.
+Multicriteria: 0.00325975 seconds.
+Cluster Resource: 0.00878785 seconds.
+Multicriteria Resource: 2.7718e-05 seconds.
+All: 17.3426 seconds.
+#7
+Parser: 1.1275 seconds.
+Cluster: 17.542 seconds.
+Multicriteria: 0.00324348 seconds.
+Cluster Resource: 0.00874208 seconds.
+Multicriteria Resource: 2.7145e-05 seconds.
+All: 17.554 seconds.
+#8
+Parser: 1.12271 seconds.
+Cluster: 17.908 seconds.
+Multicriteria: 0.00345534 seconds.
+Cluster Resource: 0.00889075 seconds.
+Multicriteria Resource: 2.7384e-05 seconds.
+All: 17.9203 seconds.
+#9
+Parser: 1.12171 seconds.
+Cluster: 17.3227 seconds.
+Multicriteria: 0.00325186 seconds.
+Cluster Resource: 0.00883302 seconds.
+Multicriteria Resource: 2.7304e-05 seconds.
+All: 17.3349 seconds.
+#10
+Parser: 1.12658 seconds.
+Cluster: 18.2083 seconds.
+Multicriteria: 0.00324628 seconds.
+Cluster Resource: 0.00880242 seconds.
+Multicriteria Resource: 2.737e-05 seconds.
+All: 18.2204 seconds.
+FAT TREE K= 34
+#1
+Parser: 1.1301 seconds.
+Cluster: 43.9469 seconds.
+Multicriteria: 0.00361927 seconds.
+Cluster Resource: 0.0111471 seconds.
+Multicriteria Resource: 2.885e-05 seconds.
+All: 43.9617 seconds.
+#2
+Parser: 1.12685 seconds.
+Cluster: 43.9662 seconds.
+Multicriteria: 0.00360884 seconds.
+Cluster Resource: 0.010658 seconds.
+Multicriteria Resource: 2.8834e-05 seconds.
+All: 43.9805 seconds.
+#3
+Parser: 1.1554 seconds.
+Cluster: 43.9385 seconds.
+Multicriteria: 0.00362323 seconds.
+Cluster Resource: 0.0108614 seconds.
+Multicriteria Resource: 2.9332e-05 seconds.
+All: 43.953 seconds.
+#4
+Parser: 1.14841 seconds.
+Cluster: 43.9444 seconds.
+Multicriteria: 0.00361454 seconds.
+Cluster Resource: 0.0106243 seconds.
+Multicriteria Resource: 2.8637e-05 seconds.
+All: 43.9586 seconds.
+#5
+Parser: 1.12717 seconds.
+Cluster: 43.9727 seconds.
+Multicriteria: 0.00364453 seconds.
+Cluster Resource: 0.0109424 seconds.
+Multicriteria Resource: 2.9386e-05 seconds.
+All: 43.9873 seconds.
+#6
+Parser: 1.14804 seconds.
+Cluster: 43.9517 seconds.
+Multicriteria: 0.00374679 seconds.
+Cluster Resource: 0.0106532 seconds.
+Multicriteria Resource: 2.891e-05 seconds.
+All: 43.9661 seconds.
+#7
+Parser: 1.12786 seconds.
+Cluster: 43.9365 seconds.
+Multicriteria: 0.0036574 seconds.
+Cluster Resource: 0.0107876 seconds.
+Multicriteria Resource: 2.8882e-05 seconds.
+All: 43.951 seconds.
+#8
+Parser: 1.14418 seconds.
+Cluster: 43.9835 seconds.
+Multicriteria: 0.00363594 seconds.
+Cluster Resource: 0.0106876 seconds.
+Multicriteria Resource: 2.8291e-05 seconds.
+All: 43.9979 seconds.
+#9
+Parser: 1.14787 seconds.
+Cluster: 43.9484 seconds.
+Multicriteria: 0.003616 seconds.
+Cluster Resource: 0.0106959 seconds.
+Multicriteria Resource: 2.8251e-05 seconds.
+All: 43.9627 seconds.
+#10
+Parser: 1.14836 seconds.
+Cluster: 43.9759 seconds.
+Multicriteria: 0.00374363 seconds.
+Cluster Resource: 0.0105985 seconds.
+Multicriteria Resource: 2.8727e-05 seconds.
+All: 43.9902 seconds.
+FAT TREE K= 36
+#1
+Parser: 1.13989 seconds.
+Cluster: 57.1406 seconds.
+Multicriteria: 0.00408319 seconds.
+Cluster Resource: 0.0128052 seconds.
+Multicriteria Resource: 3.2689e-05 seconds.
+All: 57.1575 seconds.
+#2
+Parser: 1.15137 seconds.
+Cluster: 57.2444 seconds.
+Multicriteria: 0.00410753 seconds.
+Cluster Resource: 0.0127187 seconds.
+Multicriteria Resource: 3.2767e-05 seconds.
+All: 57.2613 seconds.
+#3
+Parser: 1.13861 seconds.
+Cluster: 57.4585 seconds.
+Multicriteria: 0.00406696 seconds.
+Cluster Resource: 0.0130708 seconds.
+Multicriteria Resource: 3.2915e-05 seconds.
+All: 57.4757 seconds.
+#4
+Parser: 1.1389 seconds.
+Cluster: 56.4778 seconds.
+Multicriteria: 0.00414615 seconds.
+Cluster Resource: 0.0127469 seconds.
+Multicriteria Resource: 3.238e-05 seconds.
+All: 56.4947 seconds.
+#5
+Parser: 1.15739 seconds.
+Cluster: 57.9722 seconds.
+Multicriteria: 0.00408933 seconds.
+Cluster Resource: 0.0127778 seconds.
+Multicriteria Resource: 3.2789e-05 seconds.
+All: 57.9891 seconds.
+#6
+Parser: 1.15831 seconds.
+Cluster: 57.3186 seconds.
+Multicriteria: 0.00408726 seconds.
+Cluster Resource: 0.0126733 seconds.
+Multicriteria Resource: 3.3133e-05 seconds.
+All: 57.3354 seconds.
+#7
+Parser: 1.15133 seconds.
+Cluster: 57.3433 seconds.
+Multicriteria: 0.00408132 seconds.
+Cluster Resource: 0.0127368 seconds.
+Multicriteria Resource: 3.2455e-05 seconds.
+All: 57.3601 seconds.
+#8
+Parser: 1.15163 seconds.
+Cluster: 57.527 seconds.
+Multicriteria: 0.00408955 seconds.
+Cluster Resource: 0.0127429 seconds.
+Multicriteria Resource: 3.2583e-05 seconds.
+All: 57.5439 seconds.
+#9
+Parser: 1.17542 seconds.
+Cluster: 57.4347 seconds.
+Multicriteria: 0.00408501 seconds.
+Cluster Resource: 0.0127439 seconds.
+Multicriteria Resource: 3.2955e-05 seconds.
+All: 57.4516 seconds.
+#10
+Parser: 1.14155 seconds.
+Cluster: 57.3381 seconds.
+Multicriteria: 0.00408655 seconds.
+Cluster Resource: 0.0127115 seconds.
+Multicriteria Resource: 3.2866e-05 seconds.
+All: 57.3549 seconds.
+FAT TREE K= 38
+#1
+Parser: 1.16515 seconds.
+Cluster: 79.3256 seconds.
+Multicriteria: 0.00450678 seconds.
+Cluster Resource: 0.0151462 seconds.
+Multicriteria Resource: 3.4919e-05 seconds.
+All: 79.3453 seconds.
+#2
+Parser: 1.18202 seconds.
+Cluster: 79.4423 seconds.
+Multicriteria: 0.00450338 seconds.
+Cluster Resource: 0.0150541 seconds.
+Multicriteria Resource: 3.5042e-05 seconds.
+All: 79.4619 seconds.
+#3
+Parser: 1.18948 seconds.
+Cluster: 79.6242 seconds.
+Multicriteria: 0.00470857 seconds.
+Cluster Resource: 0.0150414 seconds.
+Multicriteria Resource: 3.5165e-05 seconds.
+All: 79.644 seconds.
+#4
+Parser: 1.16375 seconds.
+Cluster: 79.4786 seconds.
+Multicriteria: 0.004536 seconds.
+Cluster Resource: 0.0150149 seconds.
+Multicriteria Resource: 3.5266e-05 seconds.
+All: 79.4982 seconds.
+#5
+Parser: 1.1818 seconds.
+Cluster: 79.7266 seconds.
+Multicriteria: 0.00451453 seconds.
+Cluster Resource: 0.0150426 seconds.
+Multicriteria Resource: 3.5086e-05 seconds.
+All: 79.7462 seconds.
+#6
+Parser: 1.18122 seconds.
+Cluster: 79.3091 seconds.
+Multicriteria: 0.00656342 seconds.
+Cluster Resource: 0.0203159 seconds.
+Multicriteria Resource: 4.4849e-05 seconds.
+All: 79.336 seconds.
+#7
+Parser: 1.16199 seconds.
+Cluster: 79.5898 seconds.
+Multicriteria: 0.00660715 seconds.
+Cluster Resource: 0.0205515 seconds.
+Multicriteria Resource: 4.5168e-05 seconds.
+All: 79.617 seconds.
+#8
+Parser: 1.18213 seconds.
+Cluster: 79.3415 seconds.
+Multicriteria: 0.00451688 seconds.
+Cluster Resource: 0.015051 seconds.
+Multicriteria Resource: 3.5058e-05 seconds.
+All: 79.3611 seconds.
+#9
+Parser: 1.18546 seconds.
+Cluster: 79.5432 seconds.
+Multicriteria: 0.00451136 seconds.
+Cluster Resource: 0.015012 seconds.
+Multicriteria Resource: 3.5283e-05 seconds.
+All: 79.5627 seconds.
+#10
+Parser: 1.18306 seconds.
+Cluster: 79.8564 seconds.
+Multicriteria: 0.00651752 seconds.
+Cluster Resource: 0.0199446 seconds.
+Multicriteria Resource: 4.5118e-05 seconds.
+All: 79.8829 seconds.
+FAT TREE K= 40
+#1
+Parser: 1.22601 seconds.
+Cluster: 161.658 seconds.
+Multicriteria: 0.00499901 seconds.
+Cluster Resource: 0.0176426 seconds.
+Multicriteria Resource: 3.6482e-05 seconds.
+All: 161.68 seconds.
+#2
+Parser: 1.19293 seconds.
+Cluster: 161.651 seconds.
+Multicriteria: 0.00499422 seconds.
+Cluster Resource: 0.0179623 seconds.
+Multicriteria Resource: 3.7035e-05 seconds.
+All: 161.674 seconds.
+#3
+Parser: 1.18741 seconds.
+Cluster: 161.673 seconds.
+Multicriteria: 0.00497539 seconds.
+Cluster Resource: 0.0176596 seconds.
+Multicriteria Resource: 3.6637e-05 seconds.
+All: 161.696 seconds.
+#4
+Parser: 1.19262 seconds.
+Cluster: 161.673 seconds.
+Multicriteria: 0.00498503 seconds.
+Cluster Resource: 0.0178972 seconds.
+Multicriteria Resource: 3.6645e-05 seconds.
+All: 161.695 seconds.
+#5
+Parser: 1.20958 seconds.
+Cluster: 161.664 seconds.
+Multicriteria: 0.00509951 seconds.
+Cluster Resource: 0.0176094 seconds.
+Multicriteria Resource: 3.6635e-05 seconds.
+All: 161.687 seconds.
+#6
+Parser: 1.2113 seconds.
+Cluster: 161.669 seconds.
+Multicriteria: 0.00500317 seconds.
+Cluster Resource: 0.0179781 seconds.
+Multicriteria Resource: 3.6156e-05 seconds.
+All: 161.692 seconds.
+#7
+Parser: 1.21033 seconds.
+Cluster: 161.672 seconds.
+Multicriteria: 0.00497684 seconds.
+Cluster Resource: 0.0177541 seconds.
+Multicriteria Resource: 3.6687e-05 seconds.
+All: 161.695 seconds.
+#8
+Parser: 1.1929 seconds.
+Cluster: 161.685 seconds.
+Multicriteria: 0.00495778 seconds.
+Cluster Resource: 0.0175992 seconds.
+Multicriteria Resource: 3.6457e-05 seconds.
+All: 161.708 seconds.
+#9
+Parser: 1.18953 seconds.
+Cluster: 161.636 seconds.
+Multicriteria: 0.00500039 seconds.
+Cluster Resource: 0.0175533 seconds.
+Multicriteria Resource: 3.6738e-05 seconds.
+All: 161.658 seconds.
+#10
+Parser: 1.20751 seconds.
+Cluster: 161.655 seconds.
+Multicriteria: 0.00498464 seconds.
+Cluster Resource: 0.0175826 seconds.
+Multicriteria Resource: 3.6329e-05 seconds.
+All: 161.678 seconds.
+FAT TREE K= 42
+#1
+Parser: 1.23646 seconds.
+Cluster: 203.997 seconds.
+Multicriteria: 0.00549777 seconds.
+Cluster Resource: 0.021278 seconds.
+Multicriteria Resource: 3.8588e-05 seconds.
+All: 204.024 seconds.
+#2
+Parser: 1.24024 seconds.
+Cluster: 204.34 seconds.
+Multicriteria: 0.00547629 seconds.
+Cluster Resource: 0.0205122 seconds.
+Multicriteria Resource: 3.8642e-05 seconds.
+All: 204.366 seconds.
+#3
+Parser: 1.23617 seconds.
+Cluster: 204.604 seconds.
+Multicriteria: 0.00544649 seconds.
+Cluster Resource: 0.0204286 seconds.
+Multicriteria Resource: 3.8639e-05 seconds.
+All: 204.63 seconds.
+#4
+Parser: 1.23754 seconds.
+Cluster: 205.034 seconds.
+Multicriteria: 0.00546717 seconds.
+Cluster Resource: 0.0203994 seconds.
+Multicriteria Resource: 3.8839e-05 seconds.
+All: 205.059 seconds.
+#5
+Parser: 1.21708 seconds.
+Cluster: 205.315 seconds.
+Multicriteria: 0.00547807 seconds.
+Cluster Resource: 0.0204201 seconds.
+Multicriteria Resource: 3.8286e-05 seconds.
+All: 205.341 seconds.
+#6
+Parser: 1.23849 seconds.
+Cluster: 205.313 seconds.
+Multicriteria: 0.00546893 seconds.
+Cluster Resource: 0.0208088 seconds.
+Multicriteria Resource: 3.893e-05 seconds.
+All: 205.339 seconds.
+#7
+Parser: 1.21862 seconds.
+Cluster: 206.916 seconds.
+Multicriteria: 0.00547065 seconds.
+Cluster Resource: 0.0204112 seconds.
+Multicriteria Resource: 3.8065e-05 seconds.
+All: 206.942 seconds.
+#8
+Parser: 1.23688 seconds.
+Cluster: 207.224 seconds.
+Multicriteria: 0.00546482 seconds.
+Cluster Resource: 0.020518 seconds.
+Multicriteria Resource: 3.8521e-05 seconds.
+All: 207.25 seconds.
+#9
+Parser: 1.21726 seconds.
+Cluster: 207.72 seconds.
+Multicriteria: 0.00549488 seconds.
+Cluster Resource: 0.0204368 seconds.
+Multicriteria Resource: 3.7986e-05 seconds.
+All: 207.746 seconds.
+#10
+Parser: 1.22273 seconds.
+Cluster: 207.594 seconds.
+Multicriteria: 0.00544273 seconds.
+Cluster Resource: 0.0206863 seconds.
+Multicriteria Resource: 3.8497e-05 seconds.
+All: 207.621 seconds.
+FAT TREE K= 44
+#1
+Parser: 1.26697 seconds.
+Cluster: 318.378 seconds.
+Multicriteria: 0.00598655 seconds.
+Cluster Resource: 0.0240271 seconds.
+Multicriteria Resource: 3.8916e-05 seconds.
+All: 318.408 seconds.
+#2
+Parser: 1.26359 seconds.
+Cluster: 317.458 seconds.
+Multicriteria: 0.0059941 seconds.
+Cluster Resource: 0.0235365 seconds.
+Multicriteria Resource: 3.8685e-05 seconds.
+All: 317.488 seconds.
+#3
+Parser: 1.26067 seconds.
+Cluster: 316.303 seconds.
+Multicriteria: 0.00597209 seconds.
+Cluster Resource: 0.0239693 seconds.
+Multicriteria Resource: 3.9087e-05 seconds.
+All: 316.333 seconds.
+#4
+Parser: 1.24547 seconds.
+Cluster: 315.271 seconds.
+Multicriteria: 0.00872418 seconds.
+Cluster Resource: 0.0319714 seconds.
+Multicriteria Resource: 5.1396e-05 seconds.
+All: 315.312 seconds.
+#5
+Parser: 1.26316 seconds.
+Cluster: 315.275 seconds.
+Multicriteria: 0.0059795 seconds.
+Cluster Resource: 0.0241125 seconds.
+Multicriteria Resource: 3.9221e-05 seconds.
+All: 315.305 seconds.
+#6
+Parser: 1.24954 seconds.
+Cluster: 315.149 seconds.
+Multicriteria: 0.00594465 seconds.
+Cluster Resource: 0.0235748 seconds.
+Multicriteria Resource: 3.9434e-05 seconds.
+All: 315.179 seconds.
+#7
+Parser: 1.24746 seconds.
+Cluster: 315.11 seconds.
+Multicriteria: 0.00594723 seconds.
+Cluster Resource: 0.0235844 seconds.
+Multicriteria Resource: 3.8634e-05 seconds.
+All: 315.139 seconds.
+#8
+Parser: 1.26874 seconds.
+Cluster: 314.648 seconds.
+Multicriteria: 0.00872861 seconds.
+Cluster Resource: 0.0319548 seconds.
+Multicriteria Resource: 5.136e-05 seconds.
+All: 314.688 seconds.
+#9
+Parser: 1.24637 seconds.
+Cluster: 314.474 seconds.
+Multicriteria: 0.00595941 seconds.
+Cluster Resource: 0.023555 seconds.
+Multicriteria Resource: 3.8756e-05 seconds.
+All: 314.504 seconds.
+#10
+Parser: 1.24808 seconds.
+Cluster: 313.802 seconds.
+Multicriteria: 0.00595519 seconds.
+Cluster Resource: 0.0234795 seconds.
+Multicriteria Resource: 3.8257e-05 seconds.
+All: 313.832 seconds.
+FAT TREE K= 46
+#1
+Parser: 1.27515 seconds.
+Cluster: 643.674 seconds.
+Multicriteria: 0.00649804 seconds.
+Cluster Resource: 0.0269478 seconds.
+Multicriteria Resource: 4.1475e-05 seconds.
+All: 643.707 seconds.
+#2
+Parser: 1.27834 seconds.
+Cluster: 643.689 seconds.
+Multicriteria: 0.00652862 seconds.
+Cluster Resource: 0.0270506 seconds.
+Multicriteria Resource: 4.1054e-05 seconds.
+All: 643.723 seconds.
+#3
+Parser: 1.2779 seconds.
+Cluster: 643.657 seconds.
+Multicriteria: 0.0064864 seconds.
+Cluster Resource: 0.0269277 seconds.
+Multicriteria Resource: 4.0809e-05 seconds.
+All: 643.691 seconds.
+#4
+Parser: 1.29409 seconds.
+Cluster: 643.701 seconds.
+Multicriteria: 0.00649058 seconds.
+Cluster Resource: 0.0269111 seconds.
+Multicriteria Resource: 4.0959e-05 seconds.
+All: 643.734 seconds.
+#5
+Parser: 1.30129 seconds.
+Cluster: 643.765 seconds.
+Multicriteria: 0.00948026 seconds.
+Cluster Resource: 0.0362678 seconds.
+Multicriteria Resource: 5.2822e-05 seconds.
+All: 643.811 seconds.
+#6
+Parser: 1.27937 seconds.
+Cluster: 643.937 seconds.
+Multicriteria: 0.00651176 seconds.
+Cluster Resource: 0.0269684 seconds.
+Multicriteria Resource: 4.1332e-05 seconds.
+All: 643.971 seconds.
+#7
+Parser: 1.29745 seconds.
+Cluster: 643.775 seconds.
+Multicriteria: 0.00652477 seconds.
+Cluster Resource: 0.0269773 seconds.
+Multicriteria Resource: 4.1189e-05 seconds.
+All: 643.809 seconds.
+#8
+Parser: 1.29215 seconds.
+Cluster: 643.659 seconds.
+Multicriteria: 0.0065034 seconds.
+Cluster Resource: 0.0269175 seconds.
+Multicriteria Resource: 4.0755e-05 seconds.
+All: 643.693 seconds.
+#9
+Parser: 1.29546 seconds.
+Cluster: 643.678 seconds.
+Multicriteria: 0.00651592 seconds.
+Cluster Resource: 0.0274788 seconds.
+Multicriteria Resource: 4.0808e-05 seconds.
+All: 643.712 seconds.
+#10
+Parser: 1.29324 seconds.
+Cluster: 643.634 seconds.
+Multicriteria: 0.00654287 seconds.
+Cluster Resource: 0.0280209 seconds.
+Multicriteria Resource: 4.1454e-05 seconds.
+All: 643.669 seconds.
+FAT TREE K= 48
+#1
+Parser: 1.3073 seconds.
+Cluster: 882.752 seconds.
+Multicriteria: 0.00705417 seconds.
+Cluster Resource: 0.0306862 seconds.
+Multicriteria Resource: 4.2409e-05 seconds.
+All: 882.79 seconds.
+#2
+Parser: 1.32306 seconds.
+Cluster: 882.84 seconds.
+Multicriteria: 0.00707964 seconds.
+Cluster Resource: 0.0306677 seconds.
+Multicriteria Resource: 4.2522e-05 seconds.
+All: 882.878 seconds.
+#3
+Parser: 1.31077 seconds.
+Cluster: 882.902 seconds.
+Multicriteria: 0.00703331 seconds.
+Cluster Resource: 0.031362 seconds.
+Multicriteria Resource: 4.271e-05 seconds.
+All: 882.941 seconds.
+#4
+Parser: 1.31371 seconds.
+Cluster: 883.326 seconds.
+Multicriteria: 0.00706763 seconds.
+Cluster Resource: 0.0314177 seconds.
+Multicriteria Resource: 4.2447e-05 seconds.
+All: 883.365 seconds.
+#5
+Parser: 1.31883 seconds.
+Cluster: 883.254 seconds.
+Multicriteria: 0.00702436 seconds.
+Cluster Resource: 0.0307156 seconds.
+Multicriteria Resource: 4.3125e-05 seconds.
+All: 883.292 seconds.
+#6
+Parser: 1.309 seconds.
+Cluster: 882.927 seconds.
+Multicriteria: 0.0070592 seconds.
+Cluster Resource: 0.0308176 seconds.
+Multicriteria Resource: 4.3265e-05 seconds.
+All: 882.965 seconds.
+#7
+Parser: 1.32684 seconds.
+Cluster: 882.866 seconds.
+Multicriteria: 0.00704629 seconds.
+Cluster Resource: 0.0308318 seconds.
+Multicriteria Resource: 4.2804e-05 seconds.
+All: 882.904 seconds.
+#8
+Parser: 1.32679 seconds.
+Cluster: 882.854 seconds.
+Multicriteria: 0.00707789 seconds.
+Cluster Resource: 0.0308475 seconds.
+Multicriteria Resource: 4.2694e-05 seconds.
+All: 882.892 seconds.
+#9
+Parser: 1.32559 seconds.
+Cluster: 882.862 seconds.
+Multicriteria: 0.00706937 seconds.
+Cluster Resource: 0.0309226 seconds.
+Multicriteria Resource: 4.259e-05 seconds.
+All: 882.9 seconds.
+#10
+Parser: 1.32616 seconds.
+Cluster: 882.757 seconds.
+Multicriteria: 0.00704523 seconds.
+Cluster Resource: 0.0306314 seconds.
+Multicriteria Resource: 4.2437e-05 seconds.
+All: 882.795 seconds.
