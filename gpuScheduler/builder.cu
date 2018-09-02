@@ -178,7 +178,7 @@ void Builder::runClustering(std::vector<Host*> alt){
 		this->clusteringMethod->run(this->topology);
 }
 
-/*Parser Functions*/
+/*List Functions*/
 
 std::string strLower(std::string s) {
 	std::transform(s.begin(), s.end(), s.begin(),[](unsigned char c){
@@ -219,6 +219,8 @@ void Builder::listCluster(){
 		this->clusteringMethod->listGroups(this->topology);
 	}
 }
+
+/*Parser Functions*/
 
 void Builder::parserResources(JSON::jsonGenericType* dataResource) {
 	std::string variableName, variableType;

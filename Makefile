@@ -6,6 +6,7 @@
 CC = gcc
 CXX = g++
 NVCC = nvcc
+PGCXX = pgc++
 LD = nvcc
 RM = rm -f
 
@@ -38,7 +39,10 @@ endif
 CXXFLAGS = $(DEBUG_CXX) $(BOOSTFLAGS) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-clash-protection -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -Ofast
 
 #nvcc
-NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas  -O3 -use_fast_math --gpu-architecture=compute_61 --gpu-code=sm_61,compute_61 -lineinfo
+NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas  -O3 -use_fast_math --gpu-architecture=compute_30 --gpu-code=sm_30,compute_30 -lineinfo
+
+#PGC++
+PGCXXFLAGS = -fast -ta=tesla:cc60
 
 #nve
 GPUSCHEDULER_FLAG = -I "gpuScheduler"
@@ -94,8 +98,12 @@ NVCCFLAGS += $(DEFINES)
 
 all:
 
-scheduler: clustering multicriteria libs json $(LIST_GPUSCHEDULER)
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) $(BUILD_GPUSCHEDULER)*.o $(NVOUT) $(GPUSCHEDULER_PATH) gpuscheduler.out
+scheduler_nvcc: clustering multicriteria libs json $(LIST_GPUSCHEDULER)
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) $(BUILD_GPUSCHEDULER)*.o $(NVOUT) $(GPUSCHEDULER_PATH)gpuscheduler.out
+	echo $(NVCC)
+
+scheduler_pgi: pgc clustering multicriteria libs json $(LIST_GPUSCHEDULER)
+	$(PGCXX) $(PGCXXFLAGS) $(LDFLAGS) $(BUILD_GPUSCHEDULER)*.o -o $(GPUSCHEDULER_PATH)gpuscheduler.out
 
 ifeq ($(MAKECMDGOALS),scheduler)
 include $(LIST_CLUSTERING_DEP)
