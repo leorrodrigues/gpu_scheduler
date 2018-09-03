@@ -4,6 +4,9 @@
 #include "multicriteria/ahp.hpp"
 
 #include "clustering/mclInterface.cuh"
+
+#include "comunicator.hpp"
+
 #include <cmath>
 
 class Builder {

@@ -6,6 +6,11 @@
 #include "builder.cuh"
 
 int main(int argc, char **argv){
+	Comunicator *conn = new Comunicator("localhost",5672,"test_scheduler");
+	conn->setupConnection();
+	for(int i=0; i<10; i++)
+		std::cout<<conn->getMessage()<<"\n";
+
 	//std::cout<<"Starting...\n";
 	std::chrono::steady_clock::time_point pI, pF, mI,mF, cI,cF,crI,crF, mrI,mrF,aI,aF;
 	Builder *builder= new Builder();

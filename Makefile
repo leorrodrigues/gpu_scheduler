@@ -6,7 +6,6 @@
 CC = gcc
 CXX = g++
 NVCC = nvcc
-PGCXX = pgc++
 LD = nvcc
 RM = rm -f
 
@@ -36,19 +35,16 @@ endif
 
 #Flags
 #cpp
-CXXFLAGS = $(DEBUG_CXX) $(BOOSTFLAGS) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-clash-protection -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -Ofast
+CXXFLAGS = $(DEBUG_CXX) $(BOOSTFLAGS) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-clash-protection -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -L/lib/lib64 -lrabbitmq -Ofast
 
 #nvcc
-NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas  -O3 -use_fast_math --gpu-architecture=compute_30 --gpu-code=sm_30,compute_30 -lineinfo
-
-#PGC++
-PGCXXFLAGS = -fast -ta=tesla:cc60
+NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas  -O3 -use_fast_math --gpu-architecture=compute_61 --gpu-code=sm_61,compute_61 -lineinfo
 
 #nve
 GPUSCHEDULER_FLAG = -I "gpuScheduler"
 THIRDPARTY_FLAGS = -I "gpuScheduler/thirdparty/"
 
-LDFLAGS = -lcublas -lboost_program_options
+LDFLAGS = -lcublas -lboost_program_options -L/lib/lib64 -lrabbitmq 
 
 #Generate the object file
 CXX_OBJ = -c
@@ -98,12 +94,9 @@ NVCCFLAGS += $(DEFINES)
 
 all:
 
-scheduler_nvcc: clustering multicriteria libs json $(LIST_GPUSCHEDULER)
+scheduler: clustering multicriteria libs json rabbit $(LIST_GPUSCHEDULER)
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) $(BUILD_GPUSCHEDULER)*.o $(NVOUT) $(GPUSCHEDULER_PATH)gpuscheduler.out
 	echo $(NVCC)
-
-scheduler_pgi: pgc clustering multicriteria libs json $(LIST_GPUSCHEDULER)
-	$(PGCXX) $(PGCXXFLAGS) $(LDFLAGS) $(BUILD_GPUSCHEDULER)*.o -o $(GPUSCHEDULER_PATH)gpuscheduler.out
 
 ifeq ($(MAKECMDGOALS),scheduler)
 include $(LIST_CLUSTERING_DEP)
@@ -123,6 +116,9 @@ include $(LIST_MULTICRITERIA_DEP)
 endif
 
 $(BUILD_GPUSCHEDULER)json$(OBJ): $(GPUSCHEDULER_PATH)json.cpp
+	$(CXX) $(CXXFLAGS) $(CXX_OBJ) $< $(COUT)"$@";
+
+$(BUILD_GPUSCHEDULER)utils$(OBJ): $(GPUSCHEDULER_PATH)utils.c
 	$(CXX) $(CXXFLAGS) $(CXX_OBJ) $< $(COUT)"$@";
 
 #Compiling all the objs in the final executable
@@ -156,6 +152,8 @@ $(BUILD_GPUSCHEDULER)pugixml$(OBJ): $(VNE_PATH)libs/pugixml/src/pugixml.cpp
 	$(CXX) $(CXXFLAGS) $(CXX_OBJ) $< $(COUT)"$@";
 
 json: $(BUILD_GPUSCHEDULER)json$(OBJ);
+
+rabbit: $(BUILD_GPUSCHEDULER)utils$(OBJ);
 
 clean:
 	rm $(BUILD_GPUSCHEDULER)*.o $(BUILD_GPUSCHEDULER)*.d;
