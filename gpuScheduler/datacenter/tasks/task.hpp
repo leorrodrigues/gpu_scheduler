@@ -2,6 +2,8 @@
 #define _TASK_NOT_INCLUDED_
 
 #include <cstddef>
+#include <regex>
+#include <string>
 
 class Task {
 protected:

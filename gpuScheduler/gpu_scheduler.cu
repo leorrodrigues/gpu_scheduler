@@ -8,10 +8,13 @@
 int main(int argc, char **argv){
 	Comunicator *conn = new Comunicator();
 	conn->setup();
-	if(argc==2) {
-		conn->getNTasks(atoi(argv[1]));
-		Container *c = new Container();
-	}
+	//if(argc==2) {
+	//	conn->getNTasks(atoi(argv[1]));
+	//	Container *c = new Container();
+	//}
+	const char* task=conn->getNextTask();
+	Container *c = new Container();
+	c->setTask(task);
 	/*for(int i=0; i<10; i++) {
 	                  std::cout<<"Getting message "<<i<<"\n";
 	                  auto taskStr = conn->getMessage();

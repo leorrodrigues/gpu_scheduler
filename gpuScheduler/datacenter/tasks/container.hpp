@@ -1,6 +1,8 @@
 #ifndef _CONTAINER_NOT_INCLUDED_
 #define _CONTAINER_NOT_INCLUDED_
 
+#include <iostream>
+
 #include "task.hpp"
 
 class Container : public Task {
