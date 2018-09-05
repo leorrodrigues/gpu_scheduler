@@ -1,4 +1,13 @@
+.PHONY: all simulator clear all_clear
+
 all:
-	g++ utils.c simulator.cpp json.cpp -L/lib/lib64/ -lrabbitmq -o simulator.out
-clean:
+	cd .. && make all
+
+simulator:
+	cd .. && make scheduler
+
+clear:
 	rm simulator.out
+
+all_clear:
+	cd .. && make clear

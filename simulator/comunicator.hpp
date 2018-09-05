@@ -8,7 +8,7 @@
 
 #include <amqp_tcp_socket.h>
 #include <amqp.h>
-#include "utils.h"
+#include "utils.hpp"
 
 class Comunicator {
 private:
@@ -55,9 +55,9 @@ void queue_declare() {
 	amqp_queue_declare_ok_t *res = amqp_queue_declare(
 		this->conn, this->fixed_channel_id, amqp_cstring_bytes(this->queue_name),
 		/*passive*/ 0,
-		/*durable*/ 0,
+		/*durable*/ 1,
 		/*exclusive*/ 0,
-		/*auto_delete*/ 1, amqp_empty_table);
+		/*auto_delete*/ 0, amqp_empty_table);
 	assert(res != NULL);
 }
 
@@ -68,7 +68,7 @@ void sendMessage(std::string message) {
 	properties._flags = 0;
 
 	properties._flags |= AMQP_BASIC_DELIVERY_MODE_FLAG;
-	properties.delivery_mode = AMQP_DELIVERY_NONPERSISTENT;
+	properties.delivery_mode = AMQP_DELIVERY_PERSISTENT;
 
 	int retval = amqp_basic_publish(
 		this->conn, this->fixed_channel_id, amqp_cstring_bytes(""),

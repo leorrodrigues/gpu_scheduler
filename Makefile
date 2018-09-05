@@ -3,7 +3,6 @@
 ####################
 
 #Programs
-CC = gcc
 CXX = g++
 NVCC = nvcc
 LD = nvcc
@@ -12,12 +11,15 @@ RM = rm -f
 #Folders
 MULTICRITERIA_PATH = gpuScheduler/multicriteria/
 DATACENTER_PATH = gpuScheduler/datacenter/
+BUILD_GPUSCHEDULER = gpuScheduler/build/
 CLUSTERING_PATH = gpuScheduler/clustering/
+TASKS_PATH = gpuScheduler/datacenter/tasks/
 VNE_PATH = gpuScheduler/thirdparty/vnegpu/
 TOPOLOGY_PATH = gpuScheduler/topology/
 GPUSCHEDULER_PATH= gpuScheduler/
-BUILD_GPUSCHEDULER = gpuScheduler/build/
 BUILD_SIMULATOR = simulator/build/
+RABBIT_PATH = gpuScheduler/rabbit/
+SIMULATOR_PATH = simulator/
 BUILD_MAIN = ./
 TARGET_NAME = main
 TARGET = $(BUIILD_MAIN)$(TARGET_NAME)
@@ -35,7 +37,25 @@ endif
 
 #Flags
 #cpp
-CXXFLAGS = $(DEBUG_CXX) $(BOOSTFLAGS) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-clash-protection -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -L/lib/lib64 -lrabbitmq -Ofast
+SO_NAME:= $(shell cat /etc/os-release | grep "ID=" | egrep -v "*_ID_*" | cut -c4-20)
+
+LIBS_PATH :=;
+
+ifeq ($(SO_NAME),arch)
+	LIBS_PATH = /lib/lib64
+endif
+
+ifeq ($(SO_NAME),linuxmint)
+	LIBS_PATH = /lib/lib64
+endif
+
+ifeq ($(SO_NAME),ubuntu)
+	LIBS_PATH =/usr/local/lib/
+endif
+
+CXXFLAGS = $(DEBUG_CXX) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -L$(LIBS_PATH) -lrabbitmq -Ofast
+
+CXXFLAGS_W/BOOST = $(DEBUG_CXX) $(BOOSTFLAGS) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -L$(LIBS_PATH) -lrabbitmq -Ofast
 
 #nvcc
 NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas  -O3 -use_fast_math --gpu-architecture=compute_61 --gpu-code=sm_61,compute_61 -lineinfo
@@ -44,7 +64,7 @@ NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas  -O3 -use_fast_math --gpu-architect
 GPUSCHEDULER_FLAG = -I "gpuScheduler"
 THIRDPARTY_FLAGS = -I "gpuScheduler/thirdparty/"
 
-LDFLAGS = -lcublas -lboost_program_options -L/lib/lib64 -lrabbitmq 
+LDFLAGS = -lcublas -lboost_program_options -L$(LIBS_PATH) -lrabbitmq
 
 #Generate the object file
 CXX_OBJ = -c
@@ -58,7 +78,6 @@ NVOUT = -o
 #WARNING DON'T INCLUDE HERE THE HEADER FILES.
 #PUT ONLY THE FILE NAMES OF THE .CPP OR .CU
 #WITHOUT THE EXTENSION.
-.PRECIOUS: %$(OBJ)
 
 #Cluster module
 CLUSTERING_FILES  := mclInterface
@@ -78,6 +97,25 @@ LIST_MULTICRITERIA_OBJ := $(foreach file,$(MULTICRITERIA_FILES), $(BUILD_GPUSCHE
 
 LIST_MULTICRITERIA_DEP := $(foreach file, $(MULTICRITERIA_FILES), $(BUILD_GPUSCHEDULER)$(file).d)
 
+#Rabbit module
+RABBIT_FILES := common utils
+
+LIST_RABBIT := $(foreach file,$(RABBIT_FILES), $(BUILD_GPUSCHEDULER)$(file)$(AUX))
+
+LIST_RABBIT_OBJ := $(foreach file,$(RABBIT_FILES), $(BUILD_GPUSCHEDULER)$(file)$(OBJ))
+
+LIST_RABBIT_DEP := $(foreach file, $(RABBIT_FILES), $(BUILD_GPUSCHEDULER)$(file).d)
+
+#Tasks module
+TASKS_FILES := container virtualMachine
+
+LIST_TASK := $(foreach file,$(TASKS_FILES), $(BUILD_GPUSCHEDULER)$(file)$(AUX))
+
+LIST_TASK_OBJ := $(foreach file,$(TASKS_FILES), $(BUILD_GPUSCHEDULER)$(file)$(OBJ))
+
+LIST_TASK_DEP := $(foreach file, $(TASKS_FILES), $(BUILD_GPUSCHEDULER)$(file).d)
+
+
 #GPUSCHEDULER MODULE
 GPUSCHEDULER_FILES := gpu_scheduler builder
 
@@ -87,49 +125,89 @@ LIST_GPUSCHEDULER_OBJ := $(foreach file, $(GPUSCHEDULER_FILES), $(BUILD_GPUSCHED
 
 LIST_GPUSCHEDULER_DEP := $(foreach file, $(GPUSCHEDULER_FILES), $(BUILD_GPUSCHEDULER)$(file).d)
 
+#SIMULATOR MODULE
+SIMULATOR_FILES := utils simulatorTasks
+
+LIST_SIMULATOR_OBJ := $(foreach file, $(SIMULATOR_FILES), $(BUILD_SIMULATOR)$(file)$(OBJ))
+
+LIST_SIMULATOR_DEP := $(foreach file, $(SIMULATOR_FILES), $(BUILD_SIMULATOR)$(file).d)
+
 #Add all the defines in nvcc flags
 NVCCFLAGS += $(DEFINES)
 
-.PHONY: gpuscheduler scheduler clustering multicriteria json libs
+.PHONY:  all scheduler simulator .task .clustering .multicriteria .rabbit .json .json_s .libs
+.PRECIOUS: $(BUILD_GPUSCHEDULER)%.o $(BUILD_SIMULATOR)%.o
 
-all:
+all: scheduler simulator;
 
-scheduler: clustering multicriteria libs json rabbit $(LIST_GPUSCHEDULER)
+scheduler: .task .rabbit .clustering .multicriteria .libs .json $(LIST_GPUSCHEDULER)
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) $(BUILD_GPUSCHEDULER)*.o $(NVOUT) $(GPUSCHEDULER_PATH)gpuscheduler.out
-	echo $(NVCC)
 
 ifeq ($(MAKECMDGOALS),scheduler)
+include $(LIST_RABBIT_DEP)
 include $(LIST_CLUSTERING_DEP)
 include $(LIST_MULTICRITERIA_DEP)
 include $(LIST_GPUSCHEDULER_DEP)
 endif
 
+simulator:  .json_s $(LIST_SIMULATOR_OBJ)
+	$(CXX) $(CXXFLAGS) -L$(LIBS_PATH) -lrabbitmq $(BUILD_SIMULATOR)*.o $(COUT) $(SIMULATOR_PATH)simulator.out
 
-clustering: $(LIST_CLUSTERING)
+ifeq ($(MAKECMDGOALS),simulator)
+include $(LIST_SIMULATOR_DEP)
+endif
+
+.clustering: $(LIST_CLUSTERING)
 ifeq ($(MAKECMDGOALS),clustering)
 include $(LIST_CLUSTERING_DEP)
 endif
 
-multicriteria: $(LIST_MULTICRITERIA)
+.multicriteria: $(LIST_MULTICRITERIA)
 ifeq ($(MAKECMDGOALS), multicriteria)
 include $(LIST_MULTICRITERIA_DEP)
 endif
 
+.rabbit: $(LIST_RABBIT)
+ifeq ($(MAKECMDGOALS), rabbit)
+include $(LIST_RABBIT_DEP)
+endif
+
+.task: $(LIST_TASK)
+ifeq ($(MAKECMDGOALS), task)
+include $(LIST_TASK_DEP)
+endif
+
 $(BUILD_GPUSCHEDULER)json$(OBJ): $(GPUSCHEDULER_PATH)json.cpp
+	$(CXX) $(CXXFLAGS_W/BOOST) $(CXX_OBJ) $< $(COUT)"$@";
+
+$(BUILD_SIMULATOR)json$(OBJ): $(SIMULATOR_PATH)json.cpp
 	$(CXX) $(CXXFLAGS) $(CXX_OBJ) $< $(COUT)"$@";
 
-$(BUILD_GPUSCHEDULER)utils$(OBJ): $(GPUSCHEDULER_PATH)utils.c
-	$(CXX) $(CXXFLAGS) $(CXX_OBJ) $< $(COUT)"$@";
 
 #Compiling all the objs in the final executable
 $(BUILD_GPUSCHEDULER)%$(AUX) : $(BUILD_GPUSCHEDULER)%$(OBJ);
 
 #Compile the multicriteria module
 $(BUILD_GPUSCHEDULER)%$(OBJ) : $(MULTICRITERIA_PATH)%.cpp
-	$(CXX) $(CXXFLAGS) $(CXX_OBJ) $< $(COUT) $@;
+	$(CXX) $(CXXFLAGS_W/BOOST) $(CXX_OBJ) $< $(COUT) $@;
 
 $(BUILD_GPUSCHEDULER)%.d : $(MULTICRITERIA_PATH)%.cpp
-	$(CXX) $(CXXFLAGS) -M $< $(COUT) $@;
+	$(CXX) $(CXXFLAGS_W/BOOST) -M $< $(COUT) $@;
+
+#Compile the rabbit module
+$(BUILD_GPUSCHEDULER)%$(OBJ) : $(RABBIT_PATH)%.cpp
+	$(CXX) $(CXXFLAGS_W/BOOST) $(CXX_OBJ) $< $(COUT) $@;
+
+$(BUILD_GPUSCHEDULER)%.d : $(RABBIT_PATH)%.cpp
+	$(CXX) $(CXXFLAGS_W/BOOST) -M $< $(COUT) $@;
+
+
+#Compile the rabbit module
+$(BUILD_GPUSCHEDULER)%$(OBJ) : $(TASKS_PATH)%.cpp
+	$(CXX) $(CXXFLAGS_W/BOOST) $(CXX_OBJ) $< $(COUT) $@;
+
+$(BUILD_GPUSCHEDULER)%.d : $(TASKS_PATH)%.cpp
+	$(CXX) $(CXXFLAGS_W/BOOST) -M $< $(COUT) $@;
 
 #Compile the clustering module
 $(BUILD_GPUSCHEDULER)%$(OBJ) : $(CLUSTERING_PATH)%.cu
@@ -145,15 +223,24 @@ $(BUILD_GPUSCHEDULER)%$(OBJ) : $(GPUSCHEDULER_PATH)%.cu
 $(BUILD_GPUSCHEDULER)%.d : $(GPUSCHEDULER_PATH)%.cu
 	$(NVCC) $(NVCCFLAGS) $(THIRDPARTY_FLAGS) -odir $(BUILD_GPUSCHEDULER) -M $< $(NVOUT) $@;
 
+#Compile SIMULATOR module
+$(BUILD_SIMULATOR)%$(OBJ) : $(SIMULATOR_PATH)%.cpp
+	$(CXX) $(CXXFLAGS)  $(CXX_OBJ) $< $(COUT) $@;
 
-libs: $(BUILD_GPUSCHEDULER)pugixml$(OBJ);
+$(BUILD_SIMULATOR)%.d : $(SIMULATOR_PATH)%.cpp
+	$(CXX) $(CXXFLAGS) -M $< $(COUT) $@;
+
+.libs: $(BUILD_GPUSCHEDULER)pugixml$(OBJ);
 
 $(BUILD_GPUSCHEDULER)pugixml$(OBJ): $(VNE_PATH)libs/pugixml/src/pugixml.cpp
-	$(CXX) $(CXXFLAGS) $(CXX_OBJ) $< $(COUT)"$@";
+	$(CXX) $(CXXFLAGS_W/BOOST) $(CXX_OBJ) $< $(COUT)"$@";
 
-json: $(BUILD_GPUSCHEDULER)json$(OBJ);
+.json: $(BUILD_GPUSCHEDULER)json$(OBJ);
 
-rabbit: $(BUILD_GPUSCHEDULER)utils$(OBJ);
+.json_s: $(BUILD_SIMULATOR)json$(OBJ);
 
-clean:
-	rm $(BUILD_GPUSCHEDULER)*.o $(BUILD_GPUSCHEDULER)*.d;
+clear:
+	rm -f $(BUILD_GPUSCHEDULER)*.o $(BUILD_GPUSCHEDULER)*.d;
+	rm -f $(BUILD_SIMULATOR)*.o $(BUILD_SIMULATOR)*.d;
+	rm -f $(GPUSCHEDULER_PATH)gpuscheduler.out
+	rm -f $(SIMULATOR_PATH)simulator.out

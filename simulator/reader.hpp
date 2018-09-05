@@ -26,7 +26,7 @@ void openDocument(const char* taskDataPath="json/requestDataDefault.json",const 
 
 std::string getNextTask(){
 	const rapidjson::Value& taskArray = (*this->doc)["tasks"];
-	if(taskArray.Size()<=this->index) return "eof";
+	if(taskArray.Size()<=(unsigned int)this->index) return "eof";
 
 	rapidjson::StringBuffer buffer;
 
