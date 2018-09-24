@@ -126,6 +126,12 @@ void Builder::setAHP(){
 	this->setMulticriteria(ahp);
 }
 
+void Builder::setAHPG(){
+	AHPG *ahpg=new AHPG();
+	this->setMulticriteria(ahpg);
+}
+
+
 void Builder::setClustering(Clustering* method){
 	this->clusteringMethod=method;
 }

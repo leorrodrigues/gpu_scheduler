@@ -1,14 +1,6 @@
-#include "ahp.hpp"
+#include "ahpg.cuh"
 
-std::string strToLower(std::string s);
-void resourcesParser(auto *dataResource, auto ahp);
-void hierarchyParser(auto *dataObjective, auto ahp);
-template <typename Parent>
-void criteriasParser(auto *dataCriteria, Parent p, auto ahp);
-void alternativesParser(auto *dataAlternative, auto ahp);
-void domParser(rapidjson::Document *data, auto ahp);
-
-AHP::AHP() {
+AHPG::AHPG() {
 	this->hierarchy = new Hierarchy<VariablesType, WeightType>();
 	IR[3] = 0.5245;
 	IR[4] = 0.8815;
@@ -25,7 +17,7 @@ AHP::AHP() {
 	IR[15] = 1.5838;
 }
 
-std::string strToLower(std::string s) {
+std::string AHPG::strToLowerG(std::string s) {
 	std::transform(s.begin(), s.end(), s.begin(),
 	               [](unsigned char c) {
 		return std::tolower(c);
@@ -33,7 +25,7 @@ std::string strToLower(std::string s) {
 	return s;
 }
 
-void AHP::updateAlternatives() {
+void AHPG::updateAlternativesG() {
 	this->hierarchy->clearAlternatives();
 	rapidjson::SchemaDocument alternativesSchema =
 		JSON::generateSchema("multicriteria/json/alternativesSchema.json");
@@ -42,13 +34,13 @@ void AHP::updateAlternatives() {
 	rapidjson::SchemaValidator alternativesValidator(alternativesSchema);
 	if (!alternativesData.Accept(alternativesValidator))
 		JSON::jsonError(&alternativesValidator);
-	domParser(&alternativesData, this);
+	domParserG(&alternativesData);
 	this->hierarchy->addEdgeSheetsAlternatives();
 }
 
 // Recieve a function address to iterate, used in build matrix, normalized, pml
 // and pg functions.
-template <typename F, typename T> void AHP::iterateFunc(F f, T *v) {
+template <typename F, typename T> void AHPG::iterateFuncG(F f, T *v) {
 	std::vector<Hierarchy<VariablesType, WeightType>::Edge *> e = v->getEdges();
 	Hierarchy<VariablesType, WeightType>::Criteria *c;
 	for (edgeIt it = e.begin(); it != e.end(); it++) {
@@ -59,7 +51,7 @@ template <typename F, typename T> void AHP::iterateFunc(F f, T *v) {
 	}
 }
 
-template <typename T> void AHP::buildMatrix(T *v) {
+template <typename T> void AHPG::buildMatrixG(T *v) {
 	int size = v->edgesCount();
 	WeightType **matrix = new (std::nothrow) WeightType *[size];
 	for (int i = 0; i < size; i++)
@@ -74,11 +66,11 @@ template <typename T> void AHP::buildMatrix(T *v) {
 		}
 	}
 	v->setMatrix(matrix);
-	iterateFunc(&AHP::buildMatrix<Hierarchy<VariablesType, WeightType>::Criteria>,
-	            v);
+	iterateFuncG(
+		&AHPG::buildMatrixG<Hierarchy<VariablesType, WeightType>::Criteria>, v);
 }
 
-template <typename T> void AHP::buildNormalizedmatrix(T *v) {
+template <typename T> void AHPG::buildNormalizedmatrixG(T *v) {
 	int size = v->edgesCount();
 	WeightType **matrix = v->getMatrix(), sum = 0;
 	WeightType **nMatrix = new (std::nothrow) WeightType *[size];
@@ -94,12 +86,12 @@ template <typename T> void AHP::buildNormalizedmatrix(T *v) {
 		}
 	}
 	v->setNormalizedMatrix(nMatrix);
-	iterateFunc(&AHP::buildNormalizedmatrix<
-			    Hierarchy<VariablesType, WeightType>::Criteria>,
-	            v);
+	iterateFuncG(&AHPG::buildNormalizedmatrixG<
+			     Hierarchy<VariablesType, WeightType>::Criteria>,
+	             v);
 }
 
-template <typename T> void AHP::buildPml(T *v) {
+template <typename T> void AHPG::buildPmlG(T *v) {
 	int size = v->edgesCount();
 	WeightType sum = 0;
 	WeightType *pml = new (std::nothrow) WeightType[size];
@@ -112,21 +104,21 @@ template <typename T> void AHP::buildPml(T *v) {
 		pml[i] = sum / size;
 	}
 	v->setPml(pml);
-	iterateFunc(&AHP::buildPml<Hierarchy<VariablesType, WeightType>::Criteria>,
-	            v);
+	iterateFuncG(&AHPG::buildPmlG<Hierarchy<VariablesType, WeightType>::Criteria>,
+	             v);
 }
 
-template <typename T> void AHP::buildPg(T *v) {
+template <typename T> void AHPG::buildPgG(T *v) {
 	int aSize = this->hierarchy->getAlternativesCount();
 	std::vector<Hierarchy<VariablesType, WeightType>::Edge *> e = v->getEdges();
 	WeightType *pg = new (std::nothrow) WeightType[aSize];
 	for (int i = 0; i < aSize; i++) {
-		pg[i] = partialPg(v, i);
+		pg[i] = partialPgG(v, i);
 	}
 	v->setPg(pg);
 }
 
-template <typename T> WeightType AHP::partialPg(T *v, int alternative) {
+template <typename T> WeightType AHPG::partialPgG(T *v, int alternative) {
 	std::vector<Hierarchy<VariablesType, WeightType>::Edge *> e = v->getEdges();
 	int size = e.size();
 	Hierarchy<VariablesType, WeightType>::Criteria *c;
@@ -135,7 +127,7 @@ template <typename T> WeightType AHP::partialPg(T *v, int alternative) {
 	for (int i = 0; i < size; i++) {
 		c = e[i]->getCriteria();
 		if (c != NULL) {
-			partial += pml[i] * partialPg(c, alternative);
+			partial += pml[i] * partialPgG(c, alternative);
 		} else {
 			return pml[alternative];
 		}
@@ -143,7 +135,7 @@ template <typename T> WeightType AHP::partialPg(T *v, int alternative) {
 	return partial;
 }
 
-template <typename T> void AHP::deleteMatrix(T *v) {
+template <typename T> void AHPG::deleteMatrixG(T *v) {
 	int size = v->edgesCount();
 	WeightType **matrix = v->getMatrix();
 	for (int i = 0; i < size; i++)
@@ -151,11 +143,11 @@ template <typename T> void AHP::deleteMatrix(T *v) {
 	delete[] matrix;
 	matrix = NULL;
 	v->setMatrix(NULL);
-	iterateFunc(
-		&AHP::deleteMatrix<Hierarchy<VariablesType, WeightType>::Criteria>, v);
+	iterateFuncG(
+		&AHPG::deleteMatrixG<Hierarchy<VariablesType, WeightType>::Criteria>, v);
 }
 
-template <typename T> void AHP::deleteNormalizedMatrix(T *v) {
+template <typename T> void AHPG::deleteNormalizedMatrixG(T *v) {
 	int size = v->edgesCount();
 	WeightType **nMatrix = v->getNormalizedMatrix();
 	for (int i = 0; i < size; i++)
@@ -163,12 +155,12 @@ template <typename T> void AHP::deleteNormalizedMatrix(T *v) {
 	delete[] nMatrix;
 	nMatrix = NULL;
 	v->setNormalizedMatrix(NULL);
-	iterateFunc(&AHP::deleteNormalizedMatrix<
-			    Hierarchy<VariablesType, WeightType>::Criteria>,
-	            v);
+	iterateFuncG(&AHPG::deleteNormalizedMatrixG<
+			     Hierarchy<VariablesType, WeightType>::Criteria>,
+	             v);
 }
 
-template <typename T> void AHP::checkConsistency(T *v) {
+template <typename T> void AHPG::checkConsistencyG(T *v) {
 	int size = v->edgesCount();
 	WeightType **matrix = v->getMatrix();
 	WeightType *pml = v->getPml();
@@ -200,12 +192,12 @@ template <typename T> void AHP::checkConsistency(T *v) {
 		std::cout << "RC= " << RC << "\n";
 		exit(0);
 	}
-	iterateFunc(
-		&AHP::checkConsistency<Hierarchy<VariablesType, WeightType>::Criteria>,
+	iterateFuncG(
+		&AHPG::checkConsistencyG<Hierarchy<VariablesType, WeightType>::Criteria>,
 		v);
 }
 
-void AHP::generateContentSchema() {
+void AHPG::generateContentSchemaG() {
 	std::string names;
 	std::string text = "{\"$schema\":\"http://json-schema.org/draft-04/"
 	                   "schema#\",\"definitions\": {\"alternative\": {\"type\": "
@@ -236,7 +228,7 @@ void AHP::generateContentSchema() {
 	JSON::writeJson("multicriteria/json/alternativesSchema.json", text);
 }
 
-template <typename T> void AHP::printMatrix(T *v) {
+template <typename T> void AHPG::printMatrixG(T *v) {
 	WeightType **matrix = v->getMatrix();
 	int tam = v->edgesCount();
 	std::cout << "Matrix of " << v->getName() << "\n";
@@ -247,11 +239,11 @@ template <typename T> void AHP::printMatrix(T *v) {
 		std::cout << "\n";
 	}
 	std::cout << "\n";
-	iterateFunc(&AHP::printMatrix<Hierarchy<VariablesType, WeightType>::Criteria>,
-	            v);
+	iterateFuncG(
+		&AHPG::printMatrixG<Hierarchy<VariablesType, WeightType>::Criteria>, v);
 }
 
-template <typename T> void AHP::printNormalizedMatrix(T *v) {
+template <typename T> void AHPG::printNormalizedMatrixG(T *v) {
 	WeightType **matrix = v->getNormalizedMatrix();
 	int tam = v->edgesCount();
 	std::cout << "Normalized Matrix of " << v->getName() << "\n";
@@ -262,12 +254,12 @@ template <typename T> void AHP::printNormalizedMatrix(T *v) {
 		std::cout << "\n";
 	}
 	std::cout << "\n";
-	iterateFunc(&AHP::printNormalizedMatrix<
-			    Hierarchy<VariablesType, WeightType>::Criteria>,
-	            v);
+	iterateFuncG(&AHPG::printNormalizedMatrixG<
+			     Hierarchy<VariablesType, WeightType>::Criteria>,
+	             v);
 }
 
-template <typename T> void AHP::printPml(T *v) {
+template <typename T> void AHPG::printPmlG(T *v) {
 	WeightType *pml = v->getPml();
 	int tam = v->edgesCount();
 	std::cout << "PML of " << v->getName() << "\n";
@@ -275,11 +267,11 @@ template <typename T> void AHP::printPml(T *v) {
 		std::cout << std::setfill(' ') << std::setw(10) << pml[i] << " ";
 	}
 	std::cout << "\n";
-	iterateFunc(&AHP::printPml<Hierarchy<VariablesType, WeightType>::Criteria>,
-	            v);
+	iterateFuncG(&AHPG::printPmlG<Hierarchy<VariablesType, WeightType>::Criteria>,
+	             v);
 }
 
-template <typename T> void AHP::printPg(T *v) {
+template <typename T> void AHPG::printPgG(T *v) {
 	WeightType *pg = v->getPg();
 	int tam = this->hierarchy->getAlternativesCount();
 	std::cout << "PG of " << v->getName() << "\n";
@@ -289,7 +281,7 @@ template <typename T> void AHP::printPg(T *v) {
 	std::cout << "\n";
 }
 
-void resourcesParser(auto *dataResource, auto ahp) {
+void AHPG::resourcesParserG(genericValue *dataResource) {
 	std::string variableName, variableType;
 	for (auto &arrayData : dataResource->value.GetArray()) {
 		variableName = variableType = "";
@@ -297,24 +289,24 @@ void resourcesParser(auto *dataResource, auto ahp) {
 			if (strcmp(objectData.name.GetString(), "name") == 0) {
 				variableName = objectData.value.GetString();
 			} else if (strcmp(objectData.name.GetString(), "variableType") == 0) {
-				variableType = strToLower(objectData.value.GetString());
+				variableType = strToLowerG(objectData.value.GetString());
 			} else {
 				std::cout << "Error in reading resources\nExiting...\n";
 				exit(0);
 			}
 		}
-		ahp->hierarchy->addResource(variableName, variableType);
+		this->hierarchy->addResource(variableName, variableType);
 	}
 }
 
-void hierarchyParser(auto *dataObjective, auto ahp) {
+void AHPG::hierarchyParserG(genericValue *dataObjective) {
 	for (auto &hierarchyObject : dataObjective->value.GetObject()) {
 		if (strcmp(hierarchyObject.name.GetString(), "name") == 0) {
-			ahp->hierarchy->addFocus(
-				strToLower(hierarchyObject.value
-				           .GetString())); // create the Focus* in the hierarchy;
+			this->hierarchy->addFocus(
+				strToLowerG(hierarchyObject.value
+				            .GetString())); // create the Focus* in the hierarchy;
 		} else if (strcmp(hierarchyObject.name.GetString(), "childs") == 0) {
-			criteriasParser(&hierarchyObject, ahp->hierarchy->getFocus(), ahp);
+			criteriasParserG(&hierarchyObject, this->hierarchy->getFocus());
 		} else {
 			std::cout << "Unrecognizable Type\nExiting...\n";
 			exit(0);
@@ -323,7 +315,7 @@ void hierarchyParser(auto *dataObjective, auto ahp) {
 }
 
 template <typename Parent>
-void criteriasParser(auto *dataCriteria, Parent p, auto ahp) {
+void AHPG::criteriasParserG(genericValue *dataCriteria, Parent p) {
 	std::string name = " ";
 	bool leaf = false;
 	std::vector<double> weight;
@@ -332,7 +324,7 @@ void criteriasParser(auto *dataCriteria, Parent p, auto ahp) {
 		for (auto &child : childArray.GetObject()) {
 			const char *n = child.name.GetString();
 			if (strcmp(n, "name") == 0) {
-				name = strToLower(child.value.GetString());
+				name = strToLowerG(child.value.GetString());
 			} else if (strcmp(n, "leaf") == 0) {
 				leaf = child.value.GetBool();
 			} else if (strcmp(n, "weight") == 0) {
@@ -343,26 +335,26 @@ void criteriasParser(auto *dataCriteria, Parent p, auto ahp) {
 				// at this point, all the criteria variables were read, now the document
 				// has the child's of the criteria. To put the childs corretly inside
 				// the hierarchy, the criteria node has to be created.
-				auto criteria = ahp->hierarchy->addCriteria(name);
+				auto criteria = this->hierarchy->addCriteria(name);
 				criteria->setLeaf(leaf);
-				ahp->hierarchy->addEdge(p, criteria, weight);
+				this->hierarchy->addEdge(p, criteria, weight);
 				// with the criteria node added, the call recursively the
 				// criteriasParser.
-				criteriasParser(&child, criteria, ahp);
+				criteriasParserG(&child, criteria);
 			}
 		}
 		if (leaf) {
-			auto criteria = ahp->hierarchy->addCriteria(name);
+			auto criteria = this->hierarchy->addCriteria(name);
 			criteria->setLeaf(leaf);
-			ahp->hierarchy->addSheets(criteria);
-			ahp->hierarchy->addEdge(p, criteria, weight);
+			this->hierarchy->addSheets(criteria);
+			this->hierarchy->addEdge(p, criteria, weight);
 		}
 	}
 }
 
-void alternativesParser(auto *dataAlternative, auto ahp) {
+void AHPG::alternativesParserG(genericValue *dataAlternative) {
 	for (auto &arrayAlternative : dataAlternative->value.GetArray()) {
-		auto alternative = ahp->hierarchy->addAlternative();
+		auto alternative = this->hierarchy->addAlternative();
 		for (auto &alt : arrayAlternative.GetObject()) {
 			std::string name(alt.name.GetString());
 			if (alt.value.IsNumber()) {
@@ -375,25 +367,25 @@ void alternativesParser(auto *dataAlternative, auto ahp) {
 				alternative->setResource(name, alt.value.GetBool());
 			} else {
 				alternative->setResource(
-					name, strToLower(std::string(alt.value.GetString())));
+					name, strToLowerG(std::string(alt.value.GetString())));
 			}
 		}
 	}
 }
 
-void domParser(rapidjson::Document *data, auto ahp) {
+void AHPG::domParserG(rapidjson::Document *data) {
 	for (auto &m : data->GetObject()) { // query through all objects in data.
 		if (strcmp(m.name.GetString(), "resources") == 0) {
-			resourcesParser(&m, ahp);
+			resourcesParserG(&m);
 		} else if (strcmp(m.name.GetString(), "objective") == 0) {
-			hierarchyParser(&m, ahp);
+			hierarchyParserG(&m);
 		} else if (strcmp(m.name.GetString(), "alternatives") == 0) {
-			alternativesParser(&m, ahp);
+			alternativesParserG(&m);
 		}
 	}
 }
 
-void AHP::conception(bool alternativeParser) {
+void AHPG::conceptionG(bool alternativeParser) {
 	// The hierarchy contruction were divided in three parts, first the resources
 	// file was to be loaded to construct the alternatives dynamically. Second the
 	// hierarchy focus and criteria were loaded in the hierarchyData.json, and
@@ -406,8 +398,8 @@ void AHP::conception(bool alternativeParser) {
 		rapidjson::SchemaValidator resourcesValidator(resourcesSchema);
 		if (!resourcesData.Accept(resourcesValidator))
 			JSON::jsonError(&resourcesValidator);
-		domParser(&resourcesData, this);
-		generateContentSchema();
+		domParserG(&resourcesData);
+		generateContentSchemaG();
 	}
 	// After reading the resoucesData, new alternativesSchema has to be created.
 	// Parser the Json File that contains the Hierarchy
@@ -418,7 +410,7 @@ void AHP::conception(bool alternativeParser) {
 	rapidjson::SchemaValidator hierarchyValidator(hierarchySchema);
 	if (!hierarchyData.Accept(hierarchyValidator))
 		JSON::jsonError(&hierarchyValidator);
-	domParser(&hierarchyData, this);
+	domParserG(&hierarchyData);
 	if (alternativeParser) {
 		// The Json Data is valid and can be used to construct the hierarchy.
 		rapidjson::SchemaDocument alternativesSchema =
@@ -428,16 +420,22 @@ void AHP::conception(bool alternativeParser) {
 		rapidjson::SchemaValidator alternativesValidator(alternativesSchema);
 		if (!alternativesData.Accept(alternativesValidator))
 			JSON::jsonError(&alternativesValidator);
-		domParser(&alternativesData, this);
+		domParserG(&alternativesData);
 		this->hierarchy->addEdgeSheetsAlternatives();
 	}
 }
 
-void AHP::acquisition() {
+__global__
+void acquisitonGKernel(){
+	//archaeopteryx::util::map<char*, int>  mapI;
+	//archaeopteryx::util::map<char*, float>  mapF;
+	//archaeopteryx::util::map<char*, bool>  mapB;
+
+}
+
+void AHPG::acquisitionG() {
 	// Para gerar os pesos das alterntivas, será primeiro captado o MIN e MAX
 	// valor das alternativas , após isso será montada as matrizes de cada sheet
-	// auto max = this->hierarchy->getResource();
-	// auto min = this->hierarchy->getResource();
 	auto alt = this->hierarchy->getAlternatives();
 	auto sheets = this->hierarchy->getSheets();
 	std::vector<std::string> sheetsNames;
@@ -482,6 +480,36 @@ void AHP::acquisition() {
 	}
 	// At this point, all the integers and float/double resources  has
 	// the max and min values discovered.
+	//Prepare the variables to send to the GPU Kernel.
+	//Create one vector that get all the map keys of the Data
+	//This vector will be represented by
+	// V=[key,str(value),key,str(value),...]. All the values are converted to std::string and in the kernel map construction their type are rebuild.
+	//To help with the Vector type, use tree types of index, 0 int, 1 float, 2 bool.
+	std::vector<std::string> data; //to send vectors to kernel, you must only send the address of the first vector element.
+	std::vector<int> type;
+	float totalResources=0;
+	//Iterate through all the alternatives and get their resources.
+	for(auto it = alt.begin(); it !=alt.end(); it++) {
+		auto resource = (*it)->getResource();
+		for(auto const& elem : resource->mInt) {
+			data.push_back(elem.first);
+			data.push_back(std::to_string(elem.second));
+			type.push_back(1);
+		}
+		for(auto const& elem : resource->mWeight) {
+			data.push_back(elem.first);
+			data.push_back(std::to_string(elem.second));
+			type.push_back(2);
+		}
+		for(auto const& elem : resource->mBool) {
+			data.push_back(elem.first);
+			data.push_back(std::to_string(elem.second));
+			type.push_back(3);
+		}
+	}
+	totalResources=data.size()/(alt.size()*2);
+	std::cout<<"TOTAL: "<<totalResources<<"\n";
+
 	std::vector<std::vector<std::vector<WeightType> > > allWeights;
 	std::vector<std::vector<WeightType> > criteriasWeight;
 	std::vector<WeightType> alternativesWeight;
@@ -519,6 +547,7 @@ void AHP::acquisition() {
 		}
 		allWeights.push_back(criteriasWeight);
 	}
+
 	// With all the weights calculated, now the weights are set in each edge
 	// between the sheets and alternatives
 	int aSize = this->hierarchy->getAlternativesCount();
@@ -531,35 +560,35 @@ void AHP::acquisition() {
 	}
 }
 
-void AHP::synthesis() {
+void AHPG::synthesisG() {
 	// 1 - Build the construccd the matrix
-	buildMatrix(this->hierarchy->getFocus());
+	buildMatrixG(this->hierarchy->getFocus());
 	// printMatrix(this->hierarchy->getFocus());
 	// 2 - Normalize the matrix
-	buildNormalizedmatrix(this->hierarchy->getFocus());
+	buildNormalizedmatrixG(this->hierarchy->getFocus());
 	// printNormalizedMatrix(this->hierarchy->getFocus());
-	deleteMatrix(this->hierarchy->getFocus());
+	deleteMatrixG(this->hierarchy->getFocus());
 	// 3 - calculate the PML
-	buildPml(this->hierarchy->getFocus());
+	buildPmlG(this->hierarchy->getFocus());
 	// printPml(this->hierarchy->getFocus());
-	deleteNormalizedMatrix(this->hierarchy->getFocus());
+	deleteNormalizedMatrixG(this->hierarchy->getFocus());
 	// 4 - calculate the PG
-	buildPg(this->hierarchy->getFocus());
+	buildPgG(this->hierarchy->getFocus());
 	// printPg(this->hierarchy->getFocus());
 	// Print all information
 }
 
-void AHP::consistency() {
-	iterateFunc(
-		&AHP::checkConsistency<Hierarchy<VariablesType, WeightType>::Criteria>,
+void AHPG::consistencyG() {
+	iterateFuncG(
+		&AHPG::checkConsistencyG<Hierarchy<VariablesType, WeightType>::Criteria>,
 		hierarchy->getFocus());
 }
 
-// void AHP::run(std::vector<Hierarchy<VariablesType,WeightType>::Alternative*>
+// void AHPG::run(std::vector<Hierarchy<VariablesType,WeightType>::Alternative*>
 // alt){
-void AHP::run(std::vector<Host *> alternatives) {
+void AHPG::run(std::vector<Host *> alternatives) {
 	if (alternatives.size() == 0) {
-		this->conception(true);
+		this->conceptionG(true);
 	} else {
 		Resource *resource = alternatives[0]->getResource();
 		for (auto it : resource->mInt) {
@@ -574,15 +603,15 @@ void AHP::run(std::vector<Host *> alternatives) {
 		for (auto it : resource->mBool) {
 			this->hierarchy->addResource(it.first, "bool");
 		}
-		this->conception(false);
+		this->conceptionG(false);
 		this->setAlternatives(alternatives);
 	}
-	this->acquisition();
-	this->synthesis();
+	this->acquisitionG();
+	//this->synthesisG();
 	// this->consistency();
 }
 
-std::map<std::string, int> AHP::getResult() {
+std::map<std::string, int> AHPG::getResult() {
 	std::map<std::string, int> result;
 	double *values = this->hierarchy->getFocus()->getPg();
 	std::vector<std::pair<int, double> > alternativesPair;
@@ -602,7 +631,7 @@ std::map<std::string, int> AHP::getResult() {
 	return result;
 }
 
-void AHP::setAlternatives(std::vector<Host *> alternatives) {
+void AHPG::setAlternatives(std::vector<Host *> alternatives) {
 	this->hierarchy->clearAlternatives();
 	for (auto it : alternatives) {
 		auto a = new Hierarchy<VariablesType, WeightType>::Alternative(it);

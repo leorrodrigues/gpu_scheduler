@@ -2,6 +2,7 @@
 #define _BUILDER_NOT_INCLUDED_
 
 #include "multicriteria/ahp.hpp"
+#include "multicriteria/ahpg.cuh"
 
 #include "clustering/mclInterface.cuh"
 
@@ -49,6 +50,7 @@ std::vector<Host*> getClusterHosts();
 void printTopologyType();
 //Multicriteria set functions
 void setAHP();
+void setAHPG();
 
 //Clustering set functions
 void setMCL();

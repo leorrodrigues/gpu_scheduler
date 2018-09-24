@@ -42,11 +42,12 @@ SO_NAME:= $(shell cat /etc/os-release | grep "ID=" | egrep -v "*_ID_*" | cut -c4
 LIBS_PATH :=;
 
 ifeq ($(SO_NAME),arch)
-	LIBS_PATH = /lib/lib64
+	LIBS_PATH = /lib/lib64/
+	LIBS_PATH = /usr/local/lib64/
 endif
 
 ifeq ($(SO_NAME),linuxmint)
-	LIBS_PATH = /lib/lib64
+	LIBS_PATH = /lib/lib64/
 endif
 
 ifeq ($(SO_NAME),ubuntu)
@@ -89,7 +90,7 @@ LIST_CLUSTERING_OBJ := $(foreach file, $(CLUSTERING_FILES_), $(BUILD_GPUSCHEDULE
 LIST_CLUSTERING_DEP := $(foreach file, $(CLUSTERING_FILES), $(BUILD_GPUSCHEDULER)$(file).d)
 
 #Multicriteria module
-MULTICRITERIA_FILES := ahp
+MULTICRITERIA_FILES := ahp ahpg
 
 LIST_MULTICRITERIA := $(foreach file,$(MULTICRITERIA_FILES), $(BUILD_GPUSCHEDULER)$(file)$(AUX))
 
@@ -194,6 +195,11 @@ $(BUILD_GPUSCHEDULER)%$(OBJ) : $(MULTICRITERIA_PATH)%.cpp
 $(BUILD_GPUSCHEDULER)%.d : $(MULTICRITERIA_PATH)%.cpp
 	$(CXX) $(CXXFLAGS_W/BOOST) -M $< $(COUT) $@;
 
+$(BUILD_GPUSCHEDULER)%$(OBJ) : $(MULTICRITERIA_PATH)%.cu
+	$(NVCC) $(NVCCFLAGS) $(THIRDPARTY_FLAGS) $(NVCC_OBJ) $< $(NVOUT) $@;
+
+$(BUILD_GPUSCHEDULER)%.d : $(MULTICRITERIA_PATH)%.cu
+	$(NVCC) $(NVCCFLAGS) $(THIRDPARTY_FLAGS) -odir $(BUILD_GPUSCHEDULER) -M $< $(NVOUT) $@;
 #Compile the rabbit module
 $(BUILD_GPUSCHEDULER)%$(OBJ) : $(RABBIT_PATH)%.cpp
 	$(CXX) $(CXXFLAGS_W/BOOST) $(CXX_OBJ) $< $(COUT) $@;
