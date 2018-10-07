@@ -39,33 +39,20 @@ endif
 #cpp
 SO_NAME:= $(shell cat /etc/os-release | grep "ID=" | egrep -v "*_ID_*" | cut -c4-20)
 
-LIBS_PATH :=;
+RABBIT_LIBS_PATH := gpuScheduler/thirdparty/rabbitmq-c/lib64
 
-ifeq ($(SO_NAME),arch)
-	LIBS_PATH = /lib/lib64/
-	LIBS_PATH = /usr/local/lib64/
-endif
+CXXFLAGS = $(DEBUG_CXX) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -L$(RABBIT_LIBS_PATH) -lrabbitmq -Ofast
 
-ifeq ($(SO_NAME),linuxmint)
-	LIBS_PATH = /lib/lib64/
-endif
-
-ifeq ($(SO_NAME),ubuntu)
-	LIBS_PATH =/usr/local/lib/
-endif
-
-CXXFLAGS = $(DEBUG_CXX) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -L$(LIBS_PATH) -lrabbitmq -Ofast
-
-CXXFLAGS_W/BOOST = $(DEBUG_CXX) $(BOOSTFLAGS) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -L$(LIBS_PATH) -lrabbitmq -Ofast
+CXXFLAGS_W/BOOST = $(DEBUG_CXX) $(BOOSTFLAGS) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -L$(RABBIT_LIBS_PATH) -lrabbitmq -Ofast
 
 #nvcc
-NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas  -O3 -use_fast_math --gpu-architecture=compute_61 --gpu-code=sm_61,compute_61 -lineinfo
+NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas  -O3 -use_fast_math -lineinfo
 
 #nve
 GPUSCHEDULER_FLAG = -I "gpuScheduler"
 THIRDPARTY_FLAGS = -I "gpuScheduler/thirdparty/"
 
-LDFLAGS = -lcublas -lboost_program_options -L$(LIBS_PATH) -lrabbitmq
+LDFLAGS = -lcublas -lboost_program_options -L$(RABBIT_LIBS_PATH) -lrabbitmq
 
 #Generate the object file
 CXX_OBJ = -c
@@ -152,7 +139,7 @@ include $(LIST_GPUSCHEDULER_DEP)
 endif
 
 simulator:  .json_s $(LIST_SIMULATOR_OBJ)
-	$(CXX) $(CXXFLAGS) -L$(LIBS_PATH) -lrabbitmq $(BUILD_SIMULATOR)*.o $(COUT) $(SIMULATOR_PATH)simulator.out
+	$(CXX) $(CXXFLAGS) -L$(RABBIT_LIBS_PATH) -lrabbitmq $(BUILD_SIMULATOR)*.o $(COUT) $(SIMULATOR_PATH)simulator.out
 
 ifeq ($(MAKECMDGOALS),simulator)
 include $(LIST_SIMULATOR_DEP)

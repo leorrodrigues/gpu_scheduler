@@ -11,7 +11,7 @@
 #include <utility>
 
 typedef std::string VariablesType;
-typedef double WeightType;
+typedef float WeightType;
 
 class AHP : public Multicriteria {
 private:

@@ -7,7 +7,7 @@
 #include "resource.hpp"
 
 typedef std::string VariablesType;
-typedef double WeightType;
+typedef float WeightType;
 
 class Host {
 public:

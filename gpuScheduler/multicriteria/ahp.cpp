@@ -182,7 +182,7 @@ template <typename T> void AHP::checkConsistency(T *v) {
 	}
 	lambda /= size;
 	if (IR[size] > 0) {
-		RC = (abs(lambda - size) / (size - 1)) / IR[size];
+		RC = (fabs(lambda - size) / (size - 1)) / IR[size];
 	} else {
 		// according to AlonsoLamata 2006
 		// RC = CI/ RI , where
@@ -198,6 +198,10 @@ template <typename T> void AHP::checkConsistency(T *v) {
 	if (RC > 0.1) {
 		std::cout << "ERROR: Criteria: " << v->getName() << " is inconsistent\n";
 		std::cout << "RC= " << RC << "\n";
+		std::cout<<"SIZE: "<<size<<"\n";
+		printMatrix(v);
+		printNormalizedMatrix(v);
+		printPml(v);
 		exit(0);
 	}
 	iterateFunc(
@@ -316,7 +320,7 @@ void hierarchyParser(auto *dataObjective, auto ahp) {
 		} else if (strcmp(hierarchyObject.name.GetString(), "childs") == 0) {
 			criteriasParser(&hierarchyObject, ahp->hierarchy->getFocus(), ahp);
 		} else {
-			std::cout << "Unrecognizable Type\nExiting...\n";
+			std::cout << "AHP -> Unrecognizable Type\nExiting...\n";
 			exit(0);
 		}
 	}
@@ -326,7 +330,7 @@ template <typename Parent>
 void criteriasParser(auto *dataCriteria, Parent p, auto ahp) {
 	std::string name = " ";
 	bool leaf = false;
-	std::vector<double> weight;
+	std::vector<WeightType> weight;
 	for (auto &childArray : dataCriteria->value.GetArray()) {
 		weight.clear();
 		for (auto &child : childArray.GetObject()) {
@@ -337,7 +341,7 @@ void criteriasParser(auto *dataCriteria, Parent p, auto ahp) {
 				leaf = child.value.GetBool();
 			} else if (strcmp(n, "weight") == 0) {
 				for (auto &weightChild : child.value.GetArray()) {
-					weight.push_back(weightChild.GetDouble());
+					weight.push_back(weightChild.GetFloat());
 				}
 			} else if (strcmp(n, "childs") == 0) {
 				// at this point, all the criteria variables were read, now the document
@@ -369,7 +373,7 @@ void alternativesParser(auto *dataAlternative, auto ahp) {
 				if (alternative->getResource()->mInt.count(name) > 0) {
 					alternative->setResource(name, alt.value.GetInt());
 				} else {
-					alternative->setResource(name, alt.value.GetDouble());
+					alternative->setResource(name, alt.value.GetFloat());
 				}
 			} else if (alt.value.IsBool()) {
 				alternative->setResource(name, alt.value.GetBool());
@@ -450,8 +454,8 @@ void AHP::acquisition() {
 		        sheetsNames.push_back(c->getName());
 		}
 	});
-	std::map<std::string, double> resultValues;
-	double min, max;
+	std::map<std::string, WeightType> resultValues;
+	WeightType min, max;
 	for (auto it = sheetsNames.begin(); it != sheetsNames.end(); it++) {
 		auto result = std::minmax_element(
 			alt.begin(), alt.end(),
@@ -480,12 +484,12 @@ void AHP::acquisition() {
 			resultValues[*it] /= 9.0;
 		}
 	}
-	// At this point, all the integers and float/double resources  has
+	// At this point, all the integers and float/WeightType resources  has
 	// the max and min values discovered.
 	std::vector<std::vector<std::vector<WeightType> > > allWeights;
 	std::vector<std::vector<WeightType> > criteriasWeight;
 	std::vector<WeightType> alternativesWeight;
-	double result;
+	WeightType result;
 	for (auto sIt = sheets.begin(); sIt != sheets.end(); sIt++) {
 		criteriasWeight.clear();
 		for (auto it = alt.begin(); it != alt.end(); it++) {
@@ -538,11 +542,9 @@ void AHP::synthesis() {
 	// 2 - Normalize the matrix
 	buildNormalizedmatrix(this->hierarchy->getFocus());
 	// printNormalizedMatrix(this->hierarchy->getFocus());
-	deleteMatrix(this->hierarchy->getFocus());
 	// 3 - calculate the PML
 	buildPml(this->hierarchy->getFocus());
 	// printPml(this->hierarchy->getFocus());
-	deleteNormalizedMatrix(this->hierarchy->getFocus());
 	// 4 - calculate the PG
 	buildPg(this->hierarchy->getFocus());
 	// printPg(this->hierarchy->getFocus());
@@ -566,7 +568,7 @@ void AHP::run(std::vector<Host *> alternatives) {
 			this->hierarchy->addResource(it.first, "int");
 		}
 		for (auto it : resource->mWeight) {
-			this->hierarchy->addResource(it.first, "double");
+			this->hierarchy->addResource(it.first, "float");
 		}
 		for (auto it : resource->mString) {
 			this->hierarchy->addResource(it.first, "string");
@@ -579,13 +581,15 @@ void AHP::run(std::vector<Host *> alternatives) {
 	}
 	this->acquisition();
 	this->synthesis();
-	// this->consistency();
+	this->consistency();
+	// deleteMatrix(this->hierarchy->getFocus());
+	// deleteNormalizedMatrix(this->hierarchy->getFocus());
 }
 
 std::map<std::string, int> AHP::getResult() {
 	std::map<std::string, int> result;
-	double *values = this->hierarchy->getFocus()->getPg();
-	std::vector<std::pair<int, double> > alternativesPair;
+	WeightType *values = this->hierarchy->getFocus()->getPg();
+	std::vector<std::pair<int, WeightType> > alternativesPair;
 	for (int i = 0; i < this->hierarchy->getAlternativesCount(); i++) {
 		alternativesPair.push_back(std::make_pair(i, values[i]));
 	}

@@ -427,7 +427,7 @@ void Hierarchy<VariablesType, WeightType>::addResource(std::string name, std::st
 		this->resource.mBoolSize++;
 	} else {
 		//If the type is unknow the program exit.
-		std::cout << "Unrecognizable type\n Exiting...\n";
+		std::cout << "Hierarchy -> Unrecognizable type: "<<type<<"\nExiting...\n";
 		exit(0);
 	}
 }

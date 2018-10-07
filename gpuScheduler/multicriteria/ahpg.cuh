@@ -4,19 +4,23 @@
 #include "hierarchy.hpp"
 #include "multicriteria.hpp"
 
+#include "dev_array.h"
+
 #include <cmath>
 #include <cstdlib>
 #include <iomanip>
 #include <iterator>
 #include <utility>
 
-#include <archaeopteryx/util/interface/map.h>
+#include <cuda_runtime.h>
+#include <cuda.h>
 
 typedef std::string VariablesType;
-typedef double WeightType;
+typedef float WeightType;
 
 class AHPG : public Multicriteria {
 private:
+public:
 std::map<int, WeightType> IR;
 
 typedef typename std::vector<
@@ -47,7 +51,6 @@ template <typename T> void printPgG(T *);
 /*Iterate auxiliar function*/
 template <typename F, typename T> void iterateFuncG(F, T *);
 
-public:
 Hierarchy<VariablesType, WeightType> *hierarchy;
 AHPG();
 

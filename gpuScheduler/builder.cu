@@ -83,8 +83,8 @@ void Builder::addResource(std::string name, std::string type){
 		//Create new entry in the int map.
 		this->resource.mInt[name] = 0;
 		this->resource.mIntSize++;
-	} else if (type == "float" || type == "double") {
-		//Check if the type is float or double, the variable will be in the same map.
+	} else if (type == "double" || type == "float") {
+		//Check if the type is float or float, the variable will be in the same map.
 		//Create new entry in the WeightType map.
 		this->resource.mWeight[name] = 0;
 		this->resource.mWeightSize++;
@@ -100,7 +100,7 @@ void Builder::addResource(std::string name, std::string type){
 		this->resource.mBoolSize++;
 	} else {
 		//If the type is unknow the program exit.
-		std::cout << "Unrecognizable type\n Exiting...\n";
+		std::cout << "Builder -> Unrecognizable type\nExiting...\n";
 		exit(0);
 	}
 }
@@ -201,7 +201,7 @@ void Builder::listResources() {
 		}
 	}
 	if (this->resource.mWeightSize) {
-		std::cout << "Float/Double Resources\n";
+		std::cout << "Float/float Resources\n";
 		for (auto it : this->resource.mWeight) {
 			std::cout << "\t" << it.first << " : " << it.second << "\n";
 		}
@@ -281,7 +281,7 @@ void Builder::parserHosts(JSON::jsonGenericType* dataHost) {
 				if (host->getResource()->mInt.count(name) > 0) {
 					host->setResource(name, alt.value.GetInt());
 				} else {
-					host->setResource(name, alt.value.GetDouble());
+					host->setResource(name, alt.value.GetFloat());
 				}
 			} else if (alt.value.IsBool()) {
 				host->setResource(name, alt.value.GetBool());

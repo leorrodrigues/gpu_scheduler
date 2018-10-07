@@ -11,8 +11,8 @@
 #include "config.h"
 #endif
 
-#include <amqp_tcp_socket.h>
-#include <amqp.h>
+#include "../thirdparty/rabbitmq-c/include/amqp_tcp_socket.h"
+#include "../thirdparty/rabbitmq-c/include/amqp.h"
 
 #include "common.hpp"
 #include "utils.hpp"

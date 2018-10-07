@@ -35,8 +35,8 @@
 
 #include <stdint.h>
 
-#include <amqp.h>
-#include <amqp_framing.h>
+#include "../thirdparty/rabbitmq-c/include/amqp.h"
+#include "../thirdparty/rabbitmq-c/include/amqp_framing.h"
 
 extern const char *amqp_server_exception_string(amqp_rpc_reply_t r);
 extern const char *amqp_rpc_reply_string(amqp_rpc_reply_t r);

@@ -44,7 +44,7 @@ int main(int argc, char **argv){
 		builder->parser(argv[1]);
 		//pF=std::chrono::steady_clock::now();
 	}else{
-		builder->parser("datacenter/json/fat_tree/16.json");
+		builder->parser("datacenter/json/fat_tree/4.json");
 	}
 	//std::cout<<"Setting AHP\n";
 	//*/
