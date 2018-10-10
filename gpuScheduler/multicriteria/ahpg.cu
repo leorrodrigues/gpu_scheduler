@@ -632,6 +632,7 @@ void AHPG::acquisitionG() {
 	index.push_back(0);
 	int totalResources=0;
 	//Iterate through all the alternatives and get their resources.
+	std::cout<<"OI1\n";
 	for(auto it = alt.begin(); it !=alt.end(); it++) {
 		auto resource = (*it)->getResource();
 		for(auto const& elem : resource->mInt) {
@@ -662,10 +663,14 @@ void AHPG::acquisitionG() {
 			totalResources++;
 		}
 	}
+	std::cout<<"OI2\n";
+
 	totalResources/=alt.size();
-	int resourcesSize = alt.size()*alt.size()*totalResources;
+	long int resourcesSize = alt.size()*alt.size()*totalResources;
 	// totalResources=data.size()/(alt.size()*2);
+	std::cout<<"ACHEI "<<resourcesSize<<"\n";
 	std::vector<float> c_result(resourcesSize);
+	std::cout<<"ACHEI2\n";
 	//All the host data are allocated
 	//h_resources
 	//Creating the device variables
@@ -677,10 +682,13 @@ void AHPG::acquisitionG() {
 	//Alocate the device memory
 	//Copy the host variables to device variables
 	d_data.set(&data.c_str()[0],dataBytes);
-
+	std::cout<<"OI3\n";
 	d_types.set(&type[0],sizeof(int)*type.size());
+	std::cout<<"OI4\n";
 	d_index.set(&index[0],sizeof(int)*index.size());
+	std::cout<<"OI5\n";
 	d_resources.set(&h_resources[0], sizeof(float)*h_resources.size());
+	std::cout<<"OI6\n";
 	//cudaMalloc(d_size, alt.size(), sizeof(int), cudaMemcpyHostToDevice);
 	//cudaMalloc(d_sizeCrit, totalResources, sizeof(int), cudaMemcpyHostToDevice);
 
@@ -737,8 +745,10 @@ void AHPG::synthesisG() {
 	// 2 - Normalize the matrix
 	buildNormalizedmatrixG(this->hierarchy->getFocus());
 	// printNormalizedMatrix(this->hierarchy->getFocus());
+	deleteMatrixG(this->hierarchy->getFocus());
 	// 3 - calculate the PML
 	buildPmlG(this->hierarchy->getFocus());
+	deleteNormalizedMatrixG(this->hierarchy->getFocus());
 	// printPml(this->hierarchy->getFocus());
 	// 4 - calculate the PG
 	buildPgG(this->hierarchy->getFocus());
@@ -776,7 +786,7 @@ void AHPG::run(std::vector<Host *> alternatives) {
 	}
 	this->acquisitionG();
 	this->synthesisG();
-	this->consistencyG();
+	// this->consistencyG();
 }
 
 std::map<std::string, int> AHPG::getResult() {
