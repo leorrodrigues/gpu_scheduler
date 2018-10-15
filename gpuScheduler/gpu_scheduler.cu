@@ -6,16 +6,19 @@
 #include "builder.cuh"
 
 int main(int argc, char **argv){
-	//Comunicator *conn = new Comunicator();
-	//conn->setup();
-	//if(argc==2) {
-	//	conn->getNTasks(atoi(argv[1]));
-	//	Container *c = new Container();
-	//}
-	//const char* task=conn->getNextTask();
-	//Container *c = new Container();
-	//c->setTask(task);
-	// for(int i=0; i<10; i++) {
+	Comunicator *conn = new Comunicator();
+	conn->setup();
+	// if(argc==2) {
+	// conn->getNTasks(atoi(argv[1]));
+	// Container *c = new Container();
+	const char* task=conn->getNextTask();
+	// }
+	Container *c = new Container();
+	c->setTask(task);
+
+	std::cout<<"Container created\n";
+	std::cout<<*c<<"\n";
+	// for(int i=0; i<100000; i++) {
 	//      std::cout<<"Getting message "<<i<<"\n";
 	//      auto taskStr = conn->getMessage();
 	//      if(taskStr=="") {
@@ -24,13 +27,12 @@ int main(int argc, char **argv){
 	//              continue;
 	//      }
 	//      std::cout<<taskStr<<"\n-------\n";
-	//      conn->sendAck();
 	//      std::cout<<"Ack sent\n";
 	// }
 
 	//std::cout<<"Starting...\n";
 	// std::chrono::steady_clock::time_point pI, pF;
-	std::chrono::steady_clock::time_point mI,mF;
+	// std::chrono::steady_clock::time_point mI,mF;
 	//std::chrono::steady_clock::time_point cI,cF;
 	//std::chrono::steady_clock::time_pointcrI,crF;
 	// std::chrono::steady_clock::time_point mrI,mrF;
@@ -38,62 +40,62 @@ int main(int argc, char **argv){
 
 	Builder *builder= new Builder();
 	//std::cout<<"Parsing...\n";
-	if(argc==2) {
-		//std::cout<<argv[1];
-		//pI=std::chrono::steady_clock::now();
-		builder->parser(argv[1]);
-		//pF=std::chrono::steady_clock::now();
-	}else{
-		builder->parser("datacenter/json/fat_tree/4.json");
-	}
+	// if(argc==2) {
+	//std::cout<<argv[1];
+	//pI=std::chrono::steady_clock::now();
+	// builder->parser(argv[1]);
+	//pF=std::chrono::steady_clock::now();
+	// }else{
+	builder->parser("datacenter/json/fat_tree/20.json");
+	// }
 	//std::cout<<"Setting AHP\n";
 	//
 	builder->setAHPG();
 	//std::cout<<"Setting MCL\n";
-	//builder->setMCL();
+	// builder->setMCL();
 	//builder->getTopology()->listTopology();
 	//builder->setBcube(2,2);
 	//builder->printTopologyType();
 	//builder->setDcell(2,2);
 	//builder->printTopologyType();
 
-	if(builder->getHosts().size()>0) {
-		//aI=std::chrono::steady_clock::now();
-		//std::cout<<"Running MCL\n";
-		//cI=std::chrono::steady_clock::now();
+	// if(builder->getHosts().size()>0) {
+	//aI=std::chrono::steady_clock::now();
+	//std::cout<<"Running MCL\n";
+	//cI=std::chrono::steady_clock::now();
+	// std::cout<<"Running clustering...\n";
+	// builder->runClustering(builder->getHosts());
 
-		//	builder->runClustering(builder->getHosts());
+	//cF=std::chrono::steady_clock::now();
+	//std::cout<<"Get MCL results\n";
+	//crI=std::chrono::steady_clock::now();
+	// std::cout<<"Getting clustering answer...\n";
+	// builder->getClusteringResult();
 
-		//cF=std::chrono::steady_clock::now();
-		//std::cout<<"Get MCL results\n";
-		//crI=std::chrono::steady_clock::now();
+	//crF=std::chrono::steady_clock::now();
+	//std::cout<<"Running AHP\n";
+	// mI=std::chrono::steady_clock::now();
 
-		//builder->getClusteringResult();
+	//builder->runMulticriteria( builder->getClusterHosts() );
+	builder->runMulticriteria(builder->getHosts());
+	// mF=std::chrono::steady_clock::now();
+	//std::cout<<"Getting AHP results\n";
+	//builder->listCluster();
+	//mrI=std::chrono::steady_clock::now();
 
-		//crF=std::chrono::steady_clock::now();
-		//std::cout<<"Running AHP\n";
-		mI=std::chrono::steady_clock::now();
+	auto results=builder->getMulcriteriaResult();
 
-		//builder->runMulticriteria( builder->getClusterHosts() );
-		builder->runMulticriteria(builder->getHosts());
-		mF=std::chrono::steady_clock::now();
-		//std::cout<<"Getting AHP results\n";
-		//builder->listCluster();
-		//mrI=std::chrono::steady_clock::now();
-
-		//auto results=builder->getMulcriteriaResult();
-
-		//aF=std::chrono::steady_clock::now();
-		//mrF=std::chrono::steady_clock::now();
-		//for(auto it: results) {
-		//	std::cout<<it.first<<" "<<it.second<<"\n";
-		//}
-	}else{
-		std::cout<<"Alternatives with 0 size\n";
+	//aF=std::chrono::steady_clock::now();
+	//mrF=std::chrono::steady_clock::now();
+	for(auto it: results) {
+		std::cout<<it.first<<" "<<it.second<<"\n";
 	}
+	// }else{
+	//      std::cout<<"Alternatives with 0 size\n";
+	// }
 	//std::cout<<"End\n";
 	//std::chrono::duration<double> parser_span = std::chrono::duration_cast<std::chrono::duration<double> >(pF - pI);
-	std::chrono::duration<double> multicriteria_span = std::chrono::duration_cast<std::chrono::duration<double> >(mF - mI);
+	// std::chrono::duration<double> multicriteria_span = std::chrono::duration_cast<std::chrono::duration<double> >(mF - mI);
 	//std::chrono::duration<double> cluster_span = std::chrono::duration_cast<std::chrono::duration<double> >(cF - cI);
 	//std::chrono::duration<double> cluster_get_span = std::chrono::duration_cast<std::chrono::duration<double> >(crF - crI);
 	//std::chrono::duration<double> multicriteria_get_span = std::chrono::duration_cast<std::chrono::duration<double> >(mrF - mrI);
@@ -101,7 +103,7 @@ int main(int argc, char **argv){
 
 	//std::cout << "Parser: " << parser_span.count() << " seconds.\n";
 	//std::cout << "Cluster: " << cluster_span.count() << " seconds.\n";
-	std::cout << "Multicriteria: " << multicriteria_span.count() << " seconds.\n";
+	// std::cout << "Multicriteria: " << multicriteria_span.count() << " seconds.\n";
 	//std::cout << "Cluster Resource: " << cluster_get_span.count() << " seconds.\n";
 	//std::cout << "Multicriteria Resource: " << multicriteria_get_span.count() << " seconds.\n";
 	//std::cout << "All: " << all_span.count() << " seconds.\n"; */

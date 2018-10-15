@@ -73,9 +73,7 @@ void set(const T* src, size_t size)
 // get
 void get(T* dest, size_t size)
 {
-	printf("INIT\n");
 	size_t min = std::min(size, getSize());
-	printf("WHAT?\n");
 	checkCuda(cudaMemcpy(dest, start_, min * sizeof(T), cudaMemcpyDeviceToHost));
 }
 

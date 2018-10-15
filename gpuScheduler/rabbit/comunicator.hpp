@@ -30,6 +30,7 @@ amqp_bytes_t queueName;
 
 int channel;
 
+public:
 
 const char* getMessage(int no_ack = 0) {
 	int count=1, prefetch_count=1, local = 0, exclusive = 0;
@@ -70,9 +71,6 @@ const char* getMessage(int no_ack = 0) {
 
 	amqp_destroy_envelope(&envelope);
 	return body;
-
-
-
 }
 
 /* Convert a amqp_bytes_t to an escaped string form for printing.  We use the same escaping conventions as rabbitmqctl. */
@@ -129,6 +127,7 @@ void setup(const char *queue = "test_scheduler", const char *exchange = "amq.dir
 	amqp_queue_declare_ok_t *res = amqp_queue_declare(this->conn, channel, queue_bytes, passive, durable, exclusive, autoDelete, amqp_empty_table);
 	assert(res!= NULL);
 	if (!res) {
+		printf("MERDA\n");
 		die_rpc(amqp_get_rpc_reply(conn), "queue.declare");
 	}
 

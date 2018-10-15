@@ -54,13 +54,13 @@ std::map<std::string,int> Builder::getMulcriteriaResult(){
 void Builder::getClusteringResult(){
 	//std::map<int,Host*> groups= this->clusteringMethod->getResult(this->topology,this->hosts);
 	this->clusterHosts =  this->clusteringMethod->getResult(this->topology,this->hosts);
-	/*for(auto it: clusterHosts) {
-	        std::cout<<it->getName()<<"\n";
-	        Resource* r=it->getResource();
-	        for(auto a: r->mWeight) {
-	                std::cout<<"\t"<<a.first<<" "<<a.second<<"\n";
-	        }
-	   }*/
+	for(auto it: clusterHosts) {
+		std::cout<<it->getName()<<"\n";
+		Resource* r=it->getResource();
+		for(auto a: r->mWeight) {
+			std::cout<<"\t"<<a.first<<" "<<a.second<<"\n";
+		}
+	}
 	//have to set the hosts group in the Clustering vector to use in Multicriteria.
 
 }

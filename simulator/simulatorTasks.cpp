@@ -8,10 +8,10 @@ int main(int argc,char **argv){
 	conn->setupConnection();
 	std::cout<<"Connected to RabbitMq\n";
 	reader->openDocument();
-	for(int i=0; i<10000; i++) {
-		auto a= reader->getNextTask();
-		std::cout<<a<<"\n-----\n";
-		conn->sendMessage(a);
+	std::string message;
+	while((message=reader->getNextTask())!="eof") {
+		//std::cout<<a<<"\n-----\n";
+		conn->sendMessage(message);
 	}
 	conn->closeConnection();
 	return 0;

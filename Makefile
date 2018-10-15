@@ -39,7 +39,20 @@ endif
 #cpp
 SO_NAME:= $(shell cat /etc/os-release | grep "ID=" | egrep -v "*_ID_*" | cut -c4-20)
 
-RABBIT_LIBS_PATH := gpuScheduler/thirdparty/rabbitmq-c/lib64
+LIBS_PATH :=;
+
+ifeq ($(SO_NAME),arch)
+	RABBIT_LIBS_PATH := gpuScheduler/thirdparty/rabbitmq-c/lib64
+endif
+
+ifeq ($(SO_NAME),linuxmint)
+	RABBIT_LIBS_PATH := gpuScheduler/thirdparty/rabbitmq-c/lib64
+endif
+
+ifeq ($(SO_NAME),ubuntu)
+	RABBIT_LIBS_PATH := /usr/lib
+endif
+
 
 CXXFLAGS = $(DEBUG_CXX) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -L$(RABBIT_LIBS_PATH) -lrabbitmq -Ofast
 

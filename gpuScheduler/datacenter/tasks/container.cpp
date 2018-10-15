@@ -19,7 +19,6 @@ Container::Container(){
 void Container::setTask(const char* taskMessage){
 	std::string::size_type sz;
 	std::string taskStr (taskMessage);
-	std::cout<<"CONTAINER:\n"<<taskStr<<"----\n";
 	std::regex durationRegex ("duration\":(\\s*)(.*),");
 	std::regex linkRegex ("links\":(\\s*)[(.*)],");
 	std::regex epc_minRegex ("epc_min\":(\\s*)(.*),");
@@ -43,12 +42,10 @@ void Container::setTask(const char* taskMessage){
 
 	//EPC_MIN
 	std::regex_search (taskStr, sm, epc_minRegex);
-	std::cout<<sm[2].str()<<"\n";
 	this->containerResources->epc_min = std::stod(sm[2].str(),&sz);
 
 	//EPC_MAX
 	std::regex_search (taskStr, sm, epc_maxRegex);
-	std::cout<<sm[2].str()<<"\n";
 	this->containerResources->epc_max = std::stod(sm[2].str(),&sz);
 
 	//RAM_MIN
@@ -64,6 +61,10 @@ void Container::setTask(const char* taskMessage){
 	this->containerResources->vcpu_min = std::stod(sm[2].str(),&sz);
 
 	//VCPU_MAX
+	std::regex_search (taskStr, sm, vcpu_maxRegex);
+	this->containerResources->vcpu_max = std::stod(sm[2].str(),&sz);
+
+	//POD
 	std::regex_search (taskStr, sm, podRegex);
 	this->containerResources->pod = std::stoi(sm[2].str(),&sz);
 
@@ -94,4 +95,26 @@ int Container::getId(){
 
 double Container::getSubmission(){
 	return this->submission;
+}
+
+std::ostream& operator<<(std::ostream& os, const Container& c)  {
+	os<<"Container:{\n";
+	os<<"\tID: "<<c.id<<"\n";
+	os<<"\tSubmission: "<<c.submission<<"\n";
+
+	os<<"\tDuration: "<<c.duration<<"\n";
+	os<<"\tLinks: ";
+	c.links==NULL ? os<<"None\n" : os<<"Some\n";
+
+	os<<"\tresources list:{\n";
+
+	os<<"\t\tpod: "<<c.containerResources->pod<<"\n";
+	os<<"\t\tname: "<<c.containerResources->name<<"\n";
+	os<<"\t\tepc min: "<<c.containerResources->epc_min<<"; epc_max: "<<c.containerResources->epc_max<<"\n";
+	os<<"\t\tram min: "<<c.containerResources->ram_min<<"; ram_max: "<<c.containerResources->ram_max<<"\n";
+	os<<"\t\tvcpu min: "<<c.containerResources->vcpu_min<<"; vcpu_max: "<<c.containerResources->vcpu_max<<"\n";
+
+	os<<"\t}\n";
+	os<<"}\n";
+	return os;
 }

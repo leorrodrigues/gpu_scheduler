@@ -6,7 +6,7 @@
 
 #include "clustering/mclInterface.cuh"
 
-// #include "rabbit/comunicator.hpp"
+#include "rabbit/comunicator.hpp"
 
 #include "datacenter/tasks/container.hpp"
 

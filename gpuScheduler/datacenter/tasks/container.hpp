@@ -14,6 +14,7 @@ double submission;
 
 typedef struct container_resources_t : public task_resource_t {
 	int pod;
+	int name;
 	double epc_min;
 	double epc_max;
 	double ram_min;
@@ -34,6 +35,8 @@ container_resources_t* getResource();
 double getDuration();
 int getId();
 double getSubmission();
+
+friend std::ostream& operator<<(std::ostream& os, Container const& c);
 
 };
 

@@ -13,7 +13,7 @@ Reader(){
 	index = 0;
 }
 
-void openDocument(const char* taskDataPath="json/requestDataDefault.json",const char* taskSchemaPath="json/requestSchema.json"){
+void openDocument(const char* taskDataPath="json/new/data-0-epc.json",const char* taskSchemaPath="json/requestSchema.json"){
 	rapidjson::SchemaDocument taskSchema =
 		JSON::generateSchema(taskSchemaPath);
 	JSON::jsonGenericDocument* taskData =                                       JSON::generateDocument(taskDataPath);
