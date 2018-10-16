@@ -786,10 +786,10 @@ std::map<std::string, int> AHPG::getResult() {
 	for (int i = 0; i < this->hierarchy->getAlternativesCount(); i++) {
 		alternativesPair.push_back(std::make_pair(i, values[i]));
 	}
-	std::sort(alternativesPair.begin(), alternativesPair.end(),
-	          [](auto &left, auto &right) {
-		return left.second > right.second;
-	});
+	// std::sort(alternativesPair.begin(), alternativesPair.end(),
+	//           [](auto &left, auto &right) {
+	//      return left.second > right.second;
+	// });
 	VariablesType name;
 	auto alternatives = this->hierarchy->getAlternatives();
 	for (unsigned int i = 0; i < (unsigned int)alternativesPair.size(); i++) {

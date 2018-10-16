@@ -67,7 +67,7 @@ void runClustering(std::vector<Host*> alt);
 void listResources();
 void listCluster();
 void parser(
-	const char* hostsDataPath = "datacenter/json/fat_tree/16.json",
+	const char* hostsDataPath = "datacenter/json/fat_tree/20.json",
 	const char* resourceDataPath = "datacenter/json/resourcesData.json",
 	const char* hostsSchemaPath = "datacenter/json/hostsSchema.json",
 	const char* resourceSchemaPath = "datacenter/json/resourcesSchema.json"

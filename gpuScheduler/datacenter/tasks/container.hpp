@@ -36,7 +36,9 @@ double getDuration();
 int getId();
 double getSubmission();
 
-friend std::ostream& operator<<(std::ostream& os, Container const& c);
+void decreaseDuration(int);
+
+friend std::ostream& operator<<(std::ostream&, Container const&);
 
 };
 

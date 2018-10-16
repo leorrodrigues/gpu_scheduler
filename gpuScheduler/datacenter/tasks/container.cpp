@@ -89,6 +89,10 @@ double Container::getDuration(){
 	return this->duration;
 }
 
+void Container::decreaseDuration(int reduce){
+	this->duration-=reduce;
+}
+
 int Container::getId(){
 	return this->id;
 }

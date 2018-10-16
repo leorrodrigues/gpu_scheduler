@@ -27,7 +27,7 @@ private:
 struct amqp_connection_info *connInfo;
 amqp_connection_state_t conn;
 amqp_bytes_t queueName;
-
+amqp_queue_declare_ok_t* res;
 int channel;
 
 public:
@@ -50,7 +50,6 @@ const char* getMessage(int no_ack = 0) {
 			}
 		}
 	}
-
 
 	amqp_basic_consume_ok_t *result = amqp_basic_consume(this->conn, this->channel, this->queueName, amqp_empty_bytes, local, no_ack, exclusive, amqp_empty_table);
 	assert(result != NULL);
@@ -109,7 +108,7 @@ Comunicator(const char* user = "guest", const char* password = "guest", const ch
 	this->channel=0;
 }
 
-void setup(const char *queue = "test_scheduler", const char *exchange = "amq.direct", const char *routing_key = "task", int declare = 0, int exclusive = 0, int durable = 1, int passive = 1, int autoDelete = 0, int channel = 1) {
+void setup(const char *queue = "test_scheduler", const char *exchange = "amq.direct", const char *routing_key = "task", int declare = 0, int exclusive = 0, int durable = 1, int passive = 0, int autoDelete = 0, int channel = 1) {
 	amqp_bytes_t queue_bytes = cstring_bytes(queue);
 
 	char *routing_key_rest;
@@ -160,6 +159,7 @@ void setup(const char *queue = "test_scheduler", const char *exchange = "amq.dir
 	}
 	this->channel=channel;
 	this->queueName=queue_bytes;
+	this->res=res;
 }
 
 void closeConnection() {
@@ -178,6 +178,10 @@ inline void getNTasks(int n){
 		if(message!="") std::cout<<message<<"\n------\n";
 		else i--;
 	}
+}
+
+inline int getQueueSize(){
+	return this->res->message_count;
 }
 
 };
