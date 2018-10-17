@@ -35,7 +35,6 @@ void Container::setTask(const char* taskMessage){
 	//Duration
 	std::regex_search (taskStr, sm,durationRegex);
 	this->duration = std::stod(sm[2].str(),&sz);
-
 	//Links
 	std::regex_search (taskStr, sm,linkRegex);
 	//TODO links constuctor

@@ -52,7 +52,7 @@ void synthesis();
 void consistency();
 void run(std::vector<Host*> host={});
 
-std::map<std::string,int> getResult();
+std::map<int,std::string> getResult();
 
 void setAlternatives(std::vector<Host*>);
 };

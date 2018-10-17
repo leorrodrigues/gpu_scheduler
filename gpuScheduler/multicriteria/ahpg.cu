@@ -755,32 +755,44 @@ void AHPG::consistencyG() {
 // void AHPG::run(std::vector<Hierarchy<VariablesType,WeightType>::Alternative*>
 // alt){
 void AHPG::run(std::vector<Host *> alternatives) {
+	std::cout<<"Init AHPG\n";
 	if (alternatives.size() == 0) {
 		this->conceptionG(true);
-	} else {
+	} else if(this->hierarchy->checkEmpty()) {
+		std::cout<<"Else\n";
 		Resource *resource = alternatives[0]->getResource();
+		std::cout<<"MINT\n";
 		for (auto it : resource->mInt) {
 			this->hierarchy->addResource(it.first, "int");
 		}
+		std::cout<<"Weight\n";
 		for (auto it : resource->mWeight) {
 			this->hierarchy->addResource(it.first, "float");
 		}
+		std::cout<<"String\n";
 		for (auto it : resource->mString) {
 			this->hierarchy->addResource(it.first, "string");
 		}
+		std::cout<<"Bool\n";
 		for (auto it : resource->mBool) {
 			this->hierarchy->addResource(it.first, "bool");
 		}
+		std::cout<<"Conception\n";
 		this->conceptionG(false);
+		std::cout<<"Set Alternatives\n";
 		this->setAlternatives(alternatives);
+		std::cout<<"DONE\n";
 	}
+	std::cout<<"Acquisition\n";
 	this->acquisitionG();
+	std::cout<<"Synthesis\n";
 	this->synthesisG();
+	std::cout<<"Finished\n";
 	// this->consistencyG();
 }
 
-std::map<std::string, int> AHPG::getResult() {
-	std::map<std::string, int> result;
+std::map<int, std::string> AHPG::getResult() {
+	std::map<int, std::string> result;
 	WeightType *values = this->hierarchy->getFocus()->getPg();
 	std::vector<std::pair<int, WeightType> > alternativesPair;
 	for (int i = 0; i < this->hierarchy->getAlternativesCount(); i++) {
@@ -794,7 +806,7 @@ std::map<std::string, int> AHPG::getResult() {
 	auto alternatives = this->hierarchy->getAlternatives();
 	for (unsigned int i = 0; i < (unsigned int)alternativesPair.size(); i++) {
 		name = alternatives[alternativesPair[i].first]->getName();
-		result[name] = i + 1;
+		result[i+1] = name;
 	}
 	return result;
 }

@@ -6,19 +6,25 @@
 #include "builder.cuh"
 #include "thirdparty/clara.hpp"
 
-namespace Allocation_Type {
+#include "allocator/naive.hpp"
+#include "allocator/data.hpp"
+#include "allocator/free.hpp"
+#include "allocator/all.hpp"
+
+namespace Allocation_t {
 enum {
 	NAIVE, DATA, ALL
 };
 }
 
 typedef struct {
-	int time=0;
+	int time=6580;
 	int total_containers=0;
 	int total_refused=0;
 	int total_accepted=0;
 	std::vector<Container*> containers;
-	int type=Allocation_Type::NAIVE;
+	std::map<int,std::string> allocated_task;
+	int allocation_type=Allocation_t::NAIVE;
 } scheduler_t;
 
 void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler){
@@ -68,11 +74,11 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler){
 		exit(0);
 	}
 	if( type=="naive") {
-		scheduler->type=Allocation_Type::NAIVE;
+		scheduler->allocation_type=Allocation_t::NAIVE;
 	}else if(type=="data") {
-		scheduler->type=Allocation_Type::DATA;
+		scheduler->allocation_type=Allocation_t::DATA;
 	}else if(type=="all") {
-		scheduler->type=Allocation_Type::ALL;
+		scheduler->allocation_type=Allocation_t::ALL;
 	}else{
 		std::cerr << "Invalid allocation type\n";
 		exit(0);
@@ -83,20 +89,80 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler){
 }
 
 inline void update_lifetime(scheduler_t* scheduler){
-	std::for_each(scheduler->containers.begin(),  scheduler->containers.end(), [] (Container* c) mutable {
-		printf("Before %d\n",c->getDuration());
+	// for(Container *c : scheduler->containers) {
+	for(Container* c : scheduler->containers) {
 		c->decreaseDuration(1);
-		printf("After %d\n",c->getDuration());
-	});
+	}
 }
 
-inline void update_scheduler(scheduler_t* scheduler){
+inline void update_scheduler(scheduler_t* scheduler, bool allocation_success){
 	scheduler->time++;
 	scheduler->total_containers++;
+	allocation_success == true ? scheduler->total_accepted++ : scheduler->total_refused++;
 	if(scheduler->total_refused+scheduler->total_accepted!=scheduler->total_containers) {
 		std::cerr << "Erro in containers total check\n";
 		exit(1);
 	}
+}
+
+inline void delete_tasks(scheduler_t* scheduler, Builder* builder){
+	bool free_success=false;
+	std::cout<<"######################################\n";
+
+	std::cout << " Delete Task QUEUE SIZE " << scheduler->containers.size()<<" \n";
+	for(std::vector<Container*>::iterator it=scheduler->containers.begin(); it!=scheduler->containers.end();) {
+		// std::cout<<"new container test\n";
+		if((*it)->getDuration()+(*it)->getSubmission()==scheduler->time) {
+
+			std::cout << "Container "<< (*it)->getId() << " = "<< (*it)->getDuration() << " " << (*it)->getSubmission()<<"\n";
+			// Before remove the container, free the consumed space in the Data Center
+			free_success=Allocator::freeHostResource(
+				/* the specific host that have the container*/
+				builder->getHost(scheduler->allocated_task[(*it)->getId()]),
+				/*The container to be removed*/
+				(*it)
+				);
+			if(!free_success) {
+				std::cerr << "Error in free the task " << (*it)->getId() << " from the data center\n";
+				exit(1);
+			}
+			//Search the container C in the vector and removes it
+			scheduler->containers.erase(std::remove(scheduler->containers.begin(), scheduler->containers.end(), (*it)), scheduler->containers.end());
+			scheduler->allocated_task.erase((*it)->getId());
+		} else it++;
+	}
+	std::cout<<"######################################\n";
+
+	std::cout << "Deleted Complete\n";
+}
+
+
+inline void allocate_tasks(scheduler_t* scheduler, Builder* builder){
+	std::cout << "Try to allocate\n";
+	bool allocation_success=false;
+	// Check the task submission
+	for(Container *c : scheduler->containers) {
+		if( scheduler->time == (int)c->getSubmission()) {
+			// allocate the new task in the data center.
+			if(scheduler->allocation_type==Allocation_t::NAIVE) {
+				allocation_success=Allocator::naive(builder,c, scheduler->allocated_task);
+			}else if(scheduler->allocation_type==Allocation_t::DATA) {
+				allocation_success=Allocator::data();
+			}else if(scheduler->allocation_type==Allocation_t::ALL) {
+				allocation_success=Allocator::all();
+			}
+			else{
+				std::cerr << "Invalid type\n";
+			}
+			if(!allocation_success) {
+				std::cerr << "Error in allocate\n";
+				exit(3);
+			}else{
+				std::cerr << "ALLOCATED! "<<scheduler->allocated_task[0]<<"##\n";
+			}
+		}
+	}
+	update_scheduler(scheduler, allocation_success);
 }
 
 int main(int argc, char **argv){
@@ -110,25 +176,25 @@ int main(int argc, char **argv){
 	Builder *builder= new Builder();
 	setup(argc,argv,builder,scheduler);
 
-
-	// if(argc==2) {
-	// conn->getNTasks(atoi(argv[1]));
-	// Container *c = new Container();
-	//const char* task=conn->getNextTask();
-	// }
-	fflush(stdin);
-	while(message_count--) {
-		Container *c = new Container();
-		c->setTask(conn->getNextTask());
-		scheduler->containers.push_back(c);
-		std::cout << *c<<"\n";
-		// reduce all the containers time by 1, when 0, removes it.
-		update_lifetime(scheduler);
-		// allocate the new container in the data center.
-
-		// update the objective functions
+	while(message_count-- || !scheduler->containers.empty()) {
+		fflush(stdin);
+		std::cout<<"Scheduler Time "<< scheduler->time<<"\n";
+		// make sure there is work in the queue
+		if(message_count>0) {
+			Container *c = new Container();
+			c->setTask(conn->getNextTask());
+			scheduler->containers.push_back(c);
+			std::cout << *c << "\n";
+		}
+		// reduce all the tasks time by 1, when 0, removes it.
+		printf("Deleting \n");
+		delete_tasks(scheduler, builder);
+		printf(" Checked\nAllocating\n");
+		allocate_tasks(scheduler, builder);
+		printf(" Checked\nLifetime\n");
+		// update_lifetime(scheduler);
+		printf(" Checked\n");
 		getchar();
-		update_scheduler(scheduler);
 	}
 	// if(builder->getHosts().size()>0) {
 	//aI=std::chrono::steady_clock::now();

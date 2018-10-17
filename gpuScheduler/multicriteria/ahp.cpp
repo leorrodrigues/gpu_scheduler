@@ -586,8 +586,8 @@ void AHP::run(std::vector<Host *> alternatives) {
 	// deleteNormalizedMatrix(this->hierarchy->getFocus());
 }
 
-std::map<std::string, int> AHP::getResult() {
-	std::map<std::string, int> result;
+std::map<int,std::string> AHP::getResult() {
+	std::map<int,std::string> result;
 	WeightType *values = this->hierarchy->getFocus()->getPg();
 	std::vector<std::pair<int, WeightType> > alternativesPair;
 	for (int i = 0; i < this->hierarchy->getAlternativesCount(); i++) {
@@ -601,7 +601,7 @@ std::map<std::string, int> AHP::getResult() {
 	auto alternatives = this->hierarchy->getAlternatives();
 	for (unsigned int i = 0; i < (unsigned int)alternativesPair.size(); i++) {
 		name = alternatives[alternativesPair[i].first]->getName();
-		result[name] = i + 1;
+		result[i+1] = name;
 	}
 	return result;
 }

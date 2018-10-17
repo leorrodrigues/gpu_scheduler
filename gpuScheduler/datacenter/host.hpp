@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 
+#include "tasks/container.hpp"
 #include "resource.hpp"
 
 typedef std::string VariablesType;
@@ -98,6 +99,44 @@ Host& operator+= (Host& rhs){
 			resource->mString[it.first]+=it.second;
 		}
 	}
+	return *this;
+}
+
+Host& operator+= (Resource& rhs){
+	Resource* resource= this->getResource();
+	for(auto it : rhs.mInt) {
+		resource->mInt[it.first]+=it.second;
+	}
+	for(auto it : rhs.mWeight) {
+		resource->mWeight[it.first]+=it.second;
+	}
+	return *this;
+}
+
+Host& operator-= (Resource& rhs){
+	Resource* resource= this->getResource();
+	for(auto it : rhs.mInt) {
+		resource->mInt[it.first]-=it.second;
+	}
+	for(auto it : rhs.mWeight) {
+		resource->mWeight[it.first]-=it.second;
+	}
+	return *this;
+}
+
+Host& operator+= (Container& rhs){
+	Resource* resource= this->getResource();
+
+	resource->mWeight["memory"]+=rhs.containerResources->ram_max;
+	resource->mWeight["vcpu"]+=rhs.containerResources->vcpu_max;
+	return *this;
+}
+
+Host& operator-= (Container& rhs){
+	Resource* resource= this->getResource();
+
+	resource->mWeight["memory"]-=rhs.containerResources->ram_max;
+	resource->mWeight["vcpu"]-=rhs.containerResources->vcpu_max;
 	return *this;
 }
 

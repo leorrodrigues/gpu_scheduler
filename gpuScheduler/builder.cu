@@ -47,7 +47,7 @@ Topology* Builder::getTopology(){
 	return this->topology;
 }
 
-std::map<std::string,int> Builder::getMulcriteriaResult(){
+std::map<int, std::string> Builder::getMulcriteriaResult(){
 	return this->multicriteriaMethod->getResult();
 }
 
@@ -67,6 +67,17 @@ void Builder::getClusteringResult(){
 
 Resource* Builder::getResource(){
 	return &(this->resource);
+}
+
+Host* Builder::getHost(std::string name){
+	std::cout << "Looking for "<<name<<"\n";
+	for(Host* h : this->hosts) {
+		std::cout<<" What is ? "<<h->getName()<<"\n";
+		if(name == h->getName()) {
+			return h;
+		}
+	}
+	return NULL;
 }
 
 std::vector<Host*> Builder::getHosts(){
@@ -175,6 +186,7 @@ void Builder::setDcell(int nHosts,int nLevels){
 }
 
 void Builder::runMulticriteria(std::vector<Host*> alt){
+	std::cout << "UE?\n";
 	if(this->multicriteriaMethod!=NULL)
 		this->multicriteriaMethod->run(alt);
 }
@@ -191,6 +203,14 @@ std::string strLower(std::string s) {
 		return std::tolower(c);
 	});
 	return s;
+}
+
+void Builder::listHosts(){
+	for(Host* host: this->hosts) {
+		std::cout << "Host: "<<host->getName() <<"\n";
+		std::cout<< "VCPU: "<<host->getResource()->mWeight["vcpu"]<<"\n";
+		std::cout<< "RAM: "<<host->getResource()->mWeight["memory"]<<"\n";
+	}
 }
 
 void Builder::listResources() {

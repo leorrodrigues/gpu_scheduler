@@ -41,10 +41,11 @@ Builder();
 Multicriteria* getMulticriteria();
 Clustering* getClustering();
 Topology* getTopology();
-std::map<std::string,int> getMulcriteriaResult();
+std::map<int,std::string> getMulcriteriaResult();
 void getClusteringResult();
 Resource* getResource();
 std::vector<Host*> getHosts();
+Host* getHost(std::string name);
 std::vector<Host*> getClusterHosts();
 
 void printTopologyType();
@@ -64,6 +65,7 @@ void setDcell(int,int);
 void runMulticriteria(std::vector<Host*> alt={});
 void runClustering(std::vector<Host*> alt);
 
+void listHosts();
 void listResources();
 void listCluster();
 void parser(

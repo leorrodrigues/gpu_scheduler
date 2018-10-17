@@ -203,6 +203,9 @@ Hierarchy();
 /*Destructor */
 ~Hierarchy();
 
+//Check if the hierarchy is empty
+bool checkEmpty();
+
 /*Hierarchy creator functions*/
 Focus *addFocus(const VariablesType);
 Criteria *addCriteria(VariablesType);
@@ -277,6 +280,13 @@ Hierarchy<VariablesType, WeightType>::Hierarchy() {
  */
 template <class VariablesType, class WeightType>
 Hierarchy<VariablesType, WeightType>::~Hierarchy() {
+}
+
+template <class VariablesType, class WeightType>
+bool Hierarchy<VariablesType, WeightType>::checkEmpty(){
+	if(this->objective != NULL || resource.mIntSize!=0 || resource.mWeightSize!=0 || resource.mStringSize!=0 || resource.mBoolSize!=0)
+		return false;
+	return true;
 }
 
 /**

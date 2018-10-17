@@ -12,7 +12,7 @@ typedef float WeightType;
 
 class Multicriteria {
 public:
-virtual std::map<std::string,int> getResult()=0;
+virtual std::map<int,std::string> getResult()=0;
 //virtual void run() =0;
 virtual void run(std::vector<Host*> host={}) = 0;
 virtual void setAlternatives(std::vector<Host*>)=0;
