@@ -41,7 +41,7 @@ Builder();
 Multicriteria* getMulticriteria();
 Clustering* getClustering();
 Topology* getTopology();
-std::map<int,std::string> getMulcriteriaResult();
+std::map<int,std::string> getMulticriteriaResult();
 void getClusteringResult();
 Resource* getResource();
 std::vector<Host*> getHosts();

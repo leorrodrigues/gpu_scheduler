@@ -23,13 +23,13 @@ bool naive(Builder* builder,  Container* container, std::map<int,std::string> &a
 	std::cout << "##############################\nTry the allocation\n";
 
 	std::cout << "Running Multicriteria\n";
-	builder->listHosts();
+	// builder->listHosts();
 
 	builder->runMulticriteria( builder->getHosts() );
 
 	std::cout << "Multicriteria OK\n";
 	std::cout << "Getting Results\n";
-	std::map<int,std::string> result = builder->getMulcriteriaResult();
+	std::map<int,std::string> result = builder->getMulticriteriaResult();
 
 	// Para testes
 	std::cout << "Results Found!\nAllocating\n";

@@ -152,7 +152,7 @@ include $(LIST_GPUSCHEDULER_DEP)
 endif
 
 simulator:  .json_s $(LIST_SIMULATOR_OBJ)
-	$(CXX) $(CXXFLAGS) -L$(RABBIT_LIBS_PATH) -lrabbitmq $(BUILD_SIMULATOR)*.o $(COUT) $(SIMULATOR_PATH)simulator.out
+	$(CXX) $(CXXFLAGS) $(BUILD_SIMULATOR)*.o -L$(RABBIT_LIBS_PATH) -lrabbitmq  $(COUT) $(SIMULATOR_PATH)simulator.out
 
 ifeq ($(MAKECMDGOALS),simulator)
 include $(LIST_SIMULATOR_DEP)

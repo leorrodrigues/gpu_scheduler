@@ -6,8 +6,8 @@
 #include <cstring>
 #include <cstdint>
 
-#include <amqp_tcp_socket.h>
-#include <amqp.h>
+#include "thirdparty/rabbitmq-c/include/amqp_tcp_socket.h"
+#include "thirdparty/rabbitmq-c/include/amqp.h"
 #include "utils.hpp"
 
 class Comunicator {

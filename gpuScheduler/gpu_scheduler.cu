@@ -18,7 +18,7 @@ enum {
 }
 
 typedef struct {
-	int time=6580;
+	int time=0;
 	int total_containers=0;
 	int total_refused=0;
 	int total_accepted=0;
@@ -33,7 +33,7 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler){
 	std::string clustering_method = "mcl";
 	std::string type = "naive";
 	int topology_size=10;
-
+	int start_scheduler_time=0;
 	// dont show the help by default. Use `-h or `--help` to enable it.
 	bool showHelp = false;
 	auto cli = clara::detail::Help(showHelp)
@@ -41,7 +41,8 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler){
 	           | clara::detail::Opt( topology_size, "topology size") ["-s"] ["--topology_size"] ("What is the size of the topology? ( default 10 )")
 	           | clara::detail::Opt( multicriteria_method, "multicriteria method") ["-m"]["--multicriteria"] ("What is the multicriteria method? [ ahp | (default) ahpg ]")
 	           | clara::detail::Opt( clustering_method,"clustering method") ["-c"]["--clustering"] ("What is the clustering method? [ (default) mcl ]")
-	           | clara::detail::Opt(  type,"Strategy") ["-a"] ["--strategy"] ("What is the allocation strategy? [ (default) naive | data |  all ]");
+	           | clara::detail::Opt( type,"Strategy") ["-a"] ["--strategy"] ("What is the allocation strategy? [ (default) naive | data |  all ]")
+	           | clara::detail::Opt( start_scheduler_time, "Start Time")["--start_time"]("Start scheduler time");
 	auto result = cli.parse( clara::detail::Args( argc, argv ) );
 	if( !result ) {
 		std::cerr << "Error in command line: " << result.errorMessage() <<std::endl;
@@ -73,6 +74,13 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler){
 		std::cerr << "Invalid clustering method\n";
 		exit(0);
 	}
+	if( start_scheduler_time < 0 ) {
+		std::cerr << "Invalid start scheduler time\n";
+		exit(0);
+	}else{
+		scheduler->time=start_scheduler_time;
+	}
+
 	if( type=="naive") {
 		scheduler->allocation_type=Allocation_t::NAIVE;
 	}else if(type=="data") {
@@ -107,38 +115,52 @@ inline void update_scheduler(scheduler_t* scheduler, bool allocation_success){
 
 inline void delete_tasks(scheduler_t* scheduler, Builder* builder){
 	bool free_success=false;
-	std::cout<<"######################################\n";
+	printf("%s #### %s\n", scheduler->allocated_task[0].c_str(),scheduler->allocated_task[1].c_str());
 
-	std::cout << " Delete Task QUEUE SIZE " << scheduler->containers.size()<<" \n";
 	for(std::vector<Container*>::iterator it=scheduler->containers.begin(); it!=scheduler->containers.end();) {
 		// std::cout<<"new container test\n";
 		if((*it)->getDuration()+(*it)->getSubmission()==scheduler->time) {
+			std::cout<<"######################################\n";
+			std::cout << " Delete Task QUEUE SIZE " << scheduler->containers.size()<<" \n";
 
 			std::cout << "Container "<< (*it)->getId() << " = "<< (*it)->getDuration() << " " << (*it)->getSubmission()<<"\n";
 			// Before remove the container, free the consumed space in the Data Center
+			std::cout<<"Fuck #### " << scheduler->allocated_task[0]<<" FUCK\n";
+			std::cout<<"Fuck #### " << scheduler->allocated_task[1]<<" FUCK\n";
+			if ( scheduler->allocated_task.find(0) == scheduler->allocated_task.end() ) {
+				std::cout<<" DELETADO ESSA POCILGA\n";
+			} else {
+				std::cout<<" POCILGA NAO DELETADO\n";
+			}
+			if ( scheduler->allocated_task.find(1) == scheduler->allocated_task.end() ) {
+				std::cout<<" DELETADO ESSA POCILGA\n";
+			} else {
+				std::cout<<" POCILGA NAO DELETADO\n";
+			}
 			free_success=Allocator::freeHostResource(
 				/* the specific host that have the container*/
 				builder->getHost(scheduler->allocated_task[(*it)->getId()]),
-				/*The container to be removed*/
+				/* The container to be removed*/
 				(*it)
 				);
 			if(!free_success) {
 				std::cerr << "Error in free the task " << (*it)->getId() << " from the data center\n";
 				exit(1);
 			}
-			//Search the container C in the vector and removes it
-			scheduler->containers.erase(std::remove(scheduler->containers.begin(), scheduler->containers.end(), (*it)), scheduler->containers.end());
+			// Search the container C in the vector and removes it
 			scheduler->allocated_task.erase((*it)->getId());
+
+			scheduler->containers.erase(std::remove(scheduler->containers.begin(), scheduler->containers.end(), (*it)), scheduler->containers.end());
+			std::cout<<"######################################\n";
+			std::cout << "Deleted Complete\n";
 		} else it++;
 	}
-	std::cout<<"######################################\n";
 
-	std::cout << "Deleted Complete\n";
 }
 
 
 inline void allocate_tasks(scheduler_t* scheduler, Builder* builder){
-	std::cout << "Try to allocate\n";
+	// std::cout << "Try to allocate\n";
 	bool allocation_success=false;
 	// Check the task submission
 	for(Container *c : scheduler->containers) {
@@ -158,7 +180,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder){
 				std::cerr << "Error in allocate\n";
 				exit(3);
 			}else{
-				std::cerr << "ALLOCATED! "<<scheduler->allocated_task[0]<<"##\n";
+				std::cout << "ALLOCATED! "<<scheduler->allocated_task[c->getId()]<<"##\n";
 			}
 		}
 	}
@@ -177,7 +199,6 @@ int main(int argc, char **argv){
 	setup(argc,argv,builder,scheduler);
 
 	while(message_count-- || !scheduler->containers.empty()) {
-		fflush(stdin);
 		std::cout<<"Scheduler Time "<< scheduler->time<<"\n";
 		// make sure there is work in the queue
 		if(message_count>0) {
@@ -187,14 +208,14 @@ int main(int argc, char **argv){
 			std::cout << *c << "\n";
 		}
 		// reduce all the tasks time by 1, when 0, removes it.
-		printf("Deleting \n");
+		// printf("Deleting \n");
 		delete_tasks(scheduler, builder);
-		printf(" Checked\nAllocating\n");
+		// printf(" Checked\nAllocating\n");
 		allocate_tasks(scheduler, builder);
-		printf(" Checked\nLifetime\n");
+		// printf(" Checked\nLifetime\n");
 		// update_lifetime(scheduler);
 		printf(" Checked\n");
-		getchar();
+		// getchar();
 	}
 	// if(builder->getHosts().size()>0) {
 	//aI=std::chrono::steady_clock::now();

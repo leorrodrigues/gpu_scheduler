@@ -47,7 +47,7 @@ Topology* Builder::getTopology(){
 	return this->topology;
 }
 
-std::map<int, std::string> Builder::getMulcriteriaResult(){
+std::map<int, std::string> Builder::getMulticriteriaResult(){
 	return this->multicriteriaMethod->getResult();
 }
 
@@ -72,11 +72,12 @@ Resource* Builder::getResource(){
 Host* Builder::getHost(std::string name){
 	std::cout << "Looking for "<<name<<"\n";
 	for(Host* h : this->hosts) {
-		std::cout<<" What is ? "<<h->getName()<<"\n";
 		if(name == h->getName()) {
+			std::cout<<" Name Found!\n";
 			return h;
 		}
 	}
+	std::cout<<" Name Not Found!\n";
 	return NULL;
 }
 
@@ -186,7 +187,6 @@ void Builder::setDcell(int nHosts,int nLevels){
 }
 
 void Builder::runMulticriteria(std::vector<Host*> alt){
-	std::cout << "UE?\n";
 	if(this->multicriteriaMethod!=NULL)
 		this->multicriteriaMethod->run(alt);
 }

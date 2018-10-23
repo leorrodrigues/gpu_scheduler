@@ -1,5 +1,7 @@
 #include "ahpg.cuh"
 
+#include <sys/sysinfo.h>
+
 AHPG::AHPG() {
 	this->hierarchy = new Hierarchy<VariablesType, WeightType>();
 	IR[3] = 0.5245;
@@ -563,6 +565,9 @@ void acquisitonGKernel(char * data, int* index,  int* types, float* max_min, flo
 }
 
 void AHPG::acquisitionG() {
+	struct sysinfo init,end;
+	if(sysinfo(&init) != 0)
+		perror("sysinfo");
 	//Get the device info
 	int devID;
 	cudaDeviceProp props;
@@ -618,6 +623,9 @@ void AHPG::acquisitionG() {
 			h_resources[h_resources.size()-1]=1/9.0;
 		}
 	}
+
+	resultValues.clear();
+
 	// At this point, all the integers and float/WeightType resources  has
 	// the max and min values discovered.
 	//Prepare the variables to send to the GPU Kernel.
@@ -683,6 +691,14 @@ void AHPG::acquisitionG() {
 	//cudaMalloc(d_size, alt.size(), sizeof(int), cudaMemcpyHostToDevice);
 	//cudaMalloc(d_sizeCrit, totalResources, sizeof(int), cudaMemcpyHostToDevice);
 
+	//Uma vez os valores copiados para o cuda eles podem ser deletados
+	std::cout<<"Do free in host memory\n";
+	data="";
+	type.clear();
+	type.shrink_to_fit();
+	index.clear();
+	index.shrink_to_fit();
+
 	// setup execution parameters
 	// dim3 threadsPerBlock(2,5);
 	dim3 threadsPerBlock(block_size,block_size);
@@ -692,30 +708,52 @@ void AHPG::acquisitionG() {
 	// printf("BlockSize: %d. Grid : {%d, %d, %d} blocks. Blocks : {%d, %d, %d} threads.\n", block_size,  numBlocks.x, numBlocks.y, numBlocks.z, threadsPerBlock.x, threadsPerBlock.y, threadsPerBlock.z);
 	// acquisitonGKernel<<< grid, threads >>>(d_data.getData(), d_index.getData(), d_types.getData(), d_resources.getData(),d_result.getData(), alt.size(), totalResources);
 
+	std::cout<<"Calling the kernel\n";
 	acquisitonGKernel<<< numBlocks, threadsPerBlock >>>(d_data.getData(), d_index.getData(), d_types.getData(), d_resources.getData(),d_result.getData(), alt.size(), totalResources);
 	cudaDeviceSynchronize();
+	std::cout<<"Getting the result\n";
 	d_result.get(&c_result[0],resourcesSize);
 	cudaDeviceSynchronize();
+	std::cout<<"Do free in Device memory\n";
+	d_data.resize(0);
+	d_types.resize(0);
+	d_index.resize(0);
+	d_resources.resize(0);
+	d_result.resize(0);
 	// std::cout<<"TERMINEI A GPU\n";
 	// for(int i=0; i<resourcesSize; i++) {
 	//      std::cout<<c_result[i]<<" ";
 	// }
 	int i=0;
+	std::cout<<"Making the final result\n";
 	std::vector<std::vector<std::vector<WeightType> > > allWeights;
 	std::vector<std::vector<WeightType> > criteriasWeight;
 	std::vector<WeightType> alternativesWeight;
 	for (int s=0; s<sheets.size(); s++) {
-		criteriasWeight.clear();
 		for (int a=0; a<alt.size(); a++) {
 			alternativesWeight.clear();
+			alternativesWeight.shrink_to_fit();
 			for (int a2=0; a2<alt.size(); a2++) {
-				alternativesWeight.push_back(c_result[i]);
-				i++;
+				alternativesWeight.push_back(c_result[i++]);
 			}
+			std::cout<<"Loop alt "<<i<<"\n";
 			criteriasWeight.push_back(alternativesWeight);
 		}
 		allWeights.push_back(criteriasWeight);
+		criteriasWeight[0].clear();
+		criteriasWeight[0].shrink_to_fit();
+		criteriasWeight.clear();
+		criteriasWeight.shrink_to_fit();
 	}
+	std::cout<<"Bytes C: "<<c_result.size()*sizeof(float)<<"\n";
+	c_result.clear();
+	c_result.shrink_to_fit();
+	std::cout<<"SIZE C: "<<c_result.size()<<"\n";
+	std::cout<<"Making copy to the Edges\n";
+	alternativesWeight.clear();
+	alternativesWeight.shrink_to_fit();
+	criteriasWeight.clear();
+	criteriasWeight.shrink_to_fit();
 	// With all the weights calculated, now the weights are set in each edge
 	// between the sheets and alternatives
 	int aSize = this->hierarchy->getAlternativesCount();
@@ -724,8 +762,20 @@ void AHPG::acquisitionG() {
 		auto edges = sheets[i]->getEdges();
 		for (int j = 0; j < aSize; j++) {
 			edges[j]->setWeights(allWeights[i][j]);
+			allWeights[i][j].clear();
+			allWeights[i][j].shrink_to_fit();
 		}
+		allWeights[i].clear();
+		allWeights[i].shrink_to_fit();
 	}
+
+	allWeights.clear();
+	allWeights.shrink_to_fit();
+	if(sysinfo(&end) != 0)
+		perror("sysinfo");
+
+	printf("USED MEMORY %fG\n",(float)init.freeram*(unsigned long long)init.mem_unit/(float)(1024*1024*1024)-end.freeram*(unsigned long long)init.mem_unit/(float)(1024*1024*1024));
+	exit(0);
 }
 
 void AHPG::synthesisG() {
@@ -755,33 +805,31 @@ void AHPG::consistencyG() {
 // void AHPG::run(std::vector<Hierarchy<VariablesType,WeightType>::Alternative*>
 // alt){
 void AHPG::run(std::vector<Host *> alternatives) {
-	std::cout<<"Init AHPG\n";
+	std::cout<<"Initializing AHPG\n";
+	std::cout<<"Deleting the Hierarchy\n";
+	deleteAlternatives();
+	std::cout<<"Creating the Hierarchy\n";
+	this->hierarchy = new Hierarchy<VariablesType, WeightType>();
+	std::cout<<"Hierarchy Created\n";
 	if (alternatives.size() == 0) {
 		this->conceptionG(true);
+		// } else {
 	} else if(this->hierarchy->checkEmpty()) {
-		std::cout<<"Else\n";
 		Resource *resource = alternatives[0]->getResource();
-		std::cout<<"MINT\n";
 		for (auto it : resource->mInt) {
 			this->hierarchy->addResource(it.first, "int");
 		}
-		std::cout<<"Weight\n";
 		for (auto it : resource->mWeight) {
 			this->hierarchy->addResource(it.first, "float");
 		}
-		std::cout<<"String\n";
 		for (auto it : resource->mString) {
 			this->hierarchy->addResource(it.first, "string");
 		}
-		std::cout<<"Bool\n";
 		for (auto it : resource->mBool) {
 			this->hierarchy->addResource(it.first, "bool");
 		}
-		std::cout<<"Conception\n";
 		this->conceptionG(false);
-		std::cout<<"Set Alternatives\n";
 		this->setAlternatives(alternatives);
-		std::cout<<"DONE\n";
 	}
 	std::cout<<"Acquisition\n";
 	this->acquisitionG();
@@ -798,10 +846,9 @@ std::map<int, std::string> AHPG::getResult() {
 	for (int i = 0; i < this->hierarchy->getAlternativesCount(); i++) {
 		alternativesPair.push_back(std::make_pair(i, values[i]));
 	}
-	// std::sort(alternativesPair.begin(), alternativesPair.end(),
-	//           [](auto &left, auto &right) {
-	//      return left.second > right.second;
-	// });
+	std::sort(alternativesPair.begin(), alternativesPair.end(), [](auto &left, auto &right) {
+		return left.second > right.second;
+	});
 	VariablesType name;
 	auto alternatives = this->hierarchy->getAlternatives();
 	for (unsigned int i = 0; i < (unsigned int)alternativesPair.size(); i++) {
@@ -809,6 +856,14 @@ std::map<int, std::string> AHPG::getResult() {
 		result[i+1] = name;
 	}
 	return result;
+}
+
+void AHPG::deleteAlternatives(){
+	// this->hierarchy->clearSheetsEdges();
+	// auto alt = this->hierarchy->getAlternatives();
+	// for(auto it : alt) {
+	//      delete(it);
+	// }
 }
 
 void AHPG::setAlternatives(std::vector<Host *> alternatives) {

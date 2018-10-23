@@ -110,7 +110,7 @@ friend class Hierarchy;
 public:
 Alternative(Hierarchy<VariablesType, WeightType>::Resource);
 Alternative(Host* a);
-~Alternative();
+// ~Alternative();
 
 void setResource(std::string, int);
 void setResource(std::string, bool);
@@ -280,6 +280,9 @@ Hierarchy<VariablesType, WeightType>::Hierarchy() {
  */
 template <class VariablesType, class WeightType>
 Hierarchy<VariablesType, WeightType>::~Hierarchy() {
+	std::cout<<"DESTRUCTING THE HIERARCHY\n";
+	delete(this->objective);
+	exit(0);
 }
 
 template <class VariablesType, class WeightType>
@@ -869,6 +872,7 @@ Hierarchy<VariablesType, WeightType>::Edge::Edge(Alternative *a, std::vector<Wei
  */
 template <class VariablesType, class WeightType>
 Hierarchy<VariablesType, WeightType>::Edge::~Edge() {
+	std::cout<<"Destructing the Edge\n";
 }
 
 /**
@@ -948,9 +952,12 @@ Hierarchy<VariablesType, WeightType>::Alternative::Alternative(
 /**
     \brief The alternative's destructor.
  */
-template <class VariablesType, class WeightType>
-Hierarchy<VariablesType, WeightType>::Alternative::~Alternative() {
-}
+// template <class VariablesType, class WeightType>
+// Hierarchy<VariablesType, WeightType>::Alternative::~Alternative() {
+//      std::cout<<"Destructing the Alternative";
+//      delete(this->resources.mInt);
+//      // delete(resources);
+// }
 
 /**
     \brief Function to set the int resources.
@@ -1033,6 +1040,12 @@ Hierarchy<VariablesType, WeightType>::Focus::Focus(const VariablesType name) {
  */
 template <class VariablesType, class WeightType>
 Hierarchy<VariablesType, WeightType>::Focus::~Focus() {
+	std::cout<<"Destructing the Focus\n";
+	// delete(this->name);
+	delete(this->matrix);
+	delete(this->normalizedMatrix);
+	delete(this->pg);
+	delete(this->pml);
 }
 
 /*Getters*/
@@ -1166,6 +1179,8 @@ Hierarchy<VariablesType, WeightType>::Criteria::Criteria(const VariablesType nam
  */
 template <class VariablesType, class WeightType>
 Hierarchy<VariablesType, WeightType>::Criteria::~Criteria() {
+	std::cout<<"Destructing the Criteria\n";
+
 }
 
 /*Getters*/
