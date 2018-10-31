@@ -51,16 +51,13 @@ std::map<int, std::string> Builder::getMulticriteriaResult(){
 	return this->multicriteriaMethod->getResult();
 }
 
+int Builder::getClusteringResultSize(){
+	return this->clusteringMethod->getResult(this->topology,this->hosts).size();
+}
+
 void Builder::getClusteringResult(){
 	//std::map<int,Host*> groups= this->clusteringMethod->getResult(this->topology,this->hosts);
 	this->clusterHosts =  this->clusteringMethod->getResult(this->topology,this->hosts);
-	for(auto it: clusterHosts) {
-		std::cout<<it->getName()<<"\n";
-		Resource* r=it->getResource();
-		for(auto a: r->mWeight) {
-			std::cout<<"\t"<<a.first<<" "<<a.second<<"\n";
-		}
-	}
 	//have to set the hosts group in the Clustering vector to use in Multicriteria.
 
 }
@@ -70,14 +67,14 @@ Resource* Builder::getResource(){
 }
 
 Host* Builder::getHost(std::string name){
-	std::cout << "Looking for "<<name<<"\n";
+	// std::cout << "Looking for "<<name<<"\n";
 	for(Host* h : this->hosts) {
 		if(name == h->getName()) {
-			std::cout<<" Name Found!\n";
+			// std::cout<<" Name Found!\n";
 			return h;
 		}
 	}
-	std::cout<<" Name Not Found!\n";
+	// std::cout<<" Name Not Found!\n";
 	return NULL;
 }
 
@@ -87,6 +84,14 @@ std::vector<Host*> Builder::getHosts(){
 
 std::vector<Host*> Builder::getClusterHosts(){
 	return this->clusterHosts;
+}
+
+int Builder::getHostsMedianInGroup(){
+	return this->clusteringMethod->getHostsMedianInGroup();
+}
+
+std::vector<Host*> Builder::getHostsInGroup(int group_index){
+	return this->clusteringMethod->getHostsInGroup(group_index);
 }
 
 void Builder::addResource(std::string name, std::string type){
@@ -129,6 +134,16 @@ void Builder::setMulticriteria(Multicriteria* method){
 	this->multicriteriaMethod=method;
 }
 
+void Builder::printClusterResult(){
+	for(auto it: this->clusterHosts) {
+		std::cout<<it->getName()<<"\n";
+		Resource* r=it->getResource();
+		for(auto a: r->mWeight) {
+			std::cout<<"\t"<<a.first<<" "<<a.second<<"\n";
+		}
+	}
+}
+
 void Builder::printTopologyType(){
 	std::cout<<this->topology->getTopology();
 }
@@ -142,7 +157,6 @@ void Builder::setAHPG(){
 	AHPG *ahpg=new AHPG();
 	this->setMulticriteria(ahpg);
 }
-
 
 void Builder::setClustering(Clustering* method){
 	this->clusteringMethod=method;

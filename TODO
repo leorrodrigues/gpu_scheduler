@@ -1,0 +1,4 @@
+Tirar a conversão de memória do String para STD::vector
+
+Ou seja,
+Fazer direto em String

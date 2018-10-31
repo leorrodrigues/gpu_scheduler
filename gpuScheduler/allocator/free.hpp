@@ -1,3 +1,6 @@
+#ifndef _FREE_ALLOCATION_
+#define _FREE_ALLOCATION_
+
 #include <iostream>
 
 #include "../datacenter/tasks/container.hpp"
@@ -9,8 +12,9 @@ bool freeHostResource(Host* host, Container* container){
 		std::cerr << " Free Host Resource received NULL host\n";
 		exit(2);
 	}
-	std::cout << "Free Host Resource Function\n";
+	// std::cout << "Free Host Resource Function\n";
 	(*host)+=(*container);
 	return true;
 }
 }
+#endif

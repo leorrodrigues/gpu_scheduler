@@ -42,12 +42,16 @@ Multicriteria* getMulticriteria();
 Clustering* getClustering();
 Topology* getTopology();
 std::map<int,std::string> getMulticriteriaResult();
+int getClusteringResultSize();
 void getClusteringResult();
 Resource* getResource();
 std::vector<Host*> getHosts();
 Host* getHost(std::string name);
 std::vector<Host*> getClusterHosts();
+int getHostsMedianInGroup();
+std::vector<Host*> getHostsInGroup(int);
 
+void printClusterResult();
 void printTopologyType();
 //Multicriteria set functions
 void setAHP();

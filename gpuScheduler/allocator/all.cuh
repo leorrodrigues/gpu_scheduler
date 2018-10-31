@@ -1,3 +1,6 @@
+#ifndef _ALL_ALLOCATION_
+#define _ALL_ALLOCATION_
+
 #include <iostream>
 
 #include "../builder.cuh"
@@ -8,3 +11,5 @@ bool all(){
 	return false;
 }
 }
+
+#endif

@@ -64,8 +64,6 @@ void run(std::vector<Host *> host = {});
 
 std::map<int,std::string> getResult();
 
-void deleteAlternatives();
-
 void setAlternatives(std::vector<Host *>);
 /************************************/
 

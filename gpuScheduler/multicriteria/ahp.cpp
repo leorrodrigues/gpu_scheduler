@@ -542,9 +542,11 @@ void AHP::synthesis() {
 	// 2 - Normalize the matrix
 	buildNormalizedmatrix(this->hierarchy->getFocus());
 	// printNormalizedMatrix(this->hierarchy->getFocus());
+	deleteMatrix(this->hierarchy->getFocus());
 	// 3 - calculate the PML
 	buildPml(this->hierarchy->getFocus());
 	// printPml(this->hierarchy->getFocus());
+	deleteNormalizedMatrix(this->hierarchy->getFocus());
 	// 4 - calculate the PG
 	buildPg(this->hierarchy->getFocus());
 	// printPg(this->hierarchy->getFocus());
@@ -560,9 +562,11 @@ void AHP::consistency() {
 // void AHP::run(std::vector<Hierarchy<VariablesType,WeightType>::Alternative*>
 // alt){
 void AHP::run(std::vector<Host *> alternatives) {
+	this->hierarchy = new Hierarchy<VariablesType, WeightType>();
+
 	if (alternatives.size() == 0) {
 		this->conception(true);
-	} else {
+	} else if(this->hierarchy->checkEmpty()) {
 		Resource *resource = alternatives[0]->getResource();
 		for (auto it : resource->mInt) {
 			this->hierarchy->addResource(it.first, "int");
@@ -581,9 +585,7 @@ void AHP::run(std::vector<Host *> alternatives) {
 	}
 	this->acquisition();
 	this->synthesis();
-	this->consistency();
-	// deleteMatrix(this->hierarchy->getFocus());
-	// deleteNormalizedMatrix(this->hierarchy->getFocus());
+	// this->consistency();
 }
 
 std::map<int,std::string> AHP::getResult() {
