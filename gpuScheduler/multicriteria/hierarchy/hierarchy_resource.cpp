@@ -15,6 +15,19 @@ H_Resource::~H_Resource(){
 	free(this->data);
 	this->names=NULL;
 	this->data=NULL;
+	this->data_size=0;
+}
+
+void H_Resource::clear(){
+	int i=0;
+	for(i; i<this->data_size; i++) {
+		free(this->names[i]);
+	}
+	free(this->names);
+	free(this->data);
+	this->names=NULL;
+	this->data=NULL;
+	this->data=0;
 }
 
 void H_Resource::addResource(char* name, float value){

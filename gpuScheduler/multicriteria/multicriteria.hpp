@@ -7,15 +7,12 @@
 #include "../datacenter/host.hpp"
 #include "../json.hpp"
 
-typedef std::string VariablesType;
-typedef float WeightType;
-
 class Multicriteria {
 public:
-virtual std::map<int,std::string> getResult()=0;
+virtual std::map<int, char*> getResult()=0;
 //virtual void run() =0;
-virtual void run(std::vector<Host*> host={}) = 0;
-virtual void setAlternatives(std::vector<Host*>)=0;
+virtual void run(Host** host={}, int size=0) = 0;
+virtual void setAlternatives(Host** host, int size)=0;
 
 };
 

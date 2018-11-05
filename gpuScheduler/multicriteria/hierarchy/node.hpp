@@ -22,6 +22,7 @@ Node();
 ~Node();
 
 void setResource(H_Resource);
+void setResource(char*,float);
 void setName(const char*);
 void setEdges(Edge**);
 void addEdge(Edge*);
@@ -42,6 +43,7 @@ int getSize();
 Edge** getEdges();
 bool getLeaf();
 bool getActive();
+node_t getType();
 float** getMatrix();
 float** getNormalizedMatrix();
 float* getPml();

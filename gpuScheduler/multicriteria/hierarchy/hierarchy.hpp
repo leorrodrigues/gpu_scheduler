@@ -92,6 +92,7 @@ Node *findAlternative(const char*);
 /*Clear Functions*/
 void clearSheetsEdges();
 void clearAlternatives();
+void clearResource();
 
 /*Updating Member Functions*/
 void updateSheetsEdges();

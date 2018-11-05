@@ -47,6 +47,10 @@ void Node::setResource(H_Resource resource) {
 	}
 }
 
+void Node::setResource(char* name, float value){
+	this->resources->addResource( name, value);
+}
+
 void Node::setName(const char* name){
 	// Set the name for the specific node
 	strcpy( this->name, name);
@@ -205,6 +209,10 @@ bool Node::getLeaf(){
 
 bool Node::getActive(){
 	return this->active;
+}
+
+node_t Node::getType(){
+	return this->type;
 }
 
 void Node::clearEdges(){

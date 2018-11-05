@@ -377,6 +377,10 @@ void Hierarchy::clearAlternatives() {
 	clearSheetsEdges();
 }
 
+void Hierarchy::clearResource(){
+	this->resource.clear();
+}
+
 /*Update Functions*/
 
 /**

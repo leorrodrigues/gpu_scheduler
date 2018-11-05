@@ -1,59 +1,73 @@
 #ifndef _AHP_NOT_INCLUDED_
 #define _AHP_NOT_INCLUDED_
 
-#include "hierarchy.hpp"
+#include "hierarchy/hierarchy_resource.hpp"
+#include "hierarchy/hierarchy.hpp"
+#include "hierarchy/node.hpp"
+#include "hierarchy/edge.hpp"
 #include "multicriteria.hpp"
 
-#include <iomanip>
-#include <iterator>
-#include <cmath>
-#include <cstdlib>
-#include <utility>
+#include "../json.hpp"
 
-typedef std::string VariablesType;
-typedef float WeightType;
+#include <iomanip>
+#include <utility>
+#include <cstdlib>
+#include <cstring>
+#include <ctype.h>
+#include <cfloat>
+#include <string>
+#include <cmath>
+
 
 class AHP : public Multicriteria {
 private:
 std::map<int, WeightType> IR;
 
-typedef typename std::vector<
-		Hierarchy<VariablesType, WeightType>::Edge *>::iterator edgeIt;
 
 /*Utility functions*/
 void updateAlternatives();
-template <typename T> void buildMatrix(T *);
-template <typename T> void buildNormalizedmatrix(T *);
-template <typename T> void buildPml(T *);
-template <typename T> void buildPg(T *);
-template <typename T> WeightType partialPg(T *, int);
-template <typename T> void deleteMatrix(T*);
-template <typename T> void deleteNormalizedMatrix(T*);
-template <typename T> void checkConsistency(T *);
+void buildMatrix(Node*);
+void buildNormalizedmatrix(Node*);
+void buildPml(Node*);
+void buildPg(Node*);
+float partialPg(Node*, int);
+void deleteMatrix(Node*);
+void deleteNormalizedMatrix(Node*);
+void checkConsistency(Node*);
 void generateContentSchema();
 
 /*Print functions*/
 /**WARNING If you want to show all calculated data, you have to call the print function before the next synthesis calculus (i.e., edit the synthesis function to print each step before the next).*/
-template <typename T> void printMatrix(T *);
-template <typename T> void printNormalizedMatrix(T *);
-template <typename T> void printPml(T *);
-template <typename T> void printPg(T *);
+void printMatrix(Node*);
+void printNormalizedMatrix(Node*);
+void printPml(Node*);
+void printPg(Node*);
 
 /*Iterate auxiliar function*/
-template <typename F, typename T> void iterateFunc(F, T *);
+template <typename F> void iterateFunc(F, Node*);
 
 public:
-Hierarchy<VariablesType, WeightType> *hierarchy;
+Hierarchy* hierarchy;
 AHP();
+~AHP();
+
+void setHierarchy();
 
 void conception(bool);
 void acquisition();
 void synthesis();
 void consistency();
-void run(std::vector<Host*> host={});
+void run(Host** host={}, int size=0);
 
-std::map<int,std::string> getResult();
+std::map<int, char*> getResult();
 
-void setAlternatives(std::vector<Host*>);
+void setAlternatives(Host** host,int size);
+
+char* strToLower(const char*);
+void resourcesParser(genericValue* dataResource);
+void hierarchyParser(genericValue* dataObjective);
+void criteriasParser(genericValue* dataCriteria, Node* p);
+void alternativesParser(genericValue* dataAlternative);
+void domParser(rapidjson::Document* data);
 };
 #endif

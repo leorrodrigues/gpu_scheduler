@@ -6,6 +6,8 @@
 #include "thirdparty/rapidjson/schema.h"
 #include "thirdparty/rapidjson/filereadstream.h"
 
+typedef rapidjson::GenericMember<rapidjson::UTF8<char>, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> > genericValue;
+
 namespace JSON {
 
 typedef rapidjson::GenericMember<rapidjson::UTF8<char>, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> > jsonGenericType;

@@ -16,6 +16,8 @@ public:
 H_Resource();
 ~H_Resource();
 
+void clear();
+
 void addResource(char* name, float value);
 
 float getResource(int index);
