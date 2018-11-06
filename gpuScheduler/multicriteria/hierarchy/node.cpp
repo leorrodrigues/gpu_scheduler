@@ -13,6 +13,7 @@ Node::Node(){
 	this->active=true;
 	this->size=0;
 	this->type= node_t::ALTERNATIVE;
+	this->name = NULL;
 }
 
 Node::~Node(){
@@ -20,10 +21,14 @@ Node::~Node(){
 	delete(resources);
 
 	int i;
-	for(i=0; i<this->size; i++) {
-		free( matrix[i] );
-		free( normalized_matrix[i] );
-	}
+	if(this->matrix != NULL)
+		for(i=0; i<this->size; i++) {
+			free( matrix[i] );
+		}
+	if(this->normalized_matrix!=NULL)
+		for(i=0; i<this->size; i++) {
+			free( normalized_matrix[i] );
+		}
 	free( matrix );
 	free( normalized_matrix );
 	free( pml );
@@ -34,10 +39,16 @@ Node::~Node(){
 	this->normalized_matrix=NULL;
 	this->pml=NULL;
 	this->pg=NULL;
+
+	if(this->edges!=NULL)
+		for(i=0; i<this->size; i++)
+			delete(this->edges[i]);
+	free(this->edges);
+	this->edges = NULL;
 }
 
 void Node::setResource(H_Resource resource) {
-	if ( this->resources = NULL)
+	if ( this->resources == NULL)
 		this->resources = new H_Resource();
 
 	int i=0;
@@ -52,6 +63,7 @@ void Node::setResource(char* name, float value){
 }
 
 void Node::setName(const char* name){
+	this->name = (char*) malloc (strlen(name)+1);
 	// Set the name for the specific node
 	strcpy( this->name, name);
 }
@@ -63,7 +75,7 @@ void Node::setEdges(Edge** edges){
 		this->edges = NULL;
 	}
 
-	this->edges = (Edge**) realloc (this->edges, sizeof(Edge*)*this->size);
+	this->edges = (Edge**) malloc ( sizeof(Edge*)*this->size);
 
 	for(i=0; i<this->size; i++) {
 		this->edges[i] = edges[i];
@@ -71,18 +83,23 @@ void Node::setEdges(Edge** edges){
 }
 
 void Node::addEdge(Edge* edge){
-	this->edges = (Edge**) realloc (this->edges, sizeof(Edge*)*this->size+1);
+	this->edges = (Edge**) realloc (this->edges, sizeof(Edge*)*(this->size+1));
 
 	this->edges[this->size] = edge;
 
-	this->size++;
 	if (this->type==node_t::CRITERIA) {
 		this->leaf=false;
 	}
+
+	this->size++;
 }
 
 void Node::setMatrix(float** matrix){
 	int i,j;
+	if( matrix == NULL) {
+		this->matrix = NULL;
+		return;
+	}
 	if( this->matrix != NULL) {
 		for(i=0; i<this->size; i++) {
 			free(this->matrix[i]);
@@ -91,10 +108,10 @@ void Node::setMatrix(float** matrix){
 		free(this->matrix);
 		this->matrix = NULL;
 	}
-	this->matrix = (float**) realloc (this->matrix, sizeof(float*) * this->size);
+	this->matrix = (float**) malloc ( sizeof(float*) * this->size);
 
-	for(i=0; i<size; i++) {
-		this->matrix[i]= (float*) realloc (this->matrix[i], sizeof(float) * this->size);
+	for(i=0; i<this->size; i++) {
+		this->matrix[i]= (float*) malloc ( sizeof(float) * this->size);
 		for( j=0; j<size; j++) {
 			this->matrix[i][j]= matrix[i][j];
 		}
@@ -103,6 +120,10 @@ void Node::setMatrix(float** matrix){
 
 void Node::setNormalizedMatrix(float** nMatrix){
 	int i,j;
+	if( nMatrix == NULL) {
+		this->normalized_matrix = NULL;
+		return;
+	}
 	if( this->normalized_matrix != NULL ) {
 		for(i=0; i<this->size; i++) {
 			free(this->normalized_matrix[i]);
@@ -111,10 +132,10 @@ void Node::setNormalizedMatrix(float** nMatrix){
 		free(this->normalized_matrix);
 		this->normalized_matrix = NULL;
 	}
-	this->normalized_matrix = (float**) realloc ( this->normalized_matrix, sizeof(float*)  * this->size );
+	this->normalized_matrix = (float**) malloc ( sizeof(float*)  * this->size );
 
 	for( i=0; i<this->size; i++) {
-		this->normalized_matrix[i] = (float*) realloc (this->normalized_matrix[i], sizeof(float) * this->size);
+		this->normalized_matrix[i] = (float*) malloc ( sizeof(float) * this->size);
 		for( j=0; j<this->size; j++) {
 			this->normalized_matrix[i][j] = nMatrix[i][j];
 		}
@@ -122,25 +143,29 @@ void Node::setNormalizedMatrix(float** nMatrix){
 }
 
 void Node::setPml(float* pml){
+	if( pml == NULL) {
+		this->pml = NULL;
+		return;
+	}
 	if( this->pml != NULL) {
 		free( this->pml);
 		this->pml = NULL;
 	}
 	int i;
-	this->pml = (float*) realloc ( this->pml, sizeof(float) * this->size );
+	this->pml = (float*) malloc (  sizeof(float) * this->size );
 	for(i=0; i<this->size; i++) {
 		this->pml[i] = pml[i];
 	}
 }
 
-void Node::setPg(float* pg){
+void Node::setPg(float* pg, int size){
 	if( this->pg != NULL ) {
 		free(this->pg);
 		this->pg=NULL;
 	}
 	int i;
-	this->pg =  (float*) realloc ( this->pg, sizeof(float) * this->size );
-	for(i=0; i<this->size; i++) {
+	this->pg =  (float*) malloc ( sizeof(float) * size );
+	for(i=0; i< size; i++) {
 		this->pg[i] = pg[i];
 	}
 }

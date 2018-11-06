@@ -69,9 +69,8 @@ bool checkEmpty();
 Node* addFocus(const char*);
 Node *addCriteria(const char*);
 void addEdge(const char*, const char*, float* weight = NULL, int size=0);
-void addEdgeObjective(Node*, Node*, float* weight = NULL, int size = 0);
-void addEdgeCriteria(Node*, Node*, float* weight = NULL, int size = 0);
-void addEdgeAlternative(Node*, Node*, float* weight = NULL, int size = 0);
+void addEdge(Node*, Node*, float* weight=NULL, int size=0);
+void addResource(const char*);
 void addResource(char*);
 Node *addAlternative();
 Node *addAlternative(Node*);
@@ -100,6 +99,7 @@ void updateSheetsEdges();
 /*Getters*/
 Node *getFocus();
 int getNodesSize();
+int getCriteriasSize();
 int getSheetsSize();
 int getAlternativesSize();
 H_Resource *getResource();
@@ -123,5 +123,10 @@ int alternatives_size;
 Node* objective;        ///< The main objective pointer.
 
 H_Resource resource;        ///< The default resources of the hierarchy, all the alternatives uses this default resource variable to initiate their resource variable.
+
+void addEdgeObjective(Node*, Node*, float* weight = NULL, int size = 0);
+void addEdgeCriteria(Node*, Node*, float* weight = NULL, int size = 0);
+void addEdgeAlternative(Node*, Node*, float* weight = NULL, int size = 0);
+
 };
 #endif

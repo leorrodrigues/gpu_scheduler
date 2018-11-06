@@ -66,12 +66,13 @@ template <typename F> void AHP::iterateFunc(F f, Node* node) {
 void AHP::buildMatrix(Node* node) {
 	int i,j;
 	int size = node->getSize(); // get the number of edges
-
+	if ( size == 0 ) return;
 	float** matrix = (float**) malloc (sizeof(float*) * size);
 	for (i = 0; i < size; i++)
 		matrix[i] = (float*) malloc (sizeof(float) * size);
 
 	float* weights;
+
 	for (i = 0; i < size; i++) {
 		matrix[i][i] = 1;
 		weights = (node->getEdges())[i]->getWeights();
@@ -82,12 +83,18 @@ void AHP::buildMatrix(Node* node) {
 	}
 
 	node->setMatrix(matrix);
+
+	for(i=0; i< size; i++)
+		free(matrix[i]);
+	free(matrix);
+
 	iterateFunc(&AHP::buildMatrix, node);
 }
 
 void AHP::buildNormalizedmatrix(Node* node) {
 	int i,j;
 	int size = node->getSize();
+	if ( size == 0 ) return;
 	float** matrix = node->getMatrix(), sum = 0;
 	float** nMatrix = (float**) malloc (sizeof(float*) * size);
 	for (i = 0; i < size; i++)
@@ -102,12 +109,18 @@ void AHP::buildNormalizedmatrix(Node* node) {
 		}
 	}
 	node->setNormalizedMatrix(nMatrix);
+
+	for(i=0; i< size; i++)
+		free(nMatrix[i]);
+	free(nMatrix);
+
 	iterateFunc(&AHP::buildNormalizedmatrix, node);
 }
 
 void AHP::buildPml(Node* node) {
 	int i,j;
 	int size = node->getSize();
+	if ( size == 0 ) return;
 	float sum = 0;
 	float* pml = (float*) malloc (sizeof(float) * size);
 	float** matrix = node->getNormalizedMatrix();
@@ -120,16 +133,19 @@ void AHP::buildPml(Node* node) {
 	}
 	node->setPml(pml);
 	iterateFunc(&AHP::buildPml, node);
+	free(pml);
 }
 
 void AHP::buildPg(Node* node) {
-	int i,j;
+	int i;
 	int size = this->hierarchy->getAlternativesSize();
+	if ( size == 0 ) return;
 	float* pg = (float*) malloc (sizeof(float) * size);
 	for (i = 0; i < size; i++) {
 		pg[i] = partialPg(node, i);
 	}
-	node->setPg(pg);
+	node->setPg(pg, size);
+	free(pg);
 }
 
 float AHP::partialPg(Node* node, int alternative) {
@@ -142,10 +158,9 @@ float AHP::partialPg(Node* node, int alternative) {
 
 	float* pml = node->getPml();
 	float partial = 0;
-
 	for (i = 0; i < size; i++) {
 		criteria = edges[i]->getNode();
-		if (criteria != NULL) {
+		if (criteria != NULL && criteria->getType()!=node_t::ALTERNATIVE) {
 			partial += pml[i] * partialPg(criteria, alternative);
 		} else {
 			return pml[alternative];
@@ -176,6 +191,15 @@ void AHP::deleteNormalizedMatrix(Node* node) {
 	nMatrix = NULL;
 	node->setNormalizedMatrix(NULL);
 	iterateFunc(&AHP::deleteNormalizedMatrix, node);
+}
+
+void AHP::deletePml(Node* node){
+	int size = node->getSize();
+	float* pml = node->getPml();
+	free(pml);
+	pml = NULL;
+	node->setPml(NULL);
+	iterateFunc(&AHP::deletePml, node);
 }
 
 void AHP::checkConsistency(Node* node) {
@@ -217,7 +241,6 @@ void AHP::checkConsistency(Node* node) {
 	}
 	iterateFunc(&AHP::checkConsistency, node);
 }
-
 
 void AHP::printMatrix(Node* node) {
 	int i,j;
@@ -315,7 +338,7 @@ void AHP::hierarchyParser(genericValue* dataObjective) {
 		if (strcmp(hierarchyObject.name.GetString(), "name") == 0) {
 			this->hierarchy->addFocus(strToLower(hierarchyObject.value.GetString())); // create the Focus* in the hierarchy;
 		} else if (strcmp(hierarchyObject.name.GetString(), "childs") == 0) {
-			criteriasParser(&hierarchyObject, this->hierarchy->getFocus());
+			criteriasParser(&hierarchyObject, this->hierarchy->getFocus() );
 		} else {
 			std::cout << "AHP -> Unrecognizable Type\nExiting...\n";
 			exit(0);
@@ -347,11 +370,7 @@ void AHP::criteriasParser(genericValue* dataCriteria, Node* parent) {
 				// the hierarchy, the criteria node has to be created.
 				auto criteria = this->hierarchy->addCriteria(name);
 				criteria->setLeaf(leaf);
-				if(parent->getType()== node_t::FOCUS) {
-					this->hierarchy->addEdgeObjective(parent, criteria, weight);
-				} else{
-					this->hierarchy->addEdgeCriteria(parent, criteria, weight);
-				}
+				this->hierarchy->addEdge(parent, criteria, weight);
 				// with the criteria node added, the call recursively the
 				// criteriasParser.
 				criteriasParser(&child, criteria);
@@ -361,11 +380,7 @@ void AHP::criteriasParser(genericValue* dataCriteria, Node* parent) {
 			auto criteria = this->hierarchy->addCriteria(name);
 			criteria->setLeaf(leaf);
 			this->hierarchy->addSheets(criteria);
-			if(parent->getType()== node_t::FOCUS) {
-				this->hierarchy->addEdgeObjective(parent, criteria, weight);
-			} else{
-				this->hierarchy->addEdgeCriteria(parent, criteria, weight);
-			}
+			this->hierarchy->addEdge(parent, criteria, weight);
 		}
 	}
 }
@@ -524,18 +539,26 @@ void AHP::acquisition() {
 
 void AHP::synthesis() {
 	// 1 - Build the construccd the matrix
+	// printf("B M\n");
 	buildMatrix(this->hierarchy->getFocus());
 	// printMatrix(this->hierarchy->getFocus());
 	// 2 - Normalize the matrix
+	// printf("B N\n");
 	buildNormalizedmatrix(this->hierarchy->getFocus());
 	// printNormalizedMatrix(this->hierarchy->getFocus());
+	// printf("D M\n");
 	deleteMatrix(this->hierarchy->getFocus());
 	// 3 - calculate the PML
+	// printf("B P\n");
 	buildPml(this->hierarchy->getFocus());
 	// printPml(this->hierarchy->getFocus());
+	// printf("D Nn");
 	deleteNormalizedMatrix(this->hierarchy->getFocus());
 	// 4 - calculate the PG
+	// printf("B PG\n");
 	buildPg(this->hierarchy->getFocus());
+	// printf("D P\n");
+	// deletePml(this->hierarchy->getFocus());
 	// printPg(this->hierarchy->getFocus());
 	// Print all information
 }
@@ -569,7 +592,6 @@ void AHP::run(Host** alternatives, int size) {
 	this->synthesis();
 	// this->consistency();
 }
-
 
 std::map<int,char*> AHP::getResult() {
 	std::map<int,char*> result;

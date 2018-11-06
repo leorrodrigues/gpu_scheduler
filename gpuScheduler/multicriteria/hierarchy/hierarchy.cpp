@@ -24,19 +24,19 @@ Hierarchy::~Hierarchy() {
 		delete(this->nodes[i]);
 	}
 	free(this->nodes);
-	for(i=0; i< this->criterias_size; i++) {
-		delete(this->criterias[i]);
-	}
+	// for(i=0; i< this->criterias_size; i++) {
+	//      delete(this->criterias[i]);
+	// }
 	free(this->criterias);
-	for(i=0; i< this->sheets_size; i++) {
-		delete(this->sheets[i]);
-	}
+	// for(i=0; i< this->sheets_size; i++) {
+	//      delete(this->sheets[i]);
+	// }
 	free(this->sheets);
-	for(i=0; i< this->alternatives_size; i++) {
-		delete(this->alternatives[i]);
-	}
+	// for(i=0; i< this->alternatives_size; i++) {
+	//      delete(this->alternatives[i]);
+	// }
 	free(this->alternatives);
-	delete(this->objective);
+	// delete(this->objective);
 	this->nodes=NULL;
 	this->criterias=NULL;
 	this->sheets=NULL;
@@ -60,7 +60,7 @@ Node* Hierarchy::addFocus(const char* name) {
 	//Set the memory address of the objective in the hierarchy.
 	this->objective = ob;
 
-	this->nodes = (Node**) realloc (this->nodes, sizeof(Node*)* this->nodes_size+1);
+	this->nodes = (Node**) realloc (this->nodes, sizeof(Node*)* (this->nodes_size+1));
 
 	this->nodes[this->nodes_size] = ob;
 
@@ -89,8 +89,8 @@ Node* Hierarchy::addCriteria(const char* name) {
 	c->setName(name);
 	c->setTypeCriteria();
 	//Add the criteria in hierarchy (criterias vector).
-	this->criterias = (Node**) realloc (this->criterias, sizeof(Node*) * this->criterias_size+1);
-	this->nodes = (Node**) realloc (this->nodes, sizeof(Node*)* this->nodes_size+1);
+	this->criterias = (Node**) realloc (this->criterias, sizeof(Node*) * (this->criterias_size+1));
+	this->nodes = (Node**) realloc (this->nodes, sizeof(Node*)* (this->nodes_size+1));
 
 	this->nodes[this->nodes_size] = c;
 	this->criterias[this->criterias_size] = c;
@@ -123,6 +123,19 @@ void Hierarchy::addEdge(const char* parentName, const char* childName, float* we
 	parent->addEdge(edge);
 }
 
+
+void Hierarchy::addEdge(Node* parent, Node* child, float* weight, int size){
+	if(parent->getType()==node_t::FOCUS && child->getType()==node_t::CRITERIA) {
+		addEdgeObjective(parent, child, weight, size);
+	}else if(parent->getType()==node_t::CRITERIA && child->getType()==node_t::CRITERIA) {
+		addEdgeCriteria(parent, child, weight, size);
+	}else if(parent->getType()==node_t::CRITERIA && child->getType()==node_t::ALTERNATIVE) {
+		addEdgeAlternative(parent, child, weight, size);
+	}else{
+		printf("ADD EDGE ERROR\n");
+		exit(0);
+	}
+}
 
 /**
     \brief Add an edge between Focus and Criteria nodes.
@@ -168,6 +181,15 @@ void Hierarchy::addEdgeAlternative(Node *parent, Node *alt, float* weight, int s
     This function will add new resource in the hierarchy default resources, float type are used.
     \param name: The resource name.
  */
+void Hierarchy::addResource(const char* name) {
+	this->resource.addResource((char*)name, 0);
+}
+
+/**
+    \brief Add one resource in the hierarchy default resources.
+    This function will add new resource in the hierarchy default resources, float type are used.
+    \param name: The resource name.
+ */
 void Hierarchy::addResource(char* name) {
 	this->resource.addResource(name, 0);
 }
@@ -183,8 +205,8 @@ Node* Hierarchy::addAlternative() {
 	alternative->setResource(this->resource);
 
 	//Add the alternative pointer in the hierarchy (i.e., the alternatives vector).
-	this->alternatives = (Node**) realloc (this->alternatives, sizeof(Node*)* this->alternatives_size+1);
-	this->nodes = (Node**) realloc (this->nodes, sizeof(Node*)*this->nodes_size+1);
+	this->alternatives = (Node**) realloc (this->alternatives, sizeof(Node*)* (this->alternatives_size+1));
+	this->nodes = (Node**) realloc (this->nodes, sizeof(Node*)*(this->nodes_size+1));
 
 	this->alternatives[this->alternatives_size] = alternative;
 	this->nodes[this->nodes_size] = alternative;
@@ -201,8 +223,8 @@ Node* Hierarchy::addAlternative() {
  */
 Node* Hierarchy::addAlternative(Node* alternative) {
 	//Add the alternative pointer in the hierarchy (i.e., the alternatives vector).
-	this->alternatives = (Node**) realloc (this->alternatives, sizeof(Node*)* this->alternatives_size+1);
-	this->nodes = (Node**) realloc (this->nodes, sizeof(Node*)*this->nodes_size+1);
+	this->alternatives = (Node**) realloc (this->alternatives, sizeof(Node*)* (this->alternatives_size+1));
+	this->nodes = (Node**) realloc (this->nodes, sizeof(Node*)*(this->nodes_size+1));
 
 	this->alternatives[this->alternatives_size] = alternative;
 	this->nodes[this->nodes_size] = alternative;
@@ -235,10 +257,8 @@ void Hierarchy::addSheets(Node* criteria) {
 	//If the criteria isn't a sheet.
 	if (!findSheets(criteria)) {
 		//Add the criteria in the sheets vector.
-		this->sheets = (Node**) realloc (this->sheets, sizeof(Node*)* this->sheets_size+1);
-
-		this->sheets[this->sheets_size+1] = criteria;
-
+		this->sheets = (Node**) realloc (this->sheets, sizeof(Node*)* (this->sheets_size+1));
+		this->sheets[this->sheets_size] = criteria;
 		this->sheets_size++;
 	}
 }
@@ -323,9 +343,10 @@ bool Hierarchy::findSheets(Node *c) {
 	int i;
 	//Iterate through all the sheets list.
 	for ( i=0; i<this->sheets_size; i++) {
-		if ( strcmp( this->sheets[i]->getName(),  c->getName())==0) {
-			return true;
-		}
+		if(c->getName()!=NULL)
+			if ( strcmp( this->sheets[i]->getName(),  c->getName())==0) {
+				return true;
+			}
 	}
 	return false;
 }
@@ -407,6 +428,14 @@ Node* Hierarchy::getFocus() {
  */
 int Hierarchy::getNodesSize(){
 	return this->nodes_size;
+}
+
+/**
+    \brief Return the size of the criterias list.
+    \return Criterias size.
+ */
+int Hierarchy::getCriteriasSize(){
+	return this->criterias_size;
 }
 
 /**

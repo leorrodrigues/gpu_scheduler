@@ -2,6 +2,7 @@
 #define _NODE_NOT_INCLUDED_
 
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
 
 #include "hierarchy_resource.hpp"
@@ -32,7 +33,7 @@ void setSize(int);
 void setMatrix(float**);
 void setNormalizedMatrix(float**);
 void setPml(float*);
-void setPg(float*);
+void setPg(float*,int);
 void setTypeFocus();
 void setTypeCriteria();
 void setTypeAlternative();
