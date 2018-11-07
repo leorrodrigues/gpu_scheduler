@@ -58,6 +58,17 @@ void Node::setResource(H_Resource resource) {
 	}
 }
 
+void Node::setResource(H_Resource* resource) {
+	if ( this->resources == NULL)
+		this->resources = new H_Resource();
+
+	int i=0;
+	for(i=0; i<resource->getDataSize(); i++) {
+		// try to insert the resource, if exists, update their value, but if dont exists, insert in the array.
+		this->resources->addResource( resource->getResourceName(i), resource->getResource(i) );
+	}
+}
+
 void Node::setResource(char* name, float value){
 	this->resources->addResource( name, value);
 }

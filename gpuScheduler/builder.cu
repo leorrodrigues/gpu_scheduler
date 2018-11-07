@@ -1,12 +1,12 @@
 #include  "builder.cuh"
 
 Builder::Builder(){
-	resource.mIntSize = 0;
-	resource.mWeightSize = 0;
-	resource.mStringSize = 0;
-	resource.mBoolSize = 0;
-	multicriteriaMethod=NULL;
-	clusteringMethod=NULL;
+	this->resource.mIntSize = 0;
+	this->resource.mWeightSize = 0;
+	this->resource.mStringSize = 0;
+	this->resource.mBoolSize = 0;
+	this->multicriteriaMethod=NULL;
+	this->clusteringMethod=NULL;
 }
 
 void Builder::generateContentSchema() {

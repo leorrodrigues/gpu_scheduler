@@ -35,27 +35,31 @@ void H_Resource::addResource(char* name, float value){
 	// search for the element name, if the name dont exist in the array, insert it
 	for(index=0; index<this->data_size; index++) {
 		if( strcmp( this->names[index], name ) == 0 ) {
-			break;
+			this->data[index]=value;
+			return;
 		}
 	}
-	if(index>=this->data_size) {  // go to the end of the data array and didn't found the value name. So, creates the new data entry and inset a value on it.
-		this->names = (char**)realloc(this->names, sizeof(char*)*this->data_size+1);
 
-		this->names[data_size] = (char*) realloc (this->names[this->data_size],  strlen(name));
+	this->names = (char**)realloc(this->names, sizeof(char*)*(this->data_size+1));
 
-		this->data = (float*) realloc(this->data,sizeof(float)*this->data_size+1);
+	this->names[this->data_size] = NULL;
 
-		strcpy(this->names[data_size],name);
+	this->names[this->data_size] = (char*) malloc (strlen(name)+1);
 
-		this->data_size++;
-	} else { // found the data name and update it
-		index = this->data_size;
-	}
+	this->data = (float*) realloc(this->data,sizeof(float)*(this->data_size+1));
 
-	this->data[index]=value;
+	strcpy(this->names[data_size], name);
+
+	this->data[data_size]=value;
+
+	this->data_size++;
 }
 
 float H_Resource::getResource(int index){
+	if(this->data_size <= index) {
+		printf("H_RESOURCE Error invalid data acess, data_size %d , index %d\n", this->data_size, index);
+		exit(0);
+	}
 	return this->data[index];
 }
 

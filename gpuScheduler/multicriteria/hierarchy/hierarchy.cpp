@@ -245,6 +245,7 @@ void Hierarchy::addEdgeSheetsAlternatives() {
 		for(j=0; j<this->alternatives_size; j++) {
 			//Create an edge between them.
 			this->addEdgeAlternative(this->sheets[i], this->alternatives[j]);
+			this->sheets[i]->setSize(0);
 		}
 	}
 }
@@ -256,10 +257,13 @@ void Hierarchy::addEdgeSheetsAlternatives() {
 void Hierarchy::addSheets(Node* criteria) {
 	//If the criteria isn't a sheet.
 	if (!findSheets(criteria)) {
+		printf("Sheet added!\n");
 		//Add the criteria in the sheets vector.
 		this->sheets = (Node**) realloc (this->sheets, sizeof(Node*)* (this->sheets_size+1));
 		this->sheets[this->sheets_size] = criteria;
 		this->sheets_size++;
+	}else{
+		printf("Sheet not added\n");
 	}
 }
 

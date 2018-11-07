@@ -9,6 +9,7 @@
 
 #include "../json.hpp"
 
+#include "ahpg_kernel.cuh"
 #include "dev_array.h"
 
 #include <cstdlib>

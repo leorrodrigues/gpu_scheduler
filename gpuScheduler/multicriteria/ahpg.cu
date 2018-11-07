@@ -461,287 +461,108 @@ void AHPG::conceptionG(bool alternativeParser) {
 	}
 }
 
-/*
-    This function is used to make the comparison between the alternatives.
-    Data represents all the data in the alternatives.
-    Types represents the types of the alternative data.
-    Max_mix represents to normalize the values.
-    cmp is the result array of the comparison.
-    size is the amount of the alternatives in the hierarchy.
-    sizeCrit represent the size of sheets, used to jump through the data and types array.
- */
-
-//QUEBRAR EM TIES PARA USAR MEMORIA COMPARTILHADA
-__global__
-void acquisitonGKernel(char * data, int* index,  int* types, float* max_min, float* cmp, int size, int sizeCrit){
-	// //The row is the number of the alternative
-	// int row = blockIdx.x*size+threadIdx.x;
-	// //The col is the number of the criteria
-	// int col = blockIdx.y*size+threadIdx.y;
-	// int value_alt1_int, value_alt2_int, t;
-	// float value_alt1_float, value_alt2_float;
-	// char* sub,*sub2;
-	// // int k=0;
-	// // for(int i=0; data[i]!='\0'; i++) {
-	// //      if(i==index[k]) {printf("|"); k++;}
-	// //      printf("%c",data[i]);
-	// // }
-	// // printf("ALT SIZE: %d , CRIT SIZE %d\n",size, sizeCrit);
-	// // if(row==0 && col <sizeCrit) { //the thread can do the work
-	// if(row<size && col <sizeCrit) {                 //the thread can do the work
-	//      int indexRead = row*sizeCrit+col;
-	//      // printf("NEW THREAD ROW %d COL %d SIZE %d SIZECRIT %d\n",row,col,size,sizeCrit);
-	//      value_alt1_int=0;
-	//      value_alt1_float=0.0f;
-	//      t=0;
-	//      // printf("%d # %d # %d # %d\n",indexRead, indexRead+1,index[indexRead],index[indexRead+1]);
-	//      sub=copyStr(data,index[indexRead],index[indexRead+1]);
-	//      if(types[row*sizeCrit+col]==0 || types[row*sizeCrit+col]==2) {
-	//              value_alt1_int=char_to_int(sub);
-	//              // printf("CONVERTED INT %d\n",value_alt1_int);
-	//      }else if(types[row*sizeCrit+col]==1) {
-	//              value_alt1_float=char_to_float(sub);
-	//              // printf("CONVERTED FLOAT %f\n",value_alt1_float);
-	//      }
-	//      for(int alt=0; alt<size; alt++) {
-	//              sub2=copyStr(data,index[alt*sizeCrit+col],index[alt*sizeCrit+(col+1)]);
-	//              // printf("ALTERNATIVE %d - %s # %s\n",alt,sub,sub2);
-	//              value_alt2_int=0;
-	//              value_alt2_float=0.0f;
-	//              //alt*sizeCrit+col will jump over the alternatives to get the same coleria value.
-	//              if(types[alt*sizeCrit+col]==0) {
-	//                      t=0;
-	//                      value_alt2_int=char_to_int(sub2);
-	//              }else if(types[alt*sizeCrit+col]==1) {
-	//                      t=1;
-	//                      value_alt2_float=char_to_float(sub2);
-	//              }else if(types[alt*sizeCrit+col]==2) {
-	//                      t=2;
-	//                      value_alt2_int=char_to_int(sub2);
-	//              }
-	//              // printf("DIVIDED BY %f\n",max_min[col]);
-	//              // printf("SIZE: %d\n",size);
-	//              int indexWrite = row*size*sizeCrit+col*size+alt;
-	//              // int indexWrite = row*size*size/2+alt;
-	//              // printf("WERE I WRITE %d\n",row*size*sizeCrit+col*size+alt);
-	//              //Its used row*size*size/2 to jump correctly in the vector and set the values
-	//              if(t==0) {
-	//                      value_alt1_int==value_alt2_int ? cmp[indexWrite]=1 : cmp[indexWrite] = (value_alt1_int-value_alt2_int) / (float) max_min[col];
-	//                      // printf("Write in T0 %f\n",cmp[indexWrite]);
-	//              }else if(t==1) {
-	//                      // if(value_alt1_float!=value_alt2_float) printf("DIF %f %f\n",value_alt1_float,value_alt2_float);
-	//                      value_alt1_float==value_alt2_float ? cmp[indexWrite]=1 : cmp[indexWrite] = (value_alt1_float - value_alt2_float) / (float) max_min[col];
-	//                      // printf("Write in T1 %f\n",cmp[indexWrite]);
-	//              }
-	//              else if(t==2) {
-	//                      // printf("ALTERNATIVE %d - %s # %s\n",alt,sub,sub2);
-	//                      // printf("BOOL %d %d\n",value_alt1_int,value_alt2_int);
-	//                      if(value_alt1_int==value_alt2_int) cmp[indexWrite]=1;
-	//                      else if(value_alt1_int==1) cmp[indexWrite]=9;
-	//                      else if(value_alt1_int==0) cmp[indexWrite]=1/9.0f;
-	//                      // printf("Write in T2 %f\n", cmp[indexWrite]);
-	//              }else{
-	//                      printf("UNESPECTED VALUE FOR T\n");
-	//              }
-	//      }
-	// }
-}
-
 void AHPG::acquisitionG() {
 	// //Get the device info
-	// int devID;
-	// cudaDeviceProp props;
-	// cudaGetDevice(&devID);
-	// cudaGetDeviceProperties(&props, devID);
-	// int block_size = (props.major < 2) ? 16 : 32;
+	int devID;
+	cudaDeviceProp props;
+	cudaGetDevice(&devID);
+	cudaGetDeviceProperties(&props, devID);
+	int block_size = (props.major < 2) ? 16 : 32;
 	//
-	// // Para gerar os pesos das alterntivas, será primeiro captado o MIN e MAX
-	// // valor das alternativas , após isso será montada as matrizes de cada sheet
-	// auto alt = this->hierarchy->getAlternatives();
-	// auto sheets = this->hierarchy->getSheets();
-	// std::vector<std::string> sheetsNames;
-	// for_each(sheets.begin(), sheets.end(),
-	//          [&sheetsNames,
-	//           this](Hierarchy<VariablesType, WeightType>::Criteria *c) mutable {
-	//      // Get the name off all sheet nodes that aren't boolean
-	//      if (this->hierarchy->getResource()->mBool.count(c->getName()) ==
-	//          0) {
-	//              sheetsNames.push_back(c->getName());
-	//      }
-	// });
-	// std::map<std::string, float> resultValues;
-	// std::vector<float>h_resources;
-	// float min, max;
-	// for (auto it = sheetsNames.begin(); it != sheetsNames.end(); it++) {
-	//      auto result = std::minmax_element(
-	//              alt.begin(), alt.end(),
-	//              [it](Hierarchy<VariablesType, WeightType>::Alternative *a,
-	//                   Hierarchy<VariablesType, WeightType>::Alternative *b) {
-	//              auto ra = a->getResource();
-	//              auto rb = b->getResource();
-	//              if (ra->mInt.count(*it) > 0) {
-	//                      return ra->mInt[*it] < rb->mInt[*it];
-	//              } else {
-	//                      return ra->mWeight[*it] < rb->mWeight[*it];
-	//              }
-	//      });
-	//      min = max = 0;
-	//      if ((*result.first)->getResource()->mInt.count(*it) > 0) {
-	//              min = (*result.first)->getResource()->mInt[*it];
-	//              max = (*result.second)->getResource()->mInt[*it];
-	//      } else {
-	//              min = (*result.first)->getResource()->mWeight[*it];
-	//              max = (*result.second)->getResource()->mWeight[*it];
-	//      }
-	//      resultValues[*it] = (max - min);
-	//      h_resources.push_back(max-min);
-	//      if (resultValues[*it] == 0) {
-	//              resultValues[*it] = 1;
-	//              h_resources[h_resources.size()-1]=1;
-	//      } else {
-	//              resultValues[*it] /= 9.0;
-	//              h_resources[h_resources.size()-1]=1/9.0;
-	//      }
-	// }
-	//
-	// resultValues.clear();
-	//
-	// // At this point, all the integers and float/WeightType resources  has
-	// // the max and min values discovered.
-	// //Prepare the variables to send to the GPU Kernel.
-	// //Create one vector that get all the map keys of the Data
-	// //This vector will be represented by
-	// // V=[key,str(value),key,str(value),...]. All the values are converted to std::string and in the kernel map construction their type are rebuild.
-	// //To help with the Vector type, use tree types of index, 0 int, 1 float, 2 bool.
-	// std::string data;//to send vectors to kernel, you must only send the address of the first vector element.
-	// int dataBytes=0;
-	// std::vector<int> type;
-	// std::vector<int> index;
-	// index.push_back(0);
-	// int totalResources=0;
-	// //Iterate through all the alternatives and get their resources.
-	// for(auto it = alt.begin(); it !=alt.end(); it++) {
-	//      auto resource = (*it)->getResource();
-	//      for(auto const& elem : resource->mInt) {
-	//              //data.push_back(elem.first.c_str());
-	//              int b = std::to_string(elem.second).size();
-	//              data+=std::to_string(elem.second);
-	//              type.push_back(0);
-	//              dataBytes+=b;
-	//              index.push_back(dataBytes);
-	//              totalResources++;
-	//      }
-	//      for(auto const& elem : resource->mWeight) {
-	//              // data.push_back(elem.first.c_str());
-	//              int b = std::to_string(elem.second).size();
-	//              data+=std::to_string(elem.second);
-	//              type.push_back(1);
-	//              dataBytes+=b;
-	//              index.push_back(dataBytes);
-	//              totalResources++;
-	//      }
-	//      for(auto const& elem : resource->mBool) {
-	//              // data.push_back(elem.first.c_str());
-	//              int b = std::to_string(elem.second).size();
-	//              data+=std::to_string(elem.second);
-	//              type.push_back(2);
-	//              dataBytes+=b;
-	//              index.push_back(dataBytes);
-	//              totalResources++;
-	//      }
-	// }
-	// totalResources/=alt.size();
-	// long int resourcesSize = alt.size()*alt.size()*totalResources;
-	// // totalResources=data.size()/(alt.size()*2);
-	// std::vector<float> c_result(resourcesSize);
-	// //All the host data are allocated
-	// //h_resources
-	// //Creating the device variables
-	// dev_array<char> d_data(dataBytes);
-	// dev_array<int> d_types(type.size());
-	// dev_array<int> d_index(index.size());
-	// dev_array<float> d_resources(h_resources.size());
-	// dev_array<float> d_result(resourcesSize);
-	// //Alocate the device memory
-	// //Copy the host variables to device variables
-	// d_data.set(&data.c_str()[0],dataBytes);
-	// d_types.set(&type[0],sizeof(int)*type.size());
-	// d_index.set(&index[0],sizeof(int)*index.size());
-	// d_resources.set(&h_resources[0], sizeof(float)*h_resources.size());
-	// //cudaMalloc(d_size, alt.size(), sizeof(int), cudaMemcpyHostToDevice);
-	// //cudaMalloc(d_sizeCrit, totalResources, sizeof(int), cudaMemcpyHostToDevice);
-	//
-	// //Uma vez os valores copiados para o cuda eles podem ser deletados
-	// data="";
-	// type.clear();
-	// type.shrink_to_fit();
-	// index.clear();
-	// index.shrink_to_fit();
-	//
-	// // setup execution parameters
-	// // dim3 threadsPerBlock(2,5);
-	// dim3 threadsPerBlock(block_size,block_size);
-	// // dim3 numBlocks( 1,1);
-	// dim3 numBlocks( ceil(alt.size()/(float)threadsPerBlock.x), ceil(alt.size()/(float)threadsPerBlock.y));
-	// // printf("\nCALLING KERNEL\n");
-	// // printf("BlockSize: %d. Grid : {%d, %d, %d} blocks. Blocks : {%d, %d, %d} threads.\n", block_size,  numBlocks.x, numBlocks.y, numBlocks.z, threadsPerBlock.x, threadsPerBlock.y, threadsPerBlock.z);
-	// // acquisitonGKernel<<< grid, threads >>>(d_data.getData(), d_index.getData(), d_types.getData(), d_resources.getData(),d_result.getData(), alt.size(), totalResources);
-	//
-	// acquisitonGKernel<<< numBlocks, threadsPerBlock >>>(d_data.getData(), d_index.getData(), d_types.getData(), d_resources.getData(),d_result.getData(), alt.size(), totalResources);
-	// cudaDeviceSynchronize();
-	// d_result.get(&c_result[0],resourcesSize);
-	// cudaDeviceSynchronize();
-	// d_data.resize(0);
-	// d_types.resize(0);
-	// d_index.resize(0);
-	// d_resources.resize(0);
-	// d_result.resize(0);
-	// // std::cout<<"TERMINEI A GPU\n";
-	// // for(int i=0; i<resourcesSize; i++) {
-	// //      std::cout<<c_result[i]<<" ";
-	// // }
-	// int i=0;
-	// std::vector<std::vector<std::vector<WeightType> > > allWeights;
-	// std::vector<std::vector<WeightType> > criteriasWeight;
-	// std::vector<WeightType> alternativesWeight;
-	// for (int s=0; s<sheets.size(); s++) {
-	//      for (int a=0; a<alt.size(); a++) {
-	//              alternativesWeight.clear();
-	//              alternativesWeight.shrink_to_fit();
-	//              for (int a2=0; a2<alt.size(); a2++) {
-	//                      alternativesWeight.push_back(c_result[i++]);
-	//              }
-	//              criteriasWeight.push_back(alternativesWeight);
-	//      }
-	//      allWeights.push_back(criteriasWeight);
-	//      criteriasWeight[0].clear();
-	//      criteriasWeight[0].shrink_to_fit();
-	//      criteriasWeight.clear();
-	//      criteriasWeight.shrink_to_fit();
-	// }
-	// c_result.clear();
-	// c_result.shrink_to_fit();
-	// alternativesWeight.clear();
-	// alternativesWeight.shrink_to_fit();
-	// criteriasWeight.clear();
-	// criteriasWeight.shrink_to_fit();
-	// // With all the weights calculated, now the weights are set in each edge
-	// // between the sheets and alternatives
-	// int aSize = this->hierarchy->getAlternativesCount();
-	// int size = sheets.size();
-	// for (int i = 0; i < size; i++) {
-	//      auto edges = sheets[i]->getEdges();
-	//      for (int j = 0; j < aSize; j++) {
-	//              edges[j]->setWeights(allWeights[i][j]);
-	//              allWeights[i][j].clear();
-	//              allWeights[i][j].shrink_to_fit();
-	//      }
-	//      allWeights[i].clear();
-	//      allWeights[i].shrink_to_fit();
-	// }
-	//
-	// allWeights.clear();
-	// allWeights.shrink_to_fit();
+	int i,j,k;
+	// Para gerar os pesos das alterntivas, será primeiro captado o MIN e MAX
+	// valor das alternativas , após isso será montada as matrizes de cada sheet
+	// auto max = this->hierarchy->getResource();
+	// auto min = this->hierarchy->getResource();
+	Node** alt = this->hierarchy->getAlternatives();
+	Node** sheets = this->hierarchy->getSheets();
+
+	int altSize = this->hierarchy->getAlternativesSize();
+	int sheetsSize = this->hierarchy->getSheetsSize();
+	int resourceSize = this->hierarchy->getResource()->getDataSize();
+
+	float* min_max_values = (float*) malloc (sizeof(float) * resourceSize);
+
+	{
+		float min, max, value;
+
+		for( i=0; i<resourceSize; i++) {
+			min = FLT_MAX;
+			max = FLT_MIN;
+			for( j=0; j<sheetsSize; j++ ) {
+				value = sheets[j]->getResource()->getResource(i);
+				if( value > max) {
+					max = value;
+				}
+				if( value < min ) {
+					min = value;
+				}
+			}
+			if(min==0 && max==1) { // the value is boolean
+				min_max_values[i] = -1; //simulate boolean value
+			}else{
+				min_max_values[i] = (max-min)/ 9; // the other variables
+			}
+		}
+	}
+
+	// Create the data host memory
+	int data_size = sheetsSize*altSize* altSize;
+	int result_size = sheetsSize*altSize*altSize;
+
+	float* h_data = (float*) malloc (sizeof(float)* data_size );
+
+	{
+		// TODO CAUNTION POSSIBLE ERROR
+		int index=0;
+		Edge** edges;
+		float* temp_weights;
+		for(i=0; i<sheetsSize; i++) {
+			edges = sheets[i]->getEdges();
+			for(j=0; j<altSize; j++) {
+				temp_weights = edges[j]->getWeights();
+				for(k = 0; k<edges[j]->getSize(); k++) {
+					h_data[index] = temp_weights[k];
+					index++;
+				}
+			}
+		}
+		edges = NULL;
+		temp_weights = NULL;
+	}
+
+	// Allocate memory on the device
+	dev_array<float> d_data(data_size);
+	dev_array<float> d_min_max(resourceSize);
+	dev_array<float> d_result(result_size);
+
+	d_data.set(&h_data[0], data_size);
+	d_min_max.set(&min_max_values[0], resourceSize);
+
+	free(h_data);
+	free(min_max_values);
+
+	float* result = (float*) malloc (sizeof(float) * result_size);
+
+	dim3 threadsPerBlock(block_size,block_size);
+	dim3 numBlocks( ceil(altSize/(float)threadsPerBlock.x), ceil(altSize/(float)threadsPerBlock.y));
+
+
+	acquisitonKernel<<< numBlocks, threadsPerBlock >>> (d_data.getData(), d_min_max.getData(), d_result.getData(), data_size, result_size);
+	cudaDeviceSynchronize();
+
+	d_result.get(&result[0], result_size);
+	cudaDeviceSynchronize();
+
+	// With all the weights calculated, now the weights are set in each edge between the sheets and alternatives
+	Edge** edges = sheets[i]->getEdges(); // get the array of edges' pointer
+	float temp[altSize];
+	for(int i=0; i< sheetsSize; i++) {
+		for (j = 0; j < altSize; j++) {         // iterate trhough all the edges
+			memcpy(&temp, &result[i*sheetsSize+j*altSize], altSize);
+			edges[j]->setWeights(temp, altSize);
+		}
+	}
 }
 
 void AHPG::synthesisG() {

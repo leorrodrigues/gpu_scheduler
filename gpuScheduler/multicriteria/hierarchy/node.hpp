@@ -23,6 +23,7 @@ Node();
 ~Node();
 
 void setResource(H_Resource);
+void setResource(H_Resource*);
 void setResource(char*,float);
 void setName(const char*);
 void setEdges(Edge**);

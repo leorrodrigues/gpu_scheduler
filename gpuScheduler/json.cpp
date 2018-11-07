@@ -6,6 +6,10 @@ typedef rapidjson::GenericMember<rapidjson::UTF8<char>, rapidjson::MemoryPoolAll
 
 rapidjson::Document generateDocument(const char *path){
 	FILE* fp = fopen(path, "r");
+	if(fp == NULL) {
+		printf("JSON::Error in open file %s\n",path);
+		exit(0);
+	}
 	fseek(fp, 0, SEEK_END);
 	size_t filesize = (size_t)ftell(fp);
 	fseek(fp, 0, SEEK_SET);
@@ -16,7 +20,7 @@ rapidjson::Document generateDocument(const char *path){
 	rapidjson::Document sd;
 	if(sd.Parse(buffer).HasParseError()) {
 		free(buffer);
-		std::cout<<"Erro in parsing the json";
+		printf("JSON::Erro in parsing the json %s\n", path);
 	}
 	return sd;
 }

@@ -12,14 +12,16 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctype.h>
+#include <unistd.h>
 #include <cfloat>
 #include <string>
 #include <cmath>
 
-
 class AHP : public Multicriteria {
 private:
 std::map<int, WeightType> IR;
+
+char path[1024];
 
 /*Utility functions*/
 void updateAlternatives();

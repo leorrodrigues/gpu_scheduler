@@ -15,6 +15,14 @@ AHP::AHP() {
 	IR[13] = 1.5551;
 	IR[14] = 1.5713;
 	IR[15] = 1.5838;
+
+	char cwd[1024];
+	getcwd(cwd, sizeof(cwd));
+
+	char* sub_path = (strstr(cwd, "multicriteria"));
+	int position = sub_path - cwd;
+	strncpy(this->path, cwd, position);
+	this->path[position] = '\0';
 }
 
 AHP::~AHP(){
@@ -36,11 +44,25 @@ char* AHP::strToLower(const char* str) {
 }
 
 void AHP::updateAlternatives() {
+	char cwd[1024];
+	getcwd(cwd, sizeof(cwd));
+	char* path = strtok(cwd, "multicriteria");
+	printf("PATH %s\n",path);
+
+	char alt_schema_path [1024];
+	char alt_data_path [1024];
+
+	strcpy(alt_schema_path, path);
+	strcpy(alt_data_path, path);
+
+	strcat(alt_schema_path, "multicriteria/json/alternativesSchema.json");
+	strcat(alt_data_path, "multicriteria/json/alternativesDataDefault.json");
+
 	this->hierarchy->clearAlternatives();
 	rapidjson::SchemaDocument alternativesSchema =
-		JSON::generateSchema("multicriteria/json/alternativesSchema.json");
+		JSON::generateSchema(alt_schema_path);
 	rapidjson::Document alternativesData =
-		JSON::generateDocument("multicriteria/json/alternativesDataDefault.json");
+		JSON::generateDocument(alt_data_path);
 	rapidjson::SchemaValidator alternativesValidator(alternativesSchema);
 	if (!alternativesData.Accept(alternativesValidator))
 		JSON::jsonError(&alternativesValidator);
@@ -66,6 +88,7 @@ template <typename F> void AHP::iterateFunc(F f, Node* node) {
 void AHP::buildMatrix(Node* node) {
 	int i,j;
 	int size = node->getSize(); // get the number of edges
+	printf("SIZE %d\n");
 	if ( size == 0 ) return;
 	float** matrix = (float**) malloc (sizeof(float*) * size);
 	for (i = 0; i < size; i++)
@@ -74,9 +97,17 @@ void AHP::buildMatrix(Node* node) {
 	float* weights;
 
 	for (i = 0; i < size; i++) {
+		printf("I = %d\n",i);
 		matrix[i][i] = 1;
 		weights = (node->getEdges())[i]->getWeights();
 		for (j = i + 1; j < size; j++) {
+			if(weights == NULL ) {
+				printf("ERRO BRUSCO BUILD MATRIX WEIGHT = NULL\n");
+				exit(0);
+			}
+			printf("J = %d\n",j);
+			printf("Matrix[%d][%d]\n",i,j);
+			printf("Weights[%d] = %f",j,weights[j]);
 			matrix[i][j] = weights[j];
 			matrix[j][i] = 1 / matrix[i][j];
 		}
@@ -349,7 +380,7 @@ void AHP::hierarchyParser(genericValue* dataObjective) {
 void AHP::criteriasParser(genericValue* dataCriteria, Node* parent) {
 	char* name;
 	bool leaf = false;
-	float* weight;
+	float* weight = NULL;
 	int index=0;
 	for (auto &childArray : dataCriteria->value.GetArray()) {
 		weight = NULL;
@@ -361,6 +392,7 @@ void AHP::criteriasParser(genericValue* dataCriteria, Node* parent) {
 				leaf = child.value.GetBool();
 			} else if (strcmp(n, "weight") == 0) {
 				for (auto &weightChild : child.value.GetArray()) {
+					weight = (float*) realloc (weight, sizeof(float) * (index+1) );
 					weight[index]=weightChild.GetFloat();
 					index++;
 				}
@@ -377,11 +409,13 @@ void AHP::criteriasParser(genericValue* dataCriteria, Node* parent) {
 			}
 		}
 		if (leaf) {
+			printf("Setting a leaf\n");
 			auto criteria = this->hierarchy->addCriteria(name);
 			criteria->setLeaf(leaf);
 			this->hierarchy->addSheets(criteria);
 			this->hierarchy->addEdge(parent, criteria, weight);
 		}
+		free(weight);
 	}
 }
 
@@ -426,10 +460,17 @@ void AHP::conception(bool alternativeParser) {
 	// hierarchy focus and criteria were loaded in the hierarchyData.json, and
 	// finally the alternatives were loaded.
 	if (alternativeParser) {
+		char resource_schema[1024];
+		char resource_data[1024];
+		strcpy(resource_schema, path);
+		strcpy(resource_data, path);
+		strcat(resource_schema, "multicriteria/json/resourcesSchema.json");
+		strcat(resource_data, "multicriteria/json/resourcesData.json");
+
 		rapidjson::SchemaDocument resourcesSchema =
-			JSON::generateSchema("multicriteria/json/resourcesSchema.json");
+			JSON::generateSchema(resource_schema);
 		rapidjson::Document resourcesData =
-			JSON::generateDocument("multicriteria/json/resourcesData.json");
+			JSON::generateDocument(resource_data);
 		rapidjson::SchemaValidator resourcesValidator(resourcesSchema);
 		if (!resourcesData.Accept(resourcesValidator))
 			JSON::jsonError(&resourcesValidator);
@@ -438,20 +479,38 @@ void AHP::conception(bool alternativeParser) {
 	}
 	// After reading the resoucesData, new alternativesSchema has to be created.
 	// Parser the Json File that contains the Hierarchy
+	char hierarchy_schema [1024] = "\0";
+	char hierarchy_data [1024] = "\0";
+
+	strcpy(hierarchy_schema, path);
+	strcpy(hierarchy_data, path);
+
+	strcat(hierarchy_schema, "multicriteria/json/hierarchySchema.json");
+	strcat(hierarchy_data, "multicriteria/json/hierarchyData.json");
+
 	rapidjson::SchemaDocument hierarchySchema =
-		JSON::generateSchema("multicriteria/json/hierarchySchema.json");
+		JSON::generateSchema(hierarchy_schema);
 	rapidjson::Document hierarchyData =
-		JSON::generateDocument("multicriteria/json/hierarchyData.json");
+		JSON::generateDocument(hierarchy_data);
 	rapidjson::SchemaValidator hierarchyValidator(hierarchySchema);
+
 	if (!hierarchyData.Accept(hierarchyValidator))
 		JSON::jsonError(&hierarchyValidator);
 	domParser(&hierarchyData);
+
 	if (alternativeParser) {
+		char alternative_schema [1024];
+		char alternative_data [1024];
+
+		strcpy(alternative_schema, path);
+		strcpy(alternative_data, path);
+
+		strcat(alternative_schema, "multicriteria/json/alternativesSchema.json");
+		strcat(alternative_data, "multicriteria/json/alternativesDataDefault.json");
 		// The Json Data is valid and can be used to construct the hierarchy.
 		rapidjson::SchemaDocument alternativesSchema =
-			JSON::generateSchema("multicriteria/json/alternativesSchema.json");
-		rapidjson::Document alternativesData = JSON::generateDocument(
-			"multicriteria/json/alternativesDataDefault.json");
+			JSON::generateSchema(alternative_schema);
+		rapidjson::Document alternativesData = JSON::generateDocument(alternative_data);
 		rapidjson::SchemaValidator alternativesValidator(alternativesSchema);
 		if (!alternativesData.Accept(alternativesValidator))
 			JSON::jsonError(&alternativesValidator);
@@ -506,7 +565,7 @@ void AHP::acquisition() {
 	}
 
 	float result;
-
+	printf("SS %d AS %d\n", sheetsSize, altSize);
 	for ( i=0; i< sheetsSize; i++) {
 		for ( j=0; j<altSize; j++) {
 			for ( k=0; k<altSize; k++) {
@@ -531,31 +590,40 @@ void AHP::acquisition() {
 		// With all the weights calculated, now the weights are set in each edge
 		// between the sheets and alternatives
 		Edge** edges = sheets[i]->getEdges(); // get the array of edges' pointer
+		sheets[i]->setSize(altSize);
+		printf("SHEETS SIZE = %d\n", this->hierarchy->getSheetsSize());
 		for (j = 0; j < altSize; j++) { // iterate trhough all the edges
 			edges[j]->setWeights(criteriasWeight[j], altSize);
 		}
 	}
+
+	for(i=0; i<altSize; i++) {
+		free(criteriasWeight[i]);
+	}
+
+	free(criteriasWeight);
+	free(min_max_values);
 }
 
 void AHP::synthesis() {
 	// 1 - Build the construccd the matrix
-	// printf("B M\n");
+	printf("B M\n");
 	buildMatrix(this->hierarchy->getFocus());
 	// printMatrix(this->hierarchy->getFocus());
 	// 2 - Normalize the matrix
-	// printf("B N\n");
+	printf("B N\n");
 	buildNormalizedmatrix(this->hierarchy->getFocus());
 	// printNormalizedMatrix(this->hierarchy->getFocus());
-	// printf("D M\n");
+	printf("D M\n");
 	deleteMatrix(this->hierarchy->getFocus());
 	// 3 - calculate the PML
-	// printf("B P\n");
+	printf("B P\n");
 	buildPml(this->hierarchy->getFocus());
 	// printPml(this->hierarchy->getFocus());
-	// printf("D Nn");
+	printf("D Nn");
 	deleteNormalizedMatrix(this->hierarchy->getFocus());
 	// 4 - calculate the PG
-	// printf("B PG\n");
+	printf("B PG\n");
 	buildPg(this->hierarchy->getFocus());
 	// printf("D P\n");
 	// deletePml(this->hierarchy->getFocus());
@@ -588,8 +656,11 @@ void AHP::run(Host** alternatives, int size) {
 		this->conception(false);
 		this->setAlternatives(alternatives, size);
 	}
+	printf("OLa\n");
 	this->acquisition();
+	printf("Acquisiton done\n");
 	this->synthesis();
+	printf("Synthesis done\n");
 	// this->consistency();
 }
 
@@ -624,14 +695,14 @@ void AHP::setAlternatives(Host** alternatives, int size) {
 
 	this->hierarchy->clearAlternatives();
 
-	Resource* resource;
-
+	Resource* resource = NULL;
+	Node* a = NULL;
 	for ( i=0; i<size; i++) {
 		resource = alternatives[i]->getResource(); // Host resource
 
-		Node* a = new Node(); // create the new node
+		a = new Node(); // create the new node
 
-		a->setResource(*this->hierarchy->getResource()); // set the default resources in the node
+		a->setResource(this->hierarchy->getResource()); // set the default resources in the node
 
 		a->setName((char*) alternatives[i]->getName().c_str()); // set the node name
 
