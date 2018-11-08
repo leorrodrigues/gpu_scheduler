@@ -47,7 +47,7 @@ Topology* Builder::getTopology(){
 	return this->topology;
 }
 
-std::map<int, std::string> Builder::getMulticriteriaResult(){
+std::map<int, char*> Builder::getMulticriteriaResult(){
 	return this->multicriteriaMethod->getResult();
 }
 
@@ -202,7 +202,7 @@ void Builder::setDcell(int nHosts,int nLevels){
 
 void Builder::runMulticriteria(std::vector<Host*> alt){
 	if(this->multicriteriaMethod!=NULL)
-		this->multicriteriaMethod->run(alt);
+		this->multicriteriaMethod->run(&alt[0]);
 }
 
 void Builder::runClustering(std::vector<Host*> alt){

@@ -41,7 +41,8 @@ Host(Resource* resource) {
 	resources.mBool = resource->mBool;
 }
 
-~Host();
+~Host(){
+};
 
 void setResource(std::string name, int v) {
 	this->resources.mInt[name] = v;

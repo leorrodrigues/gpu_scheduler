@@ -30,7 +30,7 @@ typedef struct {
 } options_t;
 
 typedef struct {
-	std::map<int,std::string> allocated_task;
+	std::map<int, char*> allocated_task;
 	std::vector<Container*> containers;
 	int total_containers=0;
 	int total_accepted=0;

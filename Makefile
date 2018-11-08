@@ -2,6 +2,9 @@
 #        SCHEDULER      #
 ####################
 
+$(shell mkdir -p gpuScheduler/build)
+$(shell mkdir -p gpuScheduler/build/hierarchy)
+
 #Programs
 CXX = g++
 NVCC = nvcc
@@ -90,7 +93,7 @@ LIST_CLUSTERING_OBJ := $(foreach file, $(CLUSTERING_FILES_), $(BUILD_GPUSCHEDULE
 LIST_CLUSTERING_DEP := $(foreach file, $(CLUSTERING_FILES), $(BUILD_GPUSCHEDULER)$(file).d)
 
 #Multicriteria module
-MULTICRITERIA_FILES := ahp ahpg
+MULTICRITERIA_FILES := ahp ahpg hierarchy/hierarchy hierarchy/hierarchy_resource hierarchy/node hierarchy/edge
 
 LIST_MULTICRITERIA := $(foreach file,$(MULTICRITERIA_FILES), $(BUILD_GPUSCHEDULER)$(file)$(AUX))
 
@@ -142,7 +145,7 @@ NVCCFLAGS += $(DEFINES)
 all: scheduler simulator;
 
 scheduler: .task .rabbit .clustering .multicriteria .libs .json $(LIST_GPUSCHEDULER)
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) $(BUILD_GPUSCHEDULER)*.o $(NVOUT) $(GPUSCHEDULER_PATH)gpuscheduler.out
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) $(BUILD_GPUSCHEDULER)*.o $(BUILD_GPUSCHEDULER)hierarchy/*.o $(NVOUT) $(GPUSCHEDULER_PATH)gpuscheduler.out
 
 ifeq ($(MAKECMDGOALS),scheduler)
 include $(LIST_RABBIT_DEP)
@@ -250,3 +253,5 @@ clear:
 	rm -f $(BUILD_SIMULATOR)*.o $(BUILD_SIMULATOR)*.d;
 	rm -f $(GPUSCHEDULER_PATH)gpuscheduler.out
 	rm -f $(SIMULATOR_PATH)simulator.out
+	$(shell rm -r gpuScheduler/build/hierarchy)
+	$(shell rm -r gpuScheduler/build)

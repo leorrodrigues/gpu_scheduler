@@ -17,22 +17,22 @@ Node::Node(){
 }
 
 Node::~Node(){
-	free(name);
-	delete(resources);
+	free(this->name);
+	delete(this->resources);
 
 	int i;
 	if(this->matrix != NULL)
 		for(i=0; i<this->size; i++) {
-			free( matrix[i] );
+			free( this->matrix[i] );
 		}
 	if(this->normalized_matrix!=NULL)
 		for(i=0; i<this->size; i++) {
-			free( normalized_matrix[i] );
+			free( this->normalized_matrix[i] );
 		}
-	free( matrix );
-	free( normalized_matrix );
-	free( pml );
-	free( pg );
+	free( this->matrix );
+	free( this->normalized_matrix );
+	free( this->pml );
+	free( this->pg );
 	this->name=NULL;
 	this->resources=NULL;
 	this->matrix=NULL;
@@ -253,7 +253,12 @@ node_t Node::getType(){
 
 void Node::clearEdges(){
 	if( this->edges!=NULL) {
+		int i;
+		for(i=0; i<this->size; i++) {
+			delete(this->edges[i]);
+		}
 		delete(this->edges);
 		this->edges = NULL;
+		this->size = 0;
 	}
 }

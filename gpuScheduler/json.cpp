@@ -22,6 +22,7 @@ rapidjson::Document generateDocument(const char *path){
 		free(buffer);
 		printf("JSON::Erro in parsing the json %s\n", path);
 	}
+	free( buffer );
 	return sd;
 }
 

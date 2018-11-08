@@ -130,6 +130,7 @@ void Hierarchy::addEdge(Node* parent, Node* child, float* weight, int size){
 	}else if(parent->getType()==node_t::CRITERIA && child->getType()==node_t::CRITERIA) {
 		addEdgeCriteria(parent, child, weight, size);
 	}else if(parent->getType()==node_t::CRITERIA && child->getType()==node_t::ALTERNATIVE) {
+		printf("TRY TO ADD ALTERNATIVE\n");
 		addEdgeAlternative(parent, child, weight, size);
 	}else{
 		printf("ADD EDGE ERROR\n");
@@ -240,12 +241,12 @@ Node* Hierarchy::addAlternative(Node* alternative) {
 void Hierarchy::addEdgeSheetsAlternatives() {
 	int i,j;
 	//Iterate through all the sheets.
+	float temp[this->alternatives_size] = {0}; //initiate all elements with 0
 	for(i=0; i<this->sheets_size; i++) {
 		//Iterate through all the alternatives.
 		for(j=0; j<this->alternatives_size; j++) {
 			//Create an edge between them.
-			this->addEdgeAlternative(this->sheets[i], this->alternatives[j]);
-			this->sheets[i]->setSize(0);
+			this->addEdgeAlternative(this->sheets[i], this->alternatives[j], temp, alternatives_size);
 		}
 	}
 }
@@ -257,14 +258,15 @@ void Hierarchy::addEdgeSheetsAlternatives() {
 void Hierarchy::addSheets(Node* criteria) {
 	//If the criteria isn't a sheet.
 	if (!findSheets(criteria)) {
-		printf("Sheet added!\n");
 		//Add the criteria in the sheets vector.
 		this->sheets = (Node**) realloc (this->sheets, sizeof(Node*)* (this->sheets_size+1));
 		this->sheets[this->sheets_size] = criteria;
 		this->sheets_size++;
-	}else{
-		printf("Sheet not added\n");
 	}
+}
+
+void Hierarchy::setSheetsSize(int size){
+	this->sheets_size = size;
 }
 
 /*Printing status Function*/
@@ -382,9 +384,6 @@ void Hierarchy::clearSheetsEdges() {
 	for ( i=0; i<size; i++) {
 		this->sheets[i]->clearEdges();
 	}
-	free(this->sheets);
-	this->sheets = NULL;
-	this->sheets_size = 0;
 }
 
 /**

@@ -75,6 +75,7 @@ int main(){
 	auto pml = ahp->hierarchy->getFocus()->getPml();
 	// ahp->printPml(ahp->hierarchy->getFocus());
 	auto pg = ahp->hierarchy->getFocus()->getPg();
+	ahp->printPml(ahp->hierarchy->getFocus());
 	ahp->printPg(ahp->hierarchy->getFocus());
 	delete(ahp);
 }

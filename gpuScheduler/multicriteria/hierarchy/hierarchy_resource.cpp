@@ -8,7 +8,7 @@ H_Resource::H_Resource(){
 
 H_Resource::~H_Resource(){
 	int i=0;
-	for(i; i<this->data_size; i++) {
+	for(; i<this->data_size; i++) {
 		free(this->names[i]);
 	}
 	free(this->names);
@@ -20,7 +20,7 @@ H_Resource::~H_Resource(){
 
 void H_Resource::clear(){
 	int i=0;
-	for(i; i<this->data_size; i++) {
+	for(; i<this->data_size; i++) {
 		free(this->names[i]);
 	}
 	free(this->names);
@@ -66,7 +66,7 @@ float H_Resource::getResource(int index){
 float H_Resource::getResource(char* name){
 	int i=0;
 	for(i=0; i<this->data_size; i++) {
-		if((this->names[i], name ) == 0) {
+		if(strcmp(this->names[i], name ) == 0) {
 			return this->data[i];
 		}
 	}

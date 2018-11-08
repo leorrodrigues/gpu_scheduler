@@ -172,5 +172,15 @@ int main(){
 
 	ahp->run(&hosts[0], hosts.size());
 
+	auto r = ahp->getResult();
+	// printf("Results\n");
+	// for(auto it= r.begin(); it!= r.end(); it++) {
+	//      printf("%s = %d\n", it->second, it->first);
+	// }
+
+
 	delete(ahp);
+	for(int i=0; i<hosts.size(); i++) {
+		delete(hosts[i]);
+	}
 }

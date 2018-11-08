@@ -17,7 +17,12 @@ AHP::AHP() {
 	IR[15] = 1.5838;
 
 	char cwd[1024];
-	getcwd(cwd, sizeof(cwd));
+	char* result;
+	result = getcwd(cwd, sizeof(cwd));
+
+	if(result == NULL) {
+		printf("AHP Error get directory path\n");
+	}
 
 	char* sub_path = (strstr(cwd, "multicriteria"));
 	int position = sub_path - cwd;
@@ -36,7 +41,7 @@ void AHP::setHierarchy(){
 char* AHP::strToLower(const char* str) {
 	int i;
 	char* res = (char*) malloc( strlen(str)+1 );
-	for(i=0; i<strlen(str); i++) {
+	for(i=0; (unsigned int) i<strlen(str); i++) {
 		res[i]=tolower(str[i]);
 	}
 	res[strlen(str)] = '\0';
@@ -44,10 +49,6 @@ char* AHP::strToLower(const char* str) {
 }
 
 void AHP::updateAlternatives() {
-	char cwd[1024];
-	getcwd(cwd, sizeof(cwd));
-	char* path = strtok(cwd, "multicriteria");
-	printf("PATH %s\n",path);
 
 	char alt_schema_path [1024];
 	char alt_data_path [1024];
@@ -88,7 +89,6 @@ template <typename F> void AHP::iterateFunc(F f, Node* node) {
 void AHP::buildMatrix(Node* node) {
 	int i,j;
 	int size = node->getSize(); // get the number of edges
-	printf("SIZE %d\n");
 	if ( size == 0 ) return;
 	float** matrix = (float**) malloc (sizeof(float*) * size);
 	for (i = 0; i < size; i++)
@@ -97,7 +97,6 @@ void AHP::buildMatrix(Node* node) {
 	float* weights;
 
 	for (i = 0; i < size; i++) {
-		printf("I = %d\n",i);
 		matrix[i][i] = 1;
 		weights = (node->getEdges())[i]->getWeights();
 		for (j = i + 1; j < size; j++) {
@@ -105,9 +104,6 @@ void AHP::buildMatrix(Node* node) {
 				printf("ERRO BRUSCO BUILD MATRIX WEIGHT = NULL\n");
 				exit(0);
 			}
-			printf("J = %d\n",j);
-			printf("Matrix[%d][%d]\n",i,j);
-			printf("Weights[%d] = %f",j,weights[j]);
 			matrix[i][j] = weights[j];
 			matrix[j][i] = 1 / matrix[i][j];
 		}
@@ -225,7 +221,6 @@ void AHP::deleteNormalizedMatrix(Node* node) {
 }
 
 void AHP::deletePml(Node* node){
-	int size = node->getSize();
 	float* pml = node->getPml();
 	free(pml);
 	pml = NULL;
@@ -365,9 +360,12 @@ void AHP::resourcesParser(genericValue* dataResource) {
 }
 
 void AHP::hierarchyParser(genericValue* dataObjective) {
+	char* name = NULL;
 	for (auto &hierarchyObject : dataObjective->value.GetObject()) {
 		if (strcmp(hierarchyObject.name.GetString(), "name") == 0) {
-			this->hierarchy->addFocus(strToLower(hierarchyObject.value.GetString())); // create the Focus* in the hierarchy;
+			name = strToLower(hierarchyObject.value.GetString());
+			this->hierarchy->addFocus(name); // create the Focus* in the hierarchy;
+			free ( name );
 		} else if (strcmp(hierarchyObject.name.GetString(), "childs") == 0) {
 			criteriasParser(&hierarchyObject, this->hierarchy->getFocus() );
 		} else {
@@ -378,12 +376,13 @@ void AHP::hierarchyParser(genericValue* dataObjective) {
 }
 
 void AHP::criteriasParser(genericValue* dataCriteria, Node* parent) {
-	char* name;
+	char* name=(char*)"\0";
 	bool leaf = false;
 	float* weight = NULL;
 	int index=0;
 	for (auto &childArray : dataCriteria->value.GetArray()) {
 		weight = NULL;
+		index=0;
 		for (auto &child : childArray.GetObject()) {
 			const char* n = child.name.GetString();
 			if (strcmp(n, "name") == 0) {
@@ -402,19 +401,20 @@ void AHP::criteriasParser(genericValue* dataCriteria, Node* parent) {
 				// the hierarchy, the criteria node has to be created.
 				auto criteria = this->hierarchy->addCriteria(name);
 				criteria->setLeaf(leaf);
-				this->hierarchy->addEdge(parent, criteria, weight);
+				this->hierarchy->addEdge(parent, criteria, weight, index);
 				// with the criteria node added, the call recursively the
 				// criteriasParser.
 				criteriasParser(&child, criteria);
+				free(name);
 			}
 		}
 		if (leaf) {
-			printf("Setting a leaf\n");
 			auto criteria = this->hierarchy->addCriteria(name);
 			criteria->setLeaf(leaf);
 			this->hierarchy->addSheets(criteria);
-			this->hierarchy->addEdge(parent, criteria, weight);
+			this->hierarchy->addEdge(parent, criteria, weight, index);
 		}
+		free(name);
 		free(weight);
 	}
 }
@@ -528,20 +528,19 @@ void AHP::acquisition() {
 	Node** alt = this->hierarchy->getAlternatives();
 	Node** sheets = this->hierarchy->getSheets();
 
-	int altSize = this->hierarchy->getAlternativesSize();
-	int sheetsSize = this->hierarchy->getSheetsSize();
-	int resourceSize = this->hierarchy->getResource()->getDataSize();
+	const int altSize = this->hierarchy->getAlternativesSize();
+	const int sheetsSize = this->hierarchy->getSheetsSize();
+	const int resourceSize = this->hierarchy->getResource()->getDataSize();
 
 	float* min_max_values = (float*) malloc (sizeof(float) * resourceSize);
-
 	{
 		float min, max, value;
 
 		for( i=0; i<resourceSize; i++) {
 			min = FLT_MAX;
 			max = FLT_MIN;
-			for( j=0; j<sheetsSize; j++ ) {
-				value = sheets[j]->getResource()->getResource(i);
+			for( j=0; j<altSize; j++ ) {
+				value = alt[j]->getResource()->getResource(i);
 				if( value > max) {
 					max = value;
 				}
@@ -556,7 +555,6 @@ void AHP::acquisition() {
 			}
 		}
 	}
-
 	// At this point, all the integers and float/float resources  has
 	// the max and min values discovered.
 	float** criteriasWeight = (float**) malloc (sizeof(float*) * altSize);
@@ -565,7 +563,6 @@ void AHP::acquisition() {
 	}
 
 	float result;
-	printf("SS %d AS %d\n", sheetsSize, altSize);
 	for ( i=0; i< sheetsSize; i++) {
 		for ( j=0; j<altSize; j++) {
 			for ( k=0; k<altSize; k++) {
@@ -591,7 +588,6 @@ void AHP::acquisition() {
 		// between the sheets and alternatives
 		Edge** edges = sheets[i]->getEdges(); // get the array of edges' pointer
 		sheets[i]->setSize(altSize);
-		printf("SHEETS SIZE = %d\n", this->hierarchy->getSheetsSize());
 		for (j = 0; j < altSize; j++) { // iterate trhough all the edges
 			edges[j]->setWeights(criteriasWeight[j], altSize);
 		}
@@ -607,23 +603,23 @@ void AHP::acquisition() {
 
 void AHP::synthesis() {
 	// 1 - Build the construccd the matrix
-	printf("B M\n");
+	// printf("B M\n");
 	buildMatrix(this->hierarchy->getFocus());
 	// printMatrix(this->hierarchy->getFocus());
 	// 2 - Normalize the matrix
-	printf("B N\n");
+	// printf("B N\n");
 	buildNormalizedmatrix(this->hierarchy->getFocus());
 	// printNormalizedMatrix(this->hierarchy->getFocus());
-	printf("D M\n");
+	// printf("D M\n");
 	deleteMatrix(this->hierarchy->getFocus());
 	// 3 - calculate the PML
-	printf("B P\n");
+	// printf("B P\n");
 	buildPml(this->hierarchy->getFocus());
 	// printPml(this->hierarchy->getFocus());
-	printf("D Nn");
+	// printf("D Nn");
 	deleteNormalizedMatrix(this->hierarchy->getFocus());
 	// 4 - calculate the PG
-	printf("B PG\n");
+	// printf("B PG\n");
 	buildPg(this->hierarchy->getFocus());
 	// printf("D P\n");
 	// deletePml(this->hierarchy->getFocus());
@@ -655,12 +651,10 @@ void AHP::run(Host** alternatives, int size) {
 		}
 		this->conception(false);
 		this->setAlternatives(alternatives, size);
+		if(this->hierarchy->getSheetsSize()==0) exit(0);
 	}
-	printf("OLa\n");
 	this->acquisition();
-	printf("Acquisiton done\n");
 	this->synthesis();
-	printf("Synthesis done\n");
 	// this->consistency();
 }
 
@@ -671,7 +665,7 @@ std::map<int,char*> AHP::getResult() {
 
 	unsigned int i;
 
-	for (i = 0; i < this->hierarchy->getAlternativesSize(); i++) {
+	for (i = 0; i < (unsigned int) this->hierarchy->getAlternativesSize(); i++) {
 		alternativesPair.push_back(std::make_pair(i, values[i]));
 	}
 	// Nao e necessario fazer sort, o map ja realiza o sort do map pela chave em ordem acendente (menor - maior)
@@ -693,7 +687,7 @@ std::map<int,char*> AHP::getResult() {
 void AHP::setAlternatives(Host** alternatives, int size) {
 	int i;
 
-	this->hierarchy->clearAlternatives();
+	// this->hierarchy->clearAlternatives();
 
 	Resource* resource = NULL;
 	Node* a = NULL;

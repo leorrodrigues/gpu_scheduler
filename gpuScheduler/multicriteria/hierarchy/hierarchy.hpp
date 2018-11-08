@@ -76,6 +76,7 @@ Node *addAlternative();
 Node *addAlternative(Node*);
 void addEdgeSheetsAlternatives();
 void addSheets(Node *);
+void setSheetsSize(int);
 
 /*Printing Status Function*/
 void listFocus();
