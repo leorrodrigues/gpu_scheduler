@@ -15,19 +15,21 @@ AHP::AHP() {
 	IR[13] = 1.5551;
 	IR[14] = 1.5713;
 	IR[15] = 1.5838;
-
 	char cwd[1024];
 	char* result;
 	result = getcwd(cwd, sizeof(cwd));
-
 	if(result == NULL) {
 		printf("AHP Error get directory path\n");
 	}
-
 	char* sub_path = (strstr(cwd, "multicriteria"));
-	int position = sub_path - cwd;
-	strncpy(this->path, cwd, position);
-	this->path[position] = '\0';
+	if(sub_path!=NULL) {
+		int position = sub_path - cwd;
+		strncpy(this->path, cwd, position);
+		this->path[position-1] = '\0';
+	}else{
+		strcpy(this->path, cwd);
+		strcat(this->path,"/");
+	}
 }
 
 AHP::~AHP(){
@@ -632,14 +634,19 @@ void AHP::consistency() {
 }
 
 void AHP::run(Host** alternatives, int size) {
+	this->setHierarchy();
+	printf("Initializing AHP\n");
 	if (size == 0) {
 		this->conception(true);
 	} else {
 		// this->hierarchy->clearAlternatives(); // made in the setAlternatives function
+		printf("Clear Resource\n");
 		this->hierarchy->clearResource();
 
+		printf("Get Resource\n");
 		Resource *resource = alternatives[0]->getResource();
 
+		printf("Update the hierarchy resource\n");
 		for (auto it : resource->mInt) {
 			this->hierarchy->addResource((char*)it.first.c_str());
 		}
@@ -649,11 +656,14 @@ void AHP::run(Host** alternatives, int size) {
 		for (auto it : resource->mBool) {
 			this->hierarchy->addResource((char*)it.first.c_str());
 		}
+		printf("Conception\n");
 		this->conception(false);
 		this->setAlternatives(alternatives, size);
 		if(this->hierarchy->getSheetsSize()==0) exit(0);
 	}
+	printf("Aquisition\n");
 	this->acquisition();
+	printf("Synthesis\n");
 	this->synthesis();
 	// this->consistency();
 }

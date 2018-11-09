@@ -202,7 +202,7 @@ void Builder::setDcell(int nHosts,int nLevels){
 
 void Builder::runMulticriteria(std::vector<Host*> alt){
 	if(this->multicriteriaMethod!=NULL)
-		this->multicriteriaMethod->run(&alt[0]);
+		this->multicriteriaMethod->run(&alt[0], alt.size());
 }
 
 void Builder::runClustering(std::vector<Host*> alt){

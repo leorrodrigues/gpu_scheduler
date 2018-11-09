@@ -56,7 +56,6 @@ ifeq ($(SO_NAME),ubuntu)
 	RABBIT_LIBS_PATH := /usr/lib
 endif
 
-
 CXXFLAGS = $(DEBUG_CXX) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -L$(RABBIT_LIBS_PATH) -lrabbitmq -Ofast
 
 CXXFLAGS_W/BOOST = $(DEBUG_CXX) $(BOOSTFLAGS) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -L$(RABBIT_LIBS_PATH) -lrabbitmq -Ofast
@@ -146,6 +145,16 @@ all: scheduler simulator;
 
 scheduler: .task .rabbit .clustering .multicriteria .libs .json $(LIST_GPUSCHEDULER)
 	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) $(BUILD_GPUSCHEDULER)*.o $(BUILD_GPUSCHEDULER)hierarchy/*.o $(NVOUT) $(GPUSCHEDULER_PATH)gpuscheduler.out
+
+ifeq ($(MAKECMDGOALS),scheduler)
+include $(LIST_RABBIT_DEP)
+include $(LIST_CLUSTERING_DEP)
+include $(LIST_MULTICRITERIA_DEP)
+include $(LIST_GPUSCHEDULER_DEP)
+endif
+
+scheduler_test: .task .rabbit .clustering .multicriteria .libs .json $(LIST_GPUSCHEDULER)
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) $(DEBUG_CXX) $(BUILD_GPUSCHEDULER)*.o $(BUILD_GPUSCHEDULER)hierarchy/*.o $(NVOUT) $(GPUSCHEDULER_PATH)gpuscheduler.out
 
 ifeq ($(MAKECMDGOALS),scheduler)
 include $(LIST_RABBIT_DEP)

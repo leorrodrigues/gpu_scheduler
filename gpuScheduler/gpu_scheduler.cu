@@ -147,23 +147,23 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 	for(std::vector<Container*>::iterator it=scheduler->containers.begin(); it!=scheduler->containers.end();) {
 		// std::cout<<"new container test\n";
 		if((*it)->getDuration()+(*it)->getSubmission()==options->current_time) {
-			// std::cout<<"######################################\n";
-			// std::cout << " Delete Task QUEUE SIZE " << scheduler->containers.size()<<" \n";
+			std::cout<<"######################################\n";
+			std::cout << " Delete Task QUEUE SIZE " << scheduler->containers.size()<<" \n";
 
-			// std::cout << "Container "<< (*it)->getId() << " = "<< (*it)->getDuration() << " " << (*it)->getSubmission()<<"\n";
+			std::cout << "Container "<< (*it)->getId() << " = "<< (*it)->getDuration() << " " << (*it)->getSubmission()<<"\n";
 			// Before remove the container, free the consumed space in the Data Center
-			// std::cout<<"Fuck #### " << scheduler->allocated_task[0]<<" FUCK\n";
-			// std::cout<<"Fuck #### " << scheduler->allocated_task[1]<<" FUCK\n";
-			// if ( scheduler->allocated_task.find(0) == scheduler->allocated_task.end() ) {
-			//      // std::cout<<" DELETADO ESSA POCILGA\n";
-			// } else {
-			//      // std::cout<<" POCILGA NAO DELETADO\n";
-			// }
-			// if ( scheduler->allocated_task.find(1) == scheduler->allocated_task.end() ) {
-			//      // std::cout<<" DELETADO ESSA POCILGA\n";
-			// } else {
-			//      // std::cout<<" POCILGA NAO DELETADO\n";
-			// }
+			std::cout<<"Fuck #### " << scheduler->allocated_task[0]<<" FUCK\n";
+			std::cout<<"Fuck #### " << scheduler->allocated_task[1]<<" FUCK\n";
+			if ( scheduler->allocated_task.find(0) == scheduler->allocated_task.end() ) {
+				// std::cout<<" DELETADO ESSA POCILGA\n";
+			} else {
+				// std::cout<<" POCILGA NAO DELETADO\n";
+			}
+			if ( scheduler->allocated_task.find(1) == scheduler->allocated_task.end() ) {
+				// std::cout<<" DELETADO ESSA POCILGA\n";
+			} else {
+				// std::cout<<" POCILGA NAO DELETADO\n";
+			}
 			free_success=Allocator::freeHostResource(
 				/* the specific host that have the container*/
 				builder->getHost(scheduler->allocated_task[(*it)->getId()]),
@@ -219,12 +219,12 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 }
 
 void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, options_t* options, int message_count){
-	// std::cout<<"Start Scheduler\n";
+	std::cout<<"Start Scheduler\n";
 	while(message_count>0) {
 		if(options->current_time==options->end_time) break;
-		// std::cout<<"Scheduler Time "<< options->current_time<<"\n";
-		// std::cout<<"message_count "<<message_count<<"\n";
-		// std::cout<<"contianers size "<<scheduler->containers.size()<<"\n";
+		std::cout<<"Scheduler Time "<< options->current_time<<"\n";
+		std::cout<<"message_count "<<message_count<<"\n";
+		std::cout<<"contianers size "<<scheduler->containers.size()<<"\n";
 		// make sure there is work in the queue
 		if(message_count>0) {
 			// Create new container
@@ -238,11 +238,11 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 			// std::cout << *c << "\n";
 		}
 		// Search the containers to delete
-		// delete_tasks(scheduler, builder, options);
+		delete_tasks(scheduler, builder, options);
 		// Search the containers in the vector to allocate in the DC
-		// std::cout<<"New Allocation\n";
+		std::cout<<"New Allocation\n";
 		allocate_tasks(scheduler, builder, options);
-		// std::cout<<"Done Allocation\n";
+		std::cout<<"Done Allocation\n";
 		// Update the lifetime
 		options->current_time++;
 		// printf(" Checked\n");
