@@ -21,14 +21,6 @@ Node::~Node(){
 	delete(this->resources);
 
 	int i;
-	if(this->matrix != NULL)
-		for(i=0; i<this->size; i++) {
-			free( this->matrix[i] );
-		}
-	if(this->normalized_matrix!=NULL)
-		for(i=0; i<this->size; i++) {
-			free( this->normalized_matrix[i] );
-		}
 	free( this->matrix );
 	free( this->normalized_matrix );
 	free( this->pml );
@@ -105,80 +97,20 @@ void Node::addEdge(Edge* edge){
 	this->size++;
 }
 
-void Node::setMatrix(float** matrix){
-	int i,j;
-	if( matrix == NULL) {
-		this->matrix = NULL;
-		return;
-	}
-	if( this->matrix != NULL) {
-		for(i=0; i<this->size; i++) {
-			free(this->matrix[i]);
-			this->matrix[i]=NULL;
-		}
-		free(this->matrix);
-		this->matrix = NULL;
-	}
-	this->matrix = (float**) malloc ( sizeof(float*) * this->size);
-
-	for(i=0; i<this->size; i++) {
-		this->matrix[i]= (float*) malloc ( sizeof(float) * this->size);
-		for( j=0; j<size; j++) {
-			this->matrix[i][j]= matrix[i][j];
-		}
-	}
+void Node::setMatrix(float* matrix){
+	this->matrix=matrix;
 }
 
-void Node::setNormalizedMatrix(float** nMatrix){
-	int i,j;
-	if( nMatrix == NULL) {
-		this->normalized_matrix = NULL;
-		return;
-	}
-	if( this->normalized_matrix != NULL ) {
-		for(i=0; i<this->size; i++) {
-			free(this->normalized_matrix[i]);
-			this->normalized_matrix[i]=NULL;
-		}
-		free(this->normalized_matrix);
-		this->normalized_matrix = NULL;
-	}
-	this->normalized_matrix = (float**) malloc ( sizeof(float*)  * this->size );
-
-	for( i=0; i<this->size; i++) {
-		this->normalized_matrix[i] = (float*) malloc ( sizeof(float) * this->size);
-		for( j=0; j<this->size; j++) {
-			this->normalized_matrix[i][j] = nMatrix[i][j];
-		}
-	}
+void Node::setNormalizedMatrix(float* nMatrix){
+	this->normalized_matrix=nMatrix;
 }
 
 void Node::setPml(float* pml){
-	if( pml == NULL) {
-		this->pml = NULL;
-		return;
-	}
-	if( this->pml != NULL) {
-		free( this->pml);
-		this->pml = NULL;
-	}
-	int i;
-	this->pml = (float*) malloc (  sizeof(float) * this->size );
-	for(i=0; i<this->size; i++) {
-		this->pml[i] = pml[i];
-	}
+	this->pml=pml;
 }
 
-void Node::setPg(float* pg, int size){
-	if( this->pg != NULL ) {
-		free(this->pg);
-		this->pg=NULL;
-	}
-	int i;
-	this->pg =  (float*) malloc ( sizeof(float) * size );
-	for(i=0; i< size; i++) {
-		this->pg[i] = pg[i];
-	}
+void Node::setPg(float* pg){
+	this->pg=pg;
 }
 
 void Node::setTypeFocus(){
@@ -223,11 +155,11 @@ Edge** Node::getEdges(){
 	return this->edges;
 }
 
-float** Node::getMatrix(){
+float* Node::getMatrix(){
 	return this->matrix;
 }
 
-float** Node::getNormalizedMatrix(){
+float* Node::getNormalizedMatrix(){
 	return this->normalized_matrix;
 }
 

@@ -46,7 +46,7 @@ SCENARIO("Hierarchy can be created, insert criterias, focus and alternatives",
 				}
 			}
 			WHEN("AHP Matrix, Normalized Matrix, PML and PG are added") {
-				float **matrix, **normalizedMatrix, *pml, *pg;
+				float *matrix, *normalizedMatrix, *pml, *pg;
 				matrix = normalizedMatrix = NULL;
 				pml = pg = NULL;
 				float lower_bound = 0;
@@ -54,19 +54,17 @@ SCENARIO("Hierarchy can be created, insert criterias, focus and alternatives",
 				std::uniform_real_distribution<float> unif(lower_bound,
 				                                           upper_bound);
 				std::default_random_engine re;
-				matrix = new float *[5];
-				normalizedMatrix = new float *[5];
+				matrix = new float[25];
+				normalizedMatrix = new float[25];
 				pml = new float[5];
 				pg = new float[5];
 
 				for (int i = 0; i < 5; i++) {
 					pml[i] = unif(re);
 					pg[i] = unif(re);
-					matrix[i] = new float[5];
-					normalizedMatrix[i] = new float[5];
 					for (int j = 0; j < 5; j++) {
-						matrix[i][j] = unif(re);
-						normalizedMatrix[i][j] = unif(re);
+						matrix[i*5+j] = unif(re);
+						normalizedMatrix[i*5+j] = unif(re);
 					}
 				}
 				THEN("The new values are set in the Focus") {
@@ -74,16 +72,15 @@ SCENARIO("Hierarchy can be created, insert criterias, focus and alternatives",
 					ahp->hierarchy->getFocus()->setMatrix(matrix);
 					ahp->hierarchy->getFocus()->setNormalizedMatrix(normalizedMatrix);
 					ahp->hierarchy->getFocus()->setPml(pml);
-					ahp->hierarchy->getFocus()->setPg(pg,5);
+					ahp->hierarchy->getFocus()->setPg(pg);
 					for (int i = 0; i < 5; i++) {
 						REQUIRE(ahp->hierarchy->getFocus()->getSize() == 5);
 						REQUIRE(ahp->hierarchy->getFocus()->getPml()[i] == pml[i]);
 						REQUIRE(ahp->hierarchy->getFocus()->getPg()[i] == pg[i]);
 						for (int j = 0; j < 5; j++) {
-							REQUIRE(ahp->hierarchy->getFocus()->getMatrix()[i][j] ==
-							        matrix[i][j]);
-							REQUIRE(ahp->hierarchy->getFocus()->getNormalizedMatrix()[i][j] ==
-							        normalizedMatrix[i][j]);
+							REQUIRE(ahp->hierarchy->getFocus()->getMatrix()[i*5+j] == matrix[i*5+j]);
+							REQUIRE(ahp->hierarchy->getFocus()->getNormalizedMatrix()[i*5+j] ==
+							        normalizedMatrix[i*5+j]);
 						}
 					}
 				}

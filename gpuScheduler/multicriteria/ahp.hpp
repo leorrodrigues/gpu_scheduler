@@ -19,7 +19,7 @@
 
 class AHP : public Multicriteria {
 private:
-std::map<int, WeightType> IR;
+std::map<int, float> IR;
 
 char path[1024];
 
@@ -52,7 +52,7 @@ void synthesis();
 void consistency();
 void run(Host** host={}, int size=0);
 
-std::map<int, char*> getResult();
+std::map<int,const char*> getResult();
 
 void setAlternatives(Host** alternatives,int size);
 

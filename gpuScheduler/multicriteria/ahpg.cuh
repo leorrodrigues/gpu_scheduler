@@ -10,8 +10,8 @@
 #include "../json.hpp"
 
 #include "ahpg_kernel.cuh"
-#include "dev_array.h"
 
+#include <unistd.h>
 #include <cstdlib>
 #include <cstring>
 #include <ctype.h>
@@ -24,17 +24,21 @@
 
 class AHPG : public Multicriteria {
 private:
-std::map<int, WeightType> IR;
+std::map<int, float> IR;
+
+char path[1024];
 
 /*Utility functions*/
 void updateAlternativesG();
 void buildMatrixG(Node*);
-void buildNormalizedmatrixG(Node*);
+void buildNormalizedMatrixG(Node*);
 void buildPmlG(Node*);
 void buildPgG(Node*);
 float partialPgG(Node*, int);
 void deleteMatrixG(Node*);
+void deleteMatrixIG(Node*);
 void deleteNormalizedMatrixG(Node*);
+void deleteNormalizedMatrixIG(Node*);
 void deletePmlG(Node*);
 void checkConsistencyG(Node*);
 void generateContentSchemaG();
@@ -58,7 +62,7 @@ void consistencyG();
 /******* Virtual Functions Override*******/
 void run(Host** alternatives={}, int size=0);
 
-std::map<int, char*> getResult();
+std::map<int,const char*> getResult();
 
 void setAlternatives(Host** host,int size);
 /************************************/

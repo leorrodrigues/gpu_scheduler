@@ -31,10 +31,10 @@ void addEdge(Edge*);
 void setLeaf(bool);
 void setActive(bool);
 void setSize(int);
-void setMatrix(float**);
-void setNormalizedMatrix(float**);
+void setMatrix(float*);
+void setNormalizedMatrix(float*);
 void setPml(float*);
-void setPg(float*,int);
+void setPg(float*);
 void setTypeFocus();
 void setTypeCriteria();
 void setTypeAlternative();
@@ -46,8 +46,8 @@ Edge** getEdges();
 bool getLeaf();
 bool getActive();
 node_t getType();
-float** getMatrix();
-float** getNormalizedMatrix();
+float* getMatrix();
+float* getNormalizedMatrix();
 float* getPml();
 float* getPg();
 
@@ -62,8 +62,10 @@ char* name;  ///< Variable to store the main objective name or id.
 
 Edge** edges;  ///< Vector of edges pointers to represent all the links between any two nodes.
 
-float** matrix; ///< Matrix used to represent the weights matrix used in the acquisition AHP step.
-float** normalized_matrix;  ///< Normalized Matrix used to represent the values that were obtained by the normalization of the matrix values.
+float* matrix; ///< Matrix used to represent the weights matrix used in the acquisition AHP step.
+
+float* normalized_matrix;  ///< Normalized Matrix used to represent the values that were obtained by the normalization of the matrix values.
+
 float* pml; ///< PML variable is used to store all the local avarage priority of the criterias. (*) Different to focus class, the criterias don't have PG variable.
 float* pg; ///< PG variable is used to store the Global priority of the alternatives, represents the final alternative's ranking.
 

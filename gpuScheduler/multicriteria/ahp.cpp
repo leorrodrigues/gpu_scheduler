@@ -8,7 +8,7 @@ AHP::AHP() {
 	IR[6] = 1.1279;
 	IR[7] = 1.3417;
 	IR[8] = 1.4056;
-	IR[9] = 1.4499;
+	IR[9] = 1.4499F;
 	IR[10] = 1.4854;
 	IR[11] = 1.5141;
 	IR[12] = 1.5365;
@@ -37,6 +37,9 @@ AHP::~AHP(){
 }
 
 void AHP::setHierarchy(){
+	if(this->hierarchy!=NULL)
+		delete(this->hierarchy);
+
 	this->hierarchy = new Hierarchy();
 }
 
@@ -92,30 +95,24 @@ void AHP::buildMatrix(Node* node) {
 	int i,j;
 	int size = node->getSize(); // get the number of edges
 	if ( size == 0 ) return;
-	float** matrix = (float**) malloc (sizeof(float*) * size);
-	for (i = 0; i < size; i++)
-		matrix[i] = (float*) malloc (sizeof(float) * size);
+	float* matrix = (float*) malloc (sizeof(float) * size*size);
 
 	float* weights;
 
 	for (i = 0; i < size; i++) {
-		matrix[i][i] = 1;
+		matrix[i*size+i] = 1;
 		weights = (node->getEdges())[i]->getWeights();
 		for (j = i + 1; j < size; j++) {
 			if(weights == NULL ) {
-				printf("ERRO BRUSCO BUILD MATRIX WEIGHT = NULL\n");
+				printf("AHP(107): WEIGHT NULL\n");
 				exit(0);
 			}
-			matrix[i][j] = weights[j];
-			matrix[j][i] = 1 / matrix[i][j];
+			matrix[i*size+j] = weights[j];
+			matrix[j*size+i] = 1 / matrix[i*size+j];
 		}
 	}
 
 	node->setMatrix(matrix);
-
-	for(i=0; i< size; i++)
-		free(matrix[i]);
-	free(matrix);
 
 	iterateFunc(&AHP::buildMatrix, node);
 }
@@ -124,24 +121,19 @@ void AHP::buildNormalizedmatrix(Node* node) {
 	int i,j;
 	int size = node->getSize();
 	if ( size == 0 ) return;
-	float** matrix = node->getMatrix(), sum = 0;
-	float** nMatrix = (float**) malloc (sizeof(float*) * size);
-	for (i = 0; i < size; i++)
-		nMatrix[i] = (float*) malloc (sizeof(float) * size);
+	float* matrix = node->getMatrix(), sum = 0;
+	float* nMatrix = (float*) malloc (sizeof(float) * size*size);
+
 	for (i = 0; i < size; i++) {
 		sum = 0;
 		for (j = 0; j < size; j++) {
-			sum += matrix[j][i];
+			sum += matrix[j*size+i];
 		}
 		for (j = 0; j < size; j++) {
-			nMatrix[j][i] = matrix[j][i] / sum;
+			nMatrix[j*size+i] = matrix[j*size+i] / sum;
 		}
 	}
 	node->setNormalizedMatrix(nMatrix);
-
-	for(i=0; i< size; i++)
-		free(nMatrix[i]);
-	free(nMatrix);
 
 	iterateFunc(&AHP::buildNormalizedmatrix, node);
 }
@@ -152,17 +144,16 @@ void AHP::buildPml(Node* node) {
 	if ( size == 0 ) return;
 	float sum = 0;
 	float* pml = (float*) malloc (sizeof(float) * size);
-	float** matrix = node->getNormalizedMatrix();
+	float* matrix = node->getNormalizedMatrix();
 	for (i = 0; i < size; i++) {
 		sum = 0;
 		for (j = 0; j < size; j++) {
-			sum += matrix[i][j];
+			sum += matrix[i*size+j];
 		}
 		pml[i] = sum / (float)size;
 	}
 	node->setPml(pml);
 	iterateFunc(&AHP::buildPml, node);
-	free(pml);
 }
 
 void AHP::buildPg(Node* node) {
@@ -173,8 +164,7 @@ void AHP::buildPg(Node* node) {
 	for (i = 0; i < size; i++) {
 		pg[i] = partialPg(node, i);
 	}
-	node->setPg(pg, size);
-	free(pg);
+	node->setPg(pg);
 }
 
 float AHP::partialPg(Node* node, int alternative) {
@@ -199,11 +189,7 @@ float AHP::partialPg(Node* node, int alternative) {
 }
 
 void AHP::deleteMatrix(Node* node) {
-	int i;
-	int size = node->getSize();
-	float** matrix = node->getMatrix();
-	for (i = 0; i < size; i++)
-		free(matrix[i]);
+	float* matrix = node->getMatrix();
 	free(matrix);
 	matrix = NULL;
 	node->setMatrix(NULL);
@@ -211,11 +197,7 @@ void AHP::deleteMatrix(Node* node) {
 }
 
 void AHP::deleteNormalizedMatrix(Node* node) {
-	int i;
-	int size = node->getSize();
-	float** nMatrix = node->getNormalizedMatrix();
-	for (i = 0; i < size; i++)
-		free(nMatrix[i]);
+	float* nMatrix = node->getNormalizedMatrix();
 	free(nMatrix);
 	nMatrix = NULL;
 	node->setNormalizedMatrix(NULL);
@@ -233,13 +215,13 @@ void AHP::deletePml(Node* node){
 void AHP::checkConsistency(Node* node) {
 	int i, j;
 	int size = node->getSize();
-	float** matrix = node->getMatrix();
+	float* matrix = node->getMatrix();
 	float* pml = node->getPml();
 	float p[size], lambda = 0, RC = 0;
 	for (i = 0; i < size; i++) {
 		p[i] = 0;
 		for (j = 0; j < size; j++) {
-			p[i] += pml[j] * matrix[i][j];
+			p[i] += pml[j] * matrix[i*size+j];
 		}
 		lambda += (p[i] / pml[i]);
 	}
@@ -272,12 +254,12 @@ void AHP::checkConsistency(Node* node) {
 
 void AHP::printMatrix(Node* node) {
 	int i,j;
-	float** matrix = node->getMatrix();
+	float* matrix = node->getMatrix();
 	int tam = node->getSize();
 	printf("Matrix of %s\n", node->getName());
 	for (i = 0; i < tam; i++) {
 		for (j = 0; j < tam; j++) {
-			printf("%010lf\t", matrix[i][j]);
+			printf("%010lf\t", matrix[i*tam+j]);
 		}
 		printf("\n");
 	}
@@ -287,12 +269,12 @@ void AHP::printMatrix(Node* node) {
 
 void AHP::printNormalizedMatrix(Node* node) {
 	int i,j;
-	float **matrix = node->getNormalizedMatrix();
+	float* matrix = node->getNormalizedMatrix();
 	int tam = node->getSize();
 	printf("Normalized Matrix of %s\n", node->getName());
 	for (i = 0; i < tam; i++) {
 		for (j = 0; j < tam; j++) {
-			printf("%010lf\t", matrix[i][j]);
+			printf("%010lf\t", matrix[i*tam+j]);
 		}
 		printf("\n");
 	}
@@ -466,8 +448,8 @@ void AHP::conception(bool alternativeParser) {
 		char resource_data[1024];
 		strcpy(resource_schema, path);
 		strcpy(resource_data, path);
-		strcat(resource_schema, "multicriteria/json/resourcesSchema.json");
-		strcat(resource_data, "multicriteria/json/resourcesData.json");
+		strcat(resource_schema, "/multicriteria/json/resourcesSchema.json");
+		strcat(resource_data, "/multicriteria/json/resourcesData.json");
 
 		rapidjson::SchemaDocument resourcesSchema =
 			JSON::generateSchema(resource_schema);
@@ -487,8 +469,8 @@ void AHP::conception(bool alternativeParser) {
 	strcpy(hierarchy_schema, path);
 	strcpy(hierarchy_data, path);
 
-	strcat(hierarchy_schema, "multicriteria/json/hierarchySchema.json");
-	strcat(hierarchy_data, "multicriteria/json/hierarchyData.json");
+	strcat(hierarchy_schema, "/multicriteria/json/hierarchySchema.json");
+	strcat(hierarchy_data, "/multicriteria/json/hierarchyData.json");
 
 	rapidjson::SchemaDocument hierarchySchema =
 		JSON::generateSchema(hierarchy_schema);
@@ -507,8 +489,8 @@ void AHP::conception(bool alternativeParser) {
 		strcpy(alternative_schema, path);
 		strcpy(alternative_data, path);
 
-		strcat(alternative_schema, "multicriteria/json/alternativesSchema.json");
-		strcat(alternative_data, "multicriteria/json/alternativesDataDefault.json");
+		strcat(alternative_schema, "/multicriteria/json/alternativesSchema.json");
+		strcat(alternative_data, "/multicriteria/json/alternativesDataDefault.json");
 		// The Json Data is valid and can be used to construct the hierarchy.
 		rapidjson::SchemaDocument alternativesSchema =
 			JSON::generateSchema(alternative_schema);
@@ -553,7 +535,7 @@ void AHP::acquisition() {
 			if(min==0 && max==1) { // the value is boolean
 				min_max_values[i] = -1; //simulate boolean value
 			}else{
-				min_max_values[i] = (max-min)/ 9; // the other variables
+				min_max_values[i] = (max-min)/ 9.0; // the other variables
 			}
 		}
 	}
@@ -635,18 +617,18 @@ void AHP::consistency() {
 
 void AHP::run(Host** alternatives, int size) {
 	this->setHierarchy();
-	printf("Initializing AHP\n");
+	// printf("Initializing AHP\n");
 	if (size == 0) {
 		this->conception(true);
 	} else {
 		// this->hierarchy->clearAlternatives(); // made in the setAlternatives function
-		printf("Clear Resource\n");
+		// printf("Clear Resource\n");
 		this->hierarchy->clearResource();
 
-		printf("Get Resource\n");
+		// printf("Get Resource\n");
 		Resource *resource = alternatives[0]->getResource();
 
-		printf("Update the hierarchy resource\n");
+		// printf("Update the hierarchy resource\n");
 		for (auto it : resource->mInt) {
 			this->hierarchy->addResource((char*)it.first.c_str());
 		}
@@ -668,8 +650,8 @@ void AHP::run(Host** alternatives, int size) {
 	// this->consistency();
 }
 
-std::map<int,char*> AHP::getResult() {
-	std::map<int,char*> result;
+std::map<int,const char*> AHP::getResult() {
+	std::map<int,const char*> result;
 	float* values = this->hierarchy->getFocus()->getPg();
 	std::vector<std::pair<int, float> > alternativesPair;
 

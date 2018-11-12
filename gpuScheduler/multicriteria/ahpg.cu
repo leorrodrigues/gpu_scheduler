@@ -1,5 +1,18 @@
 #include "ahpg.cuh"
 
+inline
+cudaError_t checkCuda(cudaError_t result)
+{
+#if defined(DEBUG) || defined(_DEBUG)
+	if (result != cudaSuccess) {
+		fprintf(stderr, "CUDA Runtime Error: %s\n",
+		        cudaGetErrorString(result));
+		assert(result == cudaSuccess);
+	}
+#endif
+	return result;
+}
+
 AHPG::AHPG() {
 	this->hierarchy = NULL;
 	IR[3] = 0.5245;
@@ -15,6 +28,21 @@ AHPG::AHPG() {
 	IR[13] = 1.5551;
 	IR[14] = 1.5713;
 	IR[15] = 1.5838;
+	char cwd[1024];
+	char* result;
+	result = getcwd(cwd, sizeof(cwd));
+	if(result == NULL) {
+		printf("AHP Error get directory path\n");
+	}
+	char* sub_path = (strstr(cwd, "multicriteria"));
+	if(sub_path!=NULL) {
+		int position = sub_path - cwd;
+		strncpy(this->path, cwd, position);
+		this->path[position-1] = '\0';
+	}else{
+		strcpy(this->path, cwd);
+		strcat(this->path,"/");
+	}
 }
 
 AHPG::~AHPG(){
@@ -22,6 +50,9 @@ AHPG::~AHPG(){
 }
 
 void AHPG::setHierarchyG(){
+	if(this->hierarchy!=NULL)
+		delete(this->hierarchy);
+
 	this->hierarchy = new Hierarchy();
 }
 
@@ -36,11 +67,21 @@ char* AHPG::strToLowerG(const char* str) {
 }
 
 void AHPG::updateAlternativesG() {
+
+	char alt_schema_path [1024];
+	char alt_data_path [1024];
+
+	strcpy(alt_schema_path, path);
+	strcpy(alt_data_path, path);
+
+	strcat(alt_schema_path, "multicriteria/json/alternativesSchema.json");
+	strcat(alt_data_path, "multicriteria/json/alternativesDataDefault.json");
+
 	this->hierarchy->clearAlternatives();
 	rapidjson::SchemaDocument alternativesSchema =
-		JSON::generateSchema("multicriteria/json/alternativesSchema.json");
+		JSON::generateSchema(alt_schema_path);
 	rapidjson::Document alternativesData =
-		JSON::generateDocument("multicriteria/json/alternativesDataDefault.json");
+		JSON::generateDocument(alt_data_path);
 	rapidjson::SchemaValidator alternativesValidator(alternativesSchema);
 	if (!alternativesData.Accept(alternativesValidator))
 		JSON::jsonError(&alternativesValidator);
@@ -67,54 +108,47 @@ void AHPG::buildMatrixG(Node* node) {
 	int i,j;
 	int size = node->getSize(); // get the number of edges
 	if ( size == 0 ) return;
-	float** matrix = (float**) malloc (sizeof(float*) * size);
-	for (i = 0; i < size; i++)
-		matrix[i] = (float*) malloc (sizeof(float) * size);
+	float* matrix = (float*) malloc (sizeof(float)* size*size);
 
 	float* weights;
 
 	for (i = 0; i < size; i++) {
-		matrix[i][i] = 1;
+		matrix[i*size+i] = 1;
 		weights = (node->getEdges())[i]->getWeights();
 		for (j = i + 1; j < size; j++) {
-			matrix[i][j] = weights[j];
-			matrix[j][i] = 1 / matrix[i][j];
+			if(weights == NULL ) {
+				printf("ERRO BRUSCO BUILD MATRIX WEIGHT = NULL\n");
+				exit(0);
+			}
+			matrix[i*size+j] = weights[j];
+			matrix[j*size+i] = 1.0 / matrix[i*size+j];
 		}
 	}
 
 	node->setMatrix(matrix);
 
-	for(i=0; i< size; i++)
-		free(matrix[i]);
-	free(matrix);
-
 	iterateFuncG(&AHPG::buildMatrixG, node);
 }
 
-void AHPG::buildNormalizedmatrixG(Node* node) {
+void AHPG::buildNormalizedMatrixG(Node* node) {
 	int i,j;
 	int size = node->getSize();
 	if ( size == 0 ) return;
-	float** matrix = node->getMatrix(), sum = 0;
-	float** nMatrix = (float**) malloc (sizeof(float*) * size);
-	for (i = 0; i < size; i++)
-		nMatrix[i] = (float*) malloc (sizeof(float) * size);
+	float* matrix = node->getMatrix(), sum = 0;
+	float* nMatrix = (float*) malloc (sizeof(float) * size*size);
+
 	for (i = 0; i < size; i++) {
 		sum = 0;
 		for (j = 0; j < size; j++) {
-			sum += matrix[j][i];
+			sum += matrix[j*size+i];
 		}
 		for (j = 0; j < size; j++) {
-			nMatrix[j][i] = matrix[j][i] / sum;
+			nMatrix[j*size+i] = matrix[j*size+i] / sum;
 		}
 	}
 	node->setNormalizedMatrix(nMatrix);
 
-	for(i=0; i< size; i++)
-		free(nMatrix[i]);
-	free(nMatrix);
-
-	iterateFuncG(&AHPG::buildNormalizedmatrixG, node);
+	iterateFuncG(&AHPG::buildNormalizedMatrixG, node);
 }
 
 void AHPG::buildPmlG(Node* node) {
@@ -123,17 +157,16 @@ void AHPG::buildPmlG(Node* node) {
 	if ( size == 0 ) return;
 	float sum = 0;
 	float* pml = (float*) malloc (sizeof(float) * size);
-	float** matrix = node->getNormalizedMatrix();
+	float* matrix = node->getNormalizedMatrix();
 	for (i = 0; i < size; i++) {
 		sum = 0;
 		for (j = 0; j < size; j++) {
-			sum += matrix[i][j];
+			sum += matrix[i*size+j];
 		}
 		pml[i] = sum / (float)size;
 	}
 	node->setPml(pml);
 	iterateFuncG(&AHPG::buildPmlG, node);
-	free(pml);
 }
 
 void AHPG::buildPgG(Node* node) {
@@ -144,11 +177,11 @@ void AHPG::buildPgG(Node* node) {
 	for (i = 0; i < size; i++) {
 		pg[i] = partialPgG(node, i);
 	}
-	node->setPg(pg, size);
+	node->setPg(pg);
 	free(pg);
 }
 
-WeightType AHPG::partialPgG(Node* node, int alternative) {
+float AHPG::partialPgG(Node* node, int alternative) {
 	int i;
 
 	Node* criteria;
@@ -170,31 +203,42 @@ WeightType AHPG::partialPgG(Node* node, int alternative) {
 }
 
 void AHPG::deleteMatrixG(Node* node) {
-	int i;
-	int size = node->getSize();
-	float** matrix = node->getMatrix();
-	for (i = 0; i < size; i++)
-		free(matrix[i]);
+	float* matrix = node->getMatrix();
+	if(matrix==NULL);
 	free(matrix);
 	matrix = NULL;
 	node->setMatrix(NULL);
-	iterateFuncG(&AHPG::deleteMatrixG, node);
 }
 
 void AHPG::deleteNormalizedMatrixG(Node* node) {
-	int i;
-	int size = node->getSize();
-	float** nMatrix = node->getNormalizedMatrix();
-	for (i = 0; i < size; i++)
-		free(nMatrix[i]);
+	float* nMatrix = node->getNormalizedMatrix();
+	if(nMatrix==NULL) return;
 	free(nMatrix);
 	nMatrix = NULL;
 	node->setNormalizedMatrix(NULL);
+}
+
+void AHPG::deleteMatrixIG(Node* node) {
+	float* matrix = node->getMatrix();
+	if(matrix!=NULL) {
+		free(matrix);
+		matrix = NULL;
+		node->setMatrix(NULL);
+	}
+	iterateFuncG(&AHPG::deleteMatrixG, node);
+}
+
+void AHPG::deleteNormalizedMatrixIG(Node* node) {
+	float* nMatrix = node->getNormalizedMatrix();
+	if(nMatrix!=NULL) {
+		free(nMatrix);
+		nMatrix = NULL;
+		node->setNormalizedMatrix(NULL);
+	}
 	iterateFuncG(&AHPG::deleteNormalizedMatrixG, node);
 }
 
 void AHPG::deletePmlG(Node* node){
-	int size = node->getSize();
 	float* pml = node->getPml();
 	free(pml);
 	pml = NULL;
@@ -205,13 +249,13 @@ void AHPG::deletePmlG(Node* node){
 void AHPG::checkConsistencyG(Node* node) {
 	int i, j;
 	int size = node->getSize();
-	float** matrix = node->getMatrix();
+	float* matrix = node->getMatrix();
 	float* pml = node->getPml();
 	float p[size], lambda = 0, RC = 0;
 	for (i = 0; i < size; i++) {
 		p[i] = 0;
 		for (j = 0; j < size; j++) {
-			p[i] += pml[j] * matrix[i][j];
+			p[i] += pml[j] * matrix[i*size+j];
 		}
 		lambda += (p[i] / pml[i]);
 	}
@@ -242,15 +286,14 @@ void AHPG::checkConsistencyG(Node* node) {
 	iterateFuncG(&AHPG::checkConsistencyG, node);
 }
 
-
 void AHPG::printMatrixG(Node* node) {
 	int i,j;
-	float** matrix = node->getMatrix();
+	float* matrix = node->getMatrix();
 	int tam = node->getSize();
 	printf("Matrix of %s\n", node->getName());
 	for (i = 0; i < tam; i++) {
 		for (j = 0; j < tam; j++) {
-			printf("%010lf\t", matrix[i][j]);
+			printf("%010lf\t", matrix[i*tam+j]);
 		}
 		printf("\n");
 	}
@@ -260,12 +303,12 @@ void AHPG::printMatrixG(Node* node) {
 
 void AHPG::printNormalizedMatrixG(Node* node) {
 	int i,j;
-	float **matrix = node->getNormalizedMatrix();
+	float* matrix = node->getNormalizedMatrix();
 	int tam = node->getSize();
 	printf("Normalized Matrix of %s\n", node->getName());
 	for (i = 0; i < tam; i++) {
 		for (j = 0; j < tam; j++) {
-			printf("%010lf\t", matrix[i][j]);
+			printf("%010lf\t", matrix[i*tam+j]);
 		}
 		printf("\n");
 	}
@@ -335,11 +378,14 @@ void AHPG::resourcesParserG(genericValue* dataResource) {
 }
 
 void AHPG::hierarchyParserG(genericValue* dataObjective) {
+	char* name = NULL;
 	for (auto &hierarchyObject : dataObjective->value.GetObject()) {
 		if (strcmp(hierarchyObject.name.GetString(), "name") == 0) {
-			this->hierarchy->addFocus(strToLowerG(hierarchyObject.value.GetString())); // create the Focus* in the hierarchy;
+			name = strToLowerG(hierarchyObject.value.GetString());
+			this->hierarchy->addFocus(name); // create the Focus* in the hierarchy;
+			free ( name );
 		} else if (strcmp(hierarchyObject.name.GetString(), "childs") == 0) {
-			criteriasParserG(&hierarchyObject, this->hierarchy->getFocus());
+			criteriasParserG(&hierarchyObject, this->hierarchy->getFocus() );
 		} else {
 			std::cout << "AHP -> Unrecognizable Type\nExiting...\n";
 			exit(0);
@@ -348,12 +394,13 @@ void AHPG::hierarchyParserG(genericValue* dataObjective) {
 }
 
 void AHPG::criteriasParserG(genericValue* dataCriteria, Node* parent) {
-	char* name;
+	char* name=(char*)"\0";
 	bool leaf = false;
-	float* weight;
+	float* weight = NULL;
 	int index=0;
 	for (auto &childArray : dataCriteria->value.GetArray()) {
 		weight = NULL;
+		index=0;
 		for (auto &child : childArray.GetObject()) {
 			const char* n = child.name.GetString();
 			if (strcmp(n, "name") == 0) {
@@ -362,6 +409,7 @@ void AHPG::criteriasParserG(genericValue* dataCriteria, Node* parent) {
 				leaf = child.value.GetBool();
 			} else if (strcmp(n, "weight") == 0) {
 				for (auto &weightChild : child.value.GetArray()) {
+					weight = (float*) realloc (weight, sizeof(float) * (index+1) );
 					weight[index]=weightChild.GetFloat();
 					index++;
 				}
@@ -371,18 +419,21 @@ void AHPG::criteriasParserG(genericValue* dataCriteria, Node* parent) {
 				// the hierarchy, the criteria node has to be created.
 				auto criteria = this->hierarchy->addCriteria(name);
 				criteria->setLeaf(leaf);
-				this->hierarchy->addEdge(parent, criteria, weight);
+				this->hierarchy->addEdge(parent, criteria, weight, index);
 				// with the criteria node added, the call recursively the
 				// criteriasParser.
 				criteriasParserG(&child, criteria);
+				free(name);
 			}
 		}
 		if (leaf) {
 			auto criteria = this->hierarchy->addCriteria(name);
 			criteria->setLeaf(leaf);
 			this->hierarchy->addSheets(criteria);
-			this->hierarchy->addEdge(parent, criteria, weight);
+			this->hierarchy->addEdge(parent, criteria, weight, index);
 		}
+		free(name);
+		free(weight);
 	}
 }
 
@@ -427,10 +478,17 @@ void AHPG::conceptionG(bool alternativeParser) {
 	// hierarchy focus and criteria were loaded in the hierarchyData.json, and
 	// finally the alternatives were loaded.
 	if (alternativeParser) {
+		char resource_schema[1024];
+		char resource_data[1024];
+		strcpy(resource_schema, path);
+		strcpy(resource_data, path);
+		strcat(resource_schema, "multicriteria/json/resourcesSchema.json");
+		strcat(resource_data, "multicriteria/json/resourcesData.json");
+
 		rapidjson::SchemaDocument resourcesSchema =
-			JSON::generateSchema("multicriteria/json/resourcesSchema.json");
+			JSON::generateSchema(resource_schema);
 		rapidjson::Document resourcesData =
-			JSON::generateDocument("multicriteria/json/resourcesData.json");
+			JSON::generateDocument(resource_data);
 		rapidjson::SchemaValidator resourcesValidator(resourcesSchema);
 		if (!resourcesData.Accept(resourcesValidator))
 			JSON::jsonError(&resourcesValidator);
@@ -439,20 +497,38 @@ void AHPG::conceptionG(bool alternativeParser) {
 	}
 	// After reading the resoucesData, new alternativesSchema has to be created.
 	// Parser the Json File that contains the Hierarchy
+	char hierarchy_schema [1024] = "\0";
+	char hierarchy_data [1024] = "\0";
+
+	strcpy(hierarchy_schema, path);
+	strcpy(hierarchy_data, path);
+
+	strcat(hierarchy_schema, "multicriteria/json/hierarchySchema.json");
+	strcat(hierarchy_data, "multicriteria/json/hierarchyData.json");
+
 	rapidjson::SchemaDocument hierarchySchema =
-		JSON::generateSchema("multicriteria/json/hierarchySchema.json");
+		JSON::generateSchema(hierarchy_schema);
 	rapidjson::Document hierarchyData =
-		JSON::generateDocument("multicriteria/json/hierarchyData.json");
+		JSON::generateDocument(hierarchy_data);
 	rapidjson::SchemaValidator hierarchyValidator(hierarchySchema);
+
 	if (!hierarchyData.Accept(hierarchyValidator))
 		JSON::jsonError(&hierarchyValidator);
 	domParserG(&hierarchyData);
+
 	if (alternativeParser) {
+		char alternative_schema [1024];
+		char alternative_data [1024];
+
+		strcpy(alternative_schema, path);
+		strcpy(alternative_data, path);
+
+		strcat(alternative_schema, "multicriteria/json/alternativesSchema.json");
+		strcat(alternative_data, "multicriteria/json/alternativesDataDefault.json");
 		// The Json Data is valid and can be used to construct the hierarchy.
 		rapidjson::SchemaDocument alternativesSchema =
-			JSON::generateSchema("multicriteria/json/alternativesSchema.json");
-		rapidjson::Document alternativesData = JSON::generateDocument(
-			"multicriteria/json/alternativesDataDefault.json");
+			JSON::generateSchema(alternative_schema);
+		rapidjson::Document alternativesData = JSON::generateDocument(alternative_data);
 		rapidjson::SchemaValidator alternativesValidator(alternativesSchema);
 		if (!alternativesData.Accept(alternativesValidator))
 			JSON::jsonError(&alternativesValidator);
@@ -467,9 +543,9 @@ void AHPG::acquisitionG() {
 	cudaDeviceProp props;
 	cudaGetDevice(&devID);
 	cudaGetDeviceProperties(&props, devID);
-	int block_size = (props.major < 2) ? 16 : 32;
+	// int block_size = (props.major < 2) ? 16 : 32;
 	//
-	int i,j,k;
+	int i,j;
 	// Para gerar os pesos das alterntivas, será primeiro captado o MIN e MAX
 	// valor das alternativas , após isso será montada as matrizes de cada sheet
 	// auto max = this->hierarchy->getResource();
@@ -482,15 +558,14 @@ void AHPG::acquisitionG() {
 	int resourceSize = this->hierarchy->getResource()->getDataSize();
 
 	float* min_max_values = (float*) malloc (sizeof(float) * resourceSize);
-
 	{
 		float min, max, value;
 
 		for( i=0; i<resourceSize; i++) {
 			min = FLT_MAX;
 			max = FLT_MIN;
-			for( j=0; j<sheetsSize; j++ ) {
-				value = sheets[j]->getResource()->getResource(i);
+			for( j=0; j<altSize; j++ ) {
+				value = alt[j]->getResource()->getResource(i);
 				if( value > max) {
 					max = value;
 				}
@@ -501,84 +576,106 @@ void AHPG::acquisitionG() {
 			if(min==0 && max==1) { // the value is boolean
 				min_max_values[i] = -1; //simulate boolean value
 			}else{
-				min_max_values[i] = (max-min)/ 9; // the other variables
+				min_max_values[i] = (max-min)/ 9.0; // the other variables
 			}
 		}
 	}
-
 	// Create the data host memory
-	int data_size = sheetsSize*altSize* altSize;
+	int data_size = sheetsSize*altSize;
 	int result_size = sheetsSize*altSize*altSize;
 
 	float* h_data = (float*) malloc (sizeof(float)* data_size );
-
+	printf("Making the h_data\n");
 	{
 		// TODO CAUNTION POSSIBLE ERROR
 		int index=0;
-		Edge** edges;
-		float* temp_weights;
-		for(i=0; i<sheetsSize; i++) {
-			edges = sheets[i]->getEdges();
-			for(j=0; j<altSize; j++) {
-				temp_weights = edges[j]->getWeights();
-				for(k = 0; k<edges[j]->getSize(); k++) {
-					h_data[index] = temp_weights[k];
-					index++;
-				}
+		H_Resource* temp_resource;
+		for(i=0; i<altSize; i++) {
+			temp_resource = alt[i]->getResource();
+			for(j=0; j<temp_resource->getDataSize(); j++) {
+				h_data[index] = temp_resource->getResource(j);
+				index++;
 			}
 		}
-		edges = NULL;
-		temp_weights = NULL;
+		temp_resource = NULL;
 	}
 
-	// Allocate memory on the device
-	dev_array<float> d_data(data_size);
-	dev_array<float> d_min_max(resourceSize);
-	dev_array<float> d_result(result_size);
+	float* pinned_data, *pinned_min_max;
 
-	d_data.set(&h_data[0], data_size);
-	d_min_max.set(&min_max_values[0], resourceSize);
+	float* d_data, *d_min_max, *d_result;
+
+	checkCuda( cudaMallocHost((void**)&pinned_data, data_size*sizeof(float)));
+	checkCuda( cudaMallocHost((void**)&pinned_min_max, resourceSize*sizeof(float)));
+
+	checkCuda( cudaMalloc((void**)&d_data, data_size*sizeof(float)));
+	checkCuda( cudaMalloc((void**)&d_min_max, resourceSize*sizeof(float)));
+	checkCuda( cudaMalloc((void**)&d_result, result_size*sizeof(float)));
+
+	memcpy(pinned_data, h_data, data_size*sizeof(float));
+	memcpy(pinned_min_max, min_max_values, resourceSize*sizeof(float));
 
 	free(h_data);
 	free(min_max_values);
 
 	float* result = (float*) malloc (sizeof(float) * result_size);
 
-	dim3 threadsPerBlock(block_size,block_size);
-	dim3 numBlocks( ceil(altSize/(float)threadsPerBlock.x), ceil(altSize/(float)threadsPerBlock.y));
+	checkCuda( cudaMemcpy(d_data, pinned_data, data_size*sizeof(float), cudaMemcpyHostToDevice));
+	checkCuda( cudaMemcpy(d_min_max, pinned_min_max, resourceSize*sizeof(float), cudaMemcpyHostToDevice));
 
+	dim3 block(4,16,16);
+	dim3 grid(ceil(sheetsSize/(float)block.x), ceil(altSize/(float)block.y), ceil(altSize/(float)block.z) );
 
-	acquisitonKernel<<< numBlocks, threadsPerBlock >>> (d_data.getData(), d_min_max.getData(), d_result.getData(), data_size, result_size);
+	// dim3 numBlocks( ceil(sheetsSize/(float)threadsPerBlock.x), ceil(altSize/(float)threadsPerBlock.y), ceil(altSize*altSize/(float)threadsPerBlock.z));
+
+	// printf("Calling the kernel\n");
+	// printf("Data size %d, result size %d\n", data_size, result_size);
+	acquisitonKernel <<< grid, block >>> (d_data, d_min_max, d_result, sheetsSize, altSize);
+
 	cudaDeviceSynchronize();
-
-	d_result.get(&result[0], result_size);
+	checkCuda( cudaMemcpy(result, d_result, result_size*sizeof(float),cudaMemcpyDeviceToHost));
 	cudaDeviceSynchronize();
-
+	// exit(0);
+	// getchar();
 	// With all the weights calculated, now the weights are set in each edge between the sheets and alternatives
-	Edge** edges = sheets[i]->getEdges(); // get the array of edges' pointer
+	Edge** edges = NULL;
 	float temp[altSize];
 	for(int i=0; i< sheetsSize; i++) {
-		for (j = 0; j < altSize; j++) {         // iterate trhough all the edges
+		edges = sheets[i]->getEdges(); // get the array of edges' pointer
+		for (j = 0; j < altSize-1; j++) {         // iterate trhough all the edges
 			memcpy(&temp, &result[i*sheetsSize+j*altSize], altSize);
 			edges[j]->setWeights(temp, altSize);
 		}
 	}
+	// cudaFree(d_data);
+	// cudaFree(d_min_max);
+	// cudaFree(d_result);
+	// cudaFreeHost(pinned_data);
+	// cudaFreeHost(pinned_min_max);
+	// free(result);
 }
 
 void AHPG::synthesisG() {
 	// 1 - Build the construccd the matrix
+	// printf("B M\n");
 	buildMatrixG(this->hierarchy->getFocus());
 	// printMatrix(this->hierarchy->getFocus());
 	// 2 - Normalize the matrix
-	buildNormalizedmatrixG(this->hierarchy->getFocus());
+	// printf("B N\n");
+	buildNormalizedMatrixG(this->hierarchy->getFocus());
 	// printNormalizedMatrix(this->hierarchy->getFocus());
-	deleteMatrixG(this->hierarchy->getFocus());
+	// printf("D M\n");
+	// ?(this->hierarchy->getFocus());
 	// 3 - calculate the PML
+	// printf("B P\n");
 	buildPmlG(this->hierarchy->getFocus());
-	deleteNormalizedMatrixG(this->hierarchy->getFocus());
 	// printPml(this->hierarchy->getFocus());
+	// printf("D Nn");
+	// deleteNormalizedMatrixG(this->hierarchy->getFocus());
 	// 4 - calculate the PG
+	// printf("B PG\n");
 	buildPgG(this->hierarchy->getFocus());
+	// printf("D P\n");
+	// deletePml(this->hierarchy->getFocus());
 	// printPg(this->hierarchy->getFocus());
 	// Print all information
 }
@@ -588,9 +685,8 @@ void AHPG::consistencyG() {
 
 }
 
-// void AHPG::run(std::vector<Hierarchy<VariablesType,WeightType>::Alternative*>
-// alt){
 void AHPG::run(Host** alternatives, int size) {
+	this->setHierarchyG();
 	if (size == 0) {
 		this->conceptionG(true);
 	} else {
@@ -608,22 +704,26 @@ void AHPG::run(Host** alternatives, int size) {
 		for (auto it : resource->mBool) {
 			this->hierarchy->addResource((char*)it.first.c_str());
 		}
+		printf("Conception\n");
 		this->conceptionG(false);
 		this->setAlternatives(alternatives, size);
+		if(this->hierarchy->getSheetsSize()==0) exit(0);
 	}
+	printf("Aquisition\n");
 	this->acquisitionG();
+	printf("Synthesis\n");
 	this->synthesisG();
 	// this->consistency();
 }
 
-std::map<int,char*> AHPG::getResult() {
-	std::map<int,char*> result;
+std::map<int,const char*> AHPG::getResult() {
+	std::map<int,const char*> result;
 	float* values = this->hierarchy->getFocus()->getPg();
 	std::vector<std::pair<int, float> > alternativesPair;
 
 	unsigned int i;
 
-	for (i = 0; i < this->hierarchy->getAlternativesSize(); i++) {
+	for (i = 0; i < (unsigned int) this->hierarchy->getAlternativesSize(); i++) {
 		alternativesPair.push_back(std::make_pair(i, values[i]));
 	}
 	// Nao e necessario fazer sort, o map ja realiza o sort do map pela chave em ordem acendente (menor - maior)
@@ -645,16 +745,16 @@ std::map<int,char*> AHPG::getResult() {
 void AHPG::setAlternatives(Host** alternatives, int size) {
 	int i;
 
-	this->hierarchy->clearAlternatives();
+	// this->hierarchy->clearAlternatives();
 
-	Resource* resource;
-
+	Resource* resource = NULL;
+	Node* a = NULL;
 	for ( i=0; i<size; i++) {
 		resource = alternatives[i]->getResource(); // Host resource
 
-		Node* a = new Node(); // create the new node
+		a = new Node(); // create the new node
 
-		a->setResource(*this->hierarchy->getResource()); // set the default resources in the node
+		a->setResource(this->hierarchy->getResource()); // set the default resources in the node
 
 		a->setName((char*) alternatives[i]->getName().c_str()); // set the node name
 

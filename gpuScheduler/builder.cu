@@ -47,7 +47,7 @@ Topology* Builder::getTopology(){
 	return this->topology;
 }
 
-std::map<int, char*> Builder::getMulticriteriaResult(){
+std::map<int,const char*> Builder::getMulticriteriaResult(){
 	return this->multicriteriaMethod->getResult();
 }
 

@@ -1,79 +1,62 @@
+
 #ifndef _AHPG_KERNEL_NOT_INCLUDED_
 #define _AHPG_KERNEL_NOT_INCLUDED_
 
 static __global__
-void acquisitonKernel(float* data, float* min_max, float* result, int data_size, int result_size){
-	// //The row is the number of the alternative
-	// int row = blockIdx.x*size+threadIdx.x;
-	// //The col is the number of the criteria
-	// int col = blockIdx.y*size+threadIdx.y;
-	// int value_alt1_int, value_alt2_int, t;
-	// float value_alt1_float, value_alt2_float;
-	// char* sub,*sub2;
-	// // int k=0;
-	// // for(int i=0; data[i]!='\0'; i++) {
-	// //      if(i==index[k]) {printf("|"); k++;}
-	// //      printf("%c",data[i]);
-	// // }
-	// // printf("ALT SIZE: %d , CRIT SIZE %d\n",size, sizeCrit);
-	// // if(row==0 && col <sizeCrit) { //the thread can do the work
-	// if(row<size && col <sizeCrit) {                 //the thread can do the work
-	//      int indexRead = row*sizeCrit+col;
-	//      // printf("NEW THREAD ROW %d COL %d SIZE %d SIZECRIT %d\n",row,col,size,sizeCrit);
-	//      value_alt1_int=0;
-	//      value_alt1_float=0.0f;
-	//      t=0;
-	//      // printf("%d # %d # %d # %d\n",indexRead, indexRead+1,index[indexRead],index[indexRead+1]);
-	//      sub=copyStr(data,index[indexRead],index[indexRead+1]);
-	//      if(types[row*sizeCrit+col]==0 || types[row*sizeCrit+col]==2) {
-	//              value_alt1_int=char_to_int(sub);
-	//              // printf("CONVERTED INT %d\n",value_alt1_int);
-	//      }else if(types[row*sizeCrit+col]==1) {
-	//              value_alt1_float=char_to_float(sub);
-	//              // printf("CONVERTED FLOAT %f\n",value_alt1_float);
-	//      }
-	//      for(int alt=0; alt<size; alt++) {
-	//              sub2=copyStr(data,index[alt*sizeCrit+col],index[alt*sizeCrit+(col+1)]);
-	//              // printf("ALTERNATIVE %d - %s # %s\n",alt,sub,sub2);
-	//              value_alt2_int=0;
-	//              value_alt2_float=0.0f;
-	//              //alt*sizeCrit+col will jump over the alternatives to get the same coleria value.
-	//              if(types[alt*sizeCrit+col]==0) {
-	//                      t=0;
-	//                      value_alt2_int=char_to_int(sub2);
-	//              }else if(types[alt*sizeCrit+col]==1) {
-	//                      t=1;
-	//                      value_alt2_float=char_to_float(sub2);
-	//              }else if(types[alt*sizeCrit+col]==2) {
-	//                      t=2;
-	//                      value_alt2_int=char_to_int(sub2);
-	//              }
-	//              // printf("DIVIDED BY %f\n",max_min[col]);
-	//              // printf("SIZE: %d\n",size);
-	//              int indexWrite = row*size*sizeCrit+col*size+alt;
-	//              // int indexWrite = row*size*size/2+alt;
-	//              // printf("WERE I WRITE %d\n",row*size*sizeCrit+col*size+alt);
-	//              //Its used row*size*size/2 to jump correctly in the vector and set the values
-	//              if(t==0) {
-	//                      value_alt1_int==value_alt2_int ? cmp[indexWrite]=1 : cmp[indexWrite] = (value_alt1_int-value_alt2_int) / (float) max_min[col];
-	//                      // printf("Write in T0 %f\n",cmp[indexWrite]);
-	//              }else if(t==1) {
-	//                      // if(value_alt1_float!=value_alt2_float) printf("DIF %f %f\n",value_alt1_float,value_alt2_float);
-	//                      value_alt1_float==value_alt2_float ? cmp[indexWrite]=1 : cmp[indexWrite] = (value_alt1_float - value_alt2_float) / (float) max_min[col];
-	//                      // printf("Write in T1 %f\n",cmp[indexWrite]);
-	//              }
-	//              else if(t==2) {
-	//                      // printf("ALTERNATIVE %d - %s # %s\n",alt,sub,sub2);
-	//                      // printf("BOOL %d %d\n",value_alt1_int,value_alt2_int);
-	//                      if(value_alt1_int==value_alt2_int) cmp[indexWrite]=1;
-	//                      else if(value_alt1_int==1) cmp[indexWrite]=9;
-	//                      else if(value_alt1_int==0) cmp[indexWrite]=1/9.0f;
-	//                      // printf("Write in T2 %f\n", cmp[indexWrite]);
-	//              }else{
-	//                      printf("UNESPECTED VALUE FOR T\n");
-	//              }
-	//      }
-	// }
+void acquisitonKernel(float* data, float* min_max, float* result, int sheets_size, int alternatives_size){
+	int x = blockIdx.x*blockDim.x+threadIdx.x;
+	int y = blockIdx.y*blockDim.y+threadIdx.y;
+	int z = blockIdx.z*blockDim.z+threadIdx.z;
+	// printf("Inside the kernel!!\n");
+	int i, j, index;
+	float temp=0;
+	if( x < sheets_size && y < alternatives_size && z < alternatives_size) { //the thread can do the work
+		i = y * sheets_size + x;
+		j = z * sheets_size + x;
+		index = x*sheets_size*alternatives_size+y*alternatives_size+z;
+		if(data[i]==data[j]) {
+			temp = 1;
+		}else{
+			if(min_max[ x ]!=-1) {
+				temp = ( data[i] - data[j] ) / min_max[ x ];
+			}else{
+				data[i]>data[j] ? temp = 9.0 : temp = 1.0/ 9.0;
+			}
+			if(temp == 0 ) {
+				temp = 1;
+			} else if (temp <0) {
+				temp = (-1) / temp;
+			}
+		}
+		result[ index ] = temp;
+		// printf("Thread Row %d Col %d, inserted in result[%d] = %2f and temp = %2f\n", x, y, index, result[index], temp);
+	}
+}
+
+static __global__
+void calculateNMatrix(float* data, float* result, int size){
+	int i = blockIdx.x*blockDim.x+threadIdx.x;
+	int j = blockIdx.y*blockDim.y+threadIdx.y;
+	// printf("Inside the kernel!!\n");
+	if( i < size && j < size) {
+		float sum=0;
+		sum = 0;
+		sum += data[j*size+i];
+		result[j*size+i] = data[j*size+i] / sum;
+	}
+}
+
+static __global__
+void calculateCPml(float* data, float* result, int size){
+	int i = blockIdx.x*blockDim.x+threadIdx.x;
+	int j = blockIdx.y*blockDim.y+threadIdx.y;
+	// printf("Inside the kernel!!\n");
+	if( i < size && j < size) {
+		float sum=0;
+		sum = 0;
+		sum += data[i*size+j];
+		result[i] = sum / (float)size;
+	}
 }
 
 #endif

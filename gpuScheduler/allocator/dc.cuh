@@ -7,7 +7,7 @@
 
 namespace Allocator {
 
-bool dc(Builder* builder,  Container* container, std::map<int,char*> &allocated_task){
+bool dc(Builder* builder,  Container* container, std::map<int,const char*> &allocated_task){
 	// std::cout << "Running Clustering\n";
 	// Now the MCL is used to cluster the DC
 	builder->runClustering(builder->getHosts());
