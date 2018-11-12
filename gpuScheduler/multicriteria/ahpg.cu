@@ -50,9 +50,10 @@ AHPG::~AHPG(){
 }
 
 void AHPG::setHierarchyG(){
-	if(this->hierarchy!=NULL)
+	if(this->hierarchy!=NULL) {
+		printf("Hierarchy != NULL\n");
 		delete(this->hierarchy);
-
+	}
 	this->hierarchy = new Hierarchy();
 }
 
@@ -178,7 +179,6 @@ void AHPG::buildPgG(Node* node) {
 		pg[i] = partialPgG(node, i);
 	}
 	node->setPg(pg);
-	free(pg);
 }
 
 float AHPG::partialPgG(Node* node, int alternative) {
@@ -585,7 +585,6 @@ void AHPG::acquisitionG() {
 	int result_size = sheetsSize*altSize*altSize;
 
 	float* h_data = (float*) malloc (sizeof(float)* data_size );
-	printf("Making the h_data\n");
 	{
 		// TODO CAUNTION POSSIBLE ERROR
 		int index=0;
@@ -655,25 +654,60 @@ void AHPG::acquisitionG() {
 }
 
 void AHPG::synthesisG() {
+	std::chrono::high_resolution_clock::time_point t1;
+	std::chrono::high_resolution_clock::time_point t2;
+	std::chrono::duration<double> time_span;
 	// 1 - Build the construccd the matrix
 	// printf("B M\n");
+	printf("Build Matrix: ");
+	t1 = std::chrono::high_resolution_clock::now();
 	buildMatrixG(this->hierarchy->getFocus());
+	t2  = std::chrono::high_resolution_clock::now();
+	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
+	std::cout<<time_span.count()<<"\n";
+
 	// printMatrix(this->hierarchy->getFocus());
 	// 2 - Normalize the matrix
 	// printf("B N\n");
+	printf("Build Normalized: ");
+	t1 = std::chrono::high_resolution_clock::now();
 	buildNormalizedMatrixG(this->hierarchy->getFocus());
+	t2  = std::chrono::high_resolution_clock::now();
+	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
+	std::cout<<time_span.count()<<"\n";
 	// printNormalizedMatrix(this->hierarchy->getFocus());
 	// printf("D M\n");
-	// ?(this->hierarchy->getFocus());
+	printf("Delete Matrix: ");
+	t1 = std::chrono::high_resolution_clock::now();
+	deleteMatrixIG(this->hierarchy->getFocus());
+	t2  = std::chrono::high_resolution_clock::now();
+	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
+	std::cout<<time_span.count()<<"\n";
 	// 3 - calculate the PML
 	// printf("B P\n");
+	printf("Build PML: ");
+	t1 = std::chrono::high_resolution_clock::now();
 	buildPmlG(this->hierarchy->getFocus());
+	t2  = std::chrono::high_resolution_clock::now();
+	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
+	std::cout<<time_span.count()<<"\n";
 	// printPml(this->hierarchy->getFocus());
 	// printf("D Nn");
-	// deleteNormalizedMatrixG(this->hierarchy->getFocus());
+	printf("Delete Normalized Matrix: ");
+	t1 = std::chrono::high_resolution_clock::now();
+	deleteNormalizedMatrixIG(this->hierarchy->getFocus());
+	t2  = std::chrono::high_resolution_clock::now();
+	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
+	std::cout<<time_span.count()<<"\n";
+
 	// 4 - calculate the PG
 	// printf("B PG\n");
+	printf("Build Pg: ");
+	t1 = std::chrono::high_resolution_clock::now();
 	buildPgG(this->hierarchy->getFocus());
+	t2  = std::chrono::high_resolution_clock::now();
+	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
+	std::cout<<time_span.count()<<"\n";
 	// printf("D P\n");
 	// deletePml(this->hierarchy->getFocus());
 	// printPg(this->hierarchy->getFocus());
@@ -686,6 +720,9 @@ void AHPG::consistencyG() {
 }
 
 void AHPG::run(Host** alternatives, int size) {
+	std::chrono::high_resolution_clock::time_point t1;
+	std::chrono::high_resolution_clock::time_point t2;
+	std::chrono::duration<double> time_span;
 	this->setHierarchyG();
 	if (size == 0) {
 		this->conceptionG(true);
@@ -704,15 +741,27 @@ void AHPG::run(Host** alternatives, int size) {
 		for (auto it : resource->mBool) {
 			this->hierarchy->addResource((char*)it.first.c_str());
 		}
+		t1 = std::chrono::high_resolution_clock::now();
 		printf("Conception\n");
 		this->conceptionG(false);
+		t2  = std::chrono::high_resolution_clock::now();
+		time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
+		std::cout<<time_span.count()<<"\n";
 		this->setAlternatives(alternatives, size);
 		if(this->hierarchy->getSheetsSize()==0) exit(0);
 	}
-	printf("Aquisition\n");
+	t1 = std::chrono::high_resolution_clock::now();
+	printf("Aquisition");
 	this->acquisitionG();
+	t2  = std::chrono::high_resolution_clock::now();
+	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
+	std::cout<<time_span.count()<<"\n";
 	printf("Synthesis\n");
+	t1 = std::chrono::high_resolution_clock::now();
 	this->synthesisG();
+	t2  = std::chrono::high_resolution_clock::now();
+	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
+	std::cout<<time_span.count()<<"\n";
 	// this->consistency();
 }
 

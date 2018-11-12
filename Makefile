@@ -4,6 +4,7 @@
 
 $(shell mkdir -p gpuScheduler/build)
 $(shell mkdir -p gpuScheduler/build/hierarchy)
+$(shell mkdir -p simulator/build)
 
 #Programs
 CXX = g++
@@ -262,5 +263,6 @@ clear:
 	rm -f $(BUILD_SIMULATOR)*.o $(BUILD_SIMULATOR)*.d;
 	rm -f $(GPUSCHEDULER_PATH)gpuscheduler.out
 	rm -f $(SIMULATOR_PATH)simulator.out
-	$(shell rm -r gpuScheduler/build/hierarchy)
+	# $(shell rm -r gpuScheduler/build/hierarchy)
 	$(shell rm -r gpuScheduler/build)
+	$(shell rm -r simulator/build)

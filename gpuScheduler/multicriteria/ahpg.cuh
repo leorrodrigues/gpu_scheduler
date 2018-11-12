@@ -19,6 +19,8 @@
 #include <string>
 #include <cmath>
 
+#include <chrono>
+
 #include <cuda_runtime.h>
 #include <cuda.h>
 

@@ -224,9 +224,9 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 	while(message_count>0 || options->current_time <= options->end_time) {
 		// #endif
 		// if(options->current_time==options->end_time) break;
-		std::cout<<"Scheduler Time "<< options->current_time<<"\n";
-		std::cout<<"message_count "<<message_count<<"\n";
-		std::cout<<"contianers size "<<scheduler->containers.size()<<"\n";
+		// std::cout<<"Scheduler Time "<< options->current_time<<"\n";
+		// std::cout<<"message_count "<<message_count<<"\n";
+		// std::cout<<"contianers size "<<scheduler->containers.size()<<"\n";
 		// make sure there is work in the queue
 		if(message_count>0) {
 			// Create new container
@@ -240,16 +240,16 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 			// std::cout << *c << "\n";
 		}
 		// Search the containers to delete
-		printf("Delete\n");
+		// printf("Delete\n");
 		delete_tasks(scheduler, builder, options);
 		// Search the containers in the vector to allocate in the DC
 		// std::cout<<"New Allocation\n";
-		printf("Allocate\n");
+		// printf("Allocate\n");
 		allocate_tasks(scheduler, builder, options);
 		// std::cout<<"Done Allocation\n";
 		// Update the lifetime
 		options->current_time++;
-		printf(" Checked\n");
+		// printf(" Checked\n");
 		// getchar();
 	}
 }

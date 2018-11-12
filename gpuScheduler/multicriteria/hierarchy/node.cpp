@@ -21,10 +21,15 @@ Node::~Node(){
 	delete(this->resources);
 
 	int i;
-	free( this->matrix );
-	free( this->normalized_matrix );
-	free( this->pml );
-	free( this->pg );
+	if(this->matrix!=NULL)
+		free( this->matrix );
+	if(this->normalized_matrix!=NULL)
+		free( this->normalized_matrix );
+	if(this->pml!=NULL)
+		free( this->pml );
+	if(this->pg!=NULL) {
+		free( this->pg );
+	}
 	this->name=NULL;
 	this->resources=NULL;
 	this->matrix=NULL;

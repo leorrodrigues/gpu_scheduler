@@ -17,6 +17,8 @@
 #include <string>
 #include <cmath>
 
+#include <chrono>
+
 class AHP : public Multicriteria {
 private:
 std::map<int, float> IR;
