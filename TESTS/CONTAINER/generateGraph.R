@@ -5,7 +5,7 @@ cols <- c('character', 'integer', 'integer', 'numeric')
 
 all <- read.table("times_total.txt",header=T,sep=";",colClasses = cols)
 
-names <- c("ahp","ahpg","mcl_ahp","mcl")
+names <- c("ahp","ahpg","MCL + AHPG","Pure MCL")
 
 for(name in names){
     
@@ -52,9 +52,9 @@ for(size in sizes){
     legend<-paste(legend,size,sep="")
     pl<-ggplot(data=pg, aes(x=Number.of.containers, 
                             y=Time, 
-                            group=factor(Multicriteria.method), 
-                            colour=factor(Multicriteria.method), 
-                            shape=factor(Multicriteria.method))
+                            group=factor(Algorithm), 
+                            colour=factor(Algorithm), 
+                            shape=factor(Algorithm))
     ) + 
         geom_line(size=1) + 
         geom_point(size=3) + 
