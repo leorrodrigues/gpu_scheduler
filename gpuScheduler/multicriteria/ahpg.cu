@@ -51,7 +51,6 @@ AHPG::~AHPG(){
 
 void AHPG::setHierarchyG(){
 	if(this->hierarchy!=NULL) {
-		printf("Hierarchy != NULL\n");
 		delete(this->hierarchy);
 	}
 	this->hierarchy = new Hierarchy();
@@ -132,41 +131,101 @@ void AHPG::buildMatrixG(Node* node) {
 }
 
 void AHPG::buildNormalizedMatrixG(Node* node) {
-	int i,j;
 	int size = node->getSize();
 	if ( size == 0 ) return;
-	float* matrix = node->getMatrix(), sum = 0;
+	// //Get the device info
+	int devID;
+	cudaDeviceProp props;
+	cudaGetDevice(&devID);
+	cudaGetDeviceProperties(&props, devID);
+	int block_size = (props.major < 2) ? 16 : 32;
+
+	int bytes = size*size*sizeof(float);
+
+	float* matrix = node->getMatrix();
 	float* nMatrix = (float*) malloc (sizeof(float) * size*size);
 
-	for (i = 0; i < size; i++) {
-		sum = 0;
-		for (j = 0; j < size; j++) {
-			sum += matrix[j*size+i];
-		}
-		for (j = 0; j < size; j++) {
-			nMatrix[j*size+i] = matrix[j*size+i] / sum;
-		}
-	}
-	node->setNormalizedMatrix(nMatrix);
+	float* pinned_matrix;
 
+	float* d_data, *d_sum, *d_result;
+
+	checkCuda( cudaMallocHost((void**)&pinned_matrix, bytes));
+
+	checkCuda( cudaMalloc((void**)&d_data, bytes));
+	checkCuda( cudaMalloc((void**)&d_sum, size*sizeof(float)));
+	checkCuda( cudaMalloc((void**)&d_result, bytes));
+
+	memcpy(pinned_matrix, matrix, bytes);
+
+	checkCuda( cudaMemcpy(d_data, pinned_matrix, bytes, cudaMemcpyHostToDevice));
+
+	dim3 blockSum(block_size);
+	dim3 gridSum(ceil(size/(float)blockSum.x));
+
+	calculateSUM_Line<<<blockSum, gridSum>>>(d_data,d_sum, size);
+
+	cudaDeviceSynchronize();
+
+	dim3 blockMatrix(block_size,block_size);
+	dim3 gridMatrix(ceil(size/(float)blockMatrix.x), ceil(size/(float)blockMatrix.y));
+
+	calculateNMatrix<<< gridMatrix, blockMatrix >>>(d_data, d_sum, d_result, size);
+
+	cudaDeviceSynchronize();
+	checkCuda( cudaMemcpy(nMatrix, d_result, bytes, cudaMemcpyDeviceToHost) );
+	cudaDeviceSynchronize();
+
+	node->setNormalizedMatrix(nMatrix);
+	deleteMatrixG(node);
+	cudaFree(d_data);
+	cudaFree(d_sum);
+	cudaFree(d_result);
+	cudaFreeHost(pinned_matrix);
 	iterateFuncG(&AHPG::buildNormalizedMatrixG, node);
 }
 
 void AHPG::buildPmlG(Node* node) {
-	int i,j;
 	int size = node->getSize();
 	if ( size == 0 ) return;
-	float sum = 0;
+
+	int devID;
+	cudaDeviceProp props;
+	cudaGetDevice(&devID);
+	cudaGetDeviceProperties(&props, devID);
+	int block_size = (props.major < 2) ? 16 : 32;
+
 	float* pml = (float*) malloc (sizeof(float) * size);
 	float* matrix = node->getNormalizedMatrix();
-	for (i = 0; i < size; i++) {
-		sum = 0;
-		for (j = 0; j < size; j++) {
-			sum += matrix[i*size+j];
-		}
-		pml[i] = sum / (float)size;
-	}
+
+	float* pinned_matrix;
+
+	float* d_pml, *d_data, *d_result;
+
+	checkCuda( cudaMallocHost((void**)&pinned_matrix, sizeof(float)*size*size));
+
+	checkCuda( cudaMalloc((void**)&d_pml, size*sizeof(float)));
+	checkCuda( cudaMalloc((void**)&d_data, size*size*sizeof(float)));
+	checkCuda( cudaMalloc((void**)&d_result, size*sizeof(float)));
+
+	memcpy(pinned_matrix, matrix, sizeof(float)*size*size);
+
+	checkCuda( cudaMemcpy(d_data, pinned_matrix, size, cudaMemcpyHostToDevice));
+
+	dim3 block(block_size);
+	dim3 grid(ceil(size/(float)block.x));
+
+	calculateCPml<<<block, grid>>>(d_data, d_pml, size);
+
+	cudaDeviceSynchronize();
+	checkCuda( cudaMemcpy(pml, d_pml, sizeof(float)*size, cudaMemcpyDeviceToHost));
+	cudaDeviceSynchronize();
+
 	node->setPml(pml);
+	deleteNormalizedMatrixG(node);
+	cudaFree(d_pml);
+	cudaFree(d_data);
+	cudaFree(d_result);
+	cudaFreeHost(pinned_matrix);
 	iterateFuncG(&AHPG::buildPmlG, node);
 }
 
@@ -225,7 +284,7 @@ void AHPG::deleteMatrixIG(Node* node) {
 		matrix = NULL;
 		node->setMatrix(NULL);
 	}
-	iterateFuncG(&AHPG::deleteMatrixG, node);
+	iterateFuncG(&AHPG::deleteMatrixIG, node);
 }
 
 void AHPG::deleteNormalizedMatrixIG(Node* node) {
@@ -235,7 +294,7 @@ void AHPG::deleteNormalizedMatrixIG(Node* node) {
 		nMatrix = NULL;
 		node->setNormalizedMatrix(NULL);
 	}
-	iterateFuncG(&AHPG::deleteNormalizedMatrixG, node);
+	iterateFuncG(&AHPG::deleteNormalizedMatrixIG, node);
 }
 
 void AHPG::deletePmlG(Node* node){
@@ -645,73 +704,26 @@ void AHPG::acquisitionG() {
 			edges[j]->setWeights(temp, altSize);
 		}
 	}
-	// cudaFree(d_data);
-	// cudaFree(d_min_max);
-	// cudaFree(d_result);
-	// cudaFreeHost(pinned_data);
-	// cudaFreeHost(pinned_min_max);
-	// free(result);
+	cudaFree(d_data);
+	cudaFree(d_min_max);
+	cudaFree(d_result);
+	cudaFreeHost(pinned_data);
+	cudaFreeHost(pinned_min_max);
+	free(result);
 }
 
 void AHPG::synthesisG() {
-	std::chrono::high_resolution_clock::time_point t1;
-	std::chrono::high_resolution_clock::time_point t2;
-	std::chrono::duration<double> time_span;
 	// 1 - Build the construccd the matrix
 	// printf("B M\n");
-	printf("Build Matrix: ");
-	t1 = std::chrono::high_resolution_clock::now();
 	buildMatrixG(this->hierarchy->getFocus());
-	t2  = std::chrono::high_resolution_clock::now();
-	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
-	std::cout<<time_span.count()<<"\n";
-
-	// printMatrix(this->hierarchy->getFocus());
 	// 2 - Normalize the matrix
 	// printf("B N\n");
-	printf("Build Normalized: ");
-	t1 = std::chrono::high_resolution_clock::now();
 	buildNormalizedMatrixG(this->hierarchy->getFocus());
-	t2  = std::chrono::high_resolution_clock::now();
-	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
-	std::cout<<time_span.count()<<"\n";
-	// printNormalizedMatrix(this->hierarchy->getFocus());
-	// printf("D M\n");
-	printf("Delete Matrix: ");
-	t1 = std::chrono::high_resolution_clock::now();
-	deleteMatrixIG(this->hierarchy->getFocus());
-	t2  = std::chrono::high_resolution_clock::now();
-	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
-	std::cout<<time_span.count()<<"\n";
-	// 3 - calculate the PML
 	// printf("B P\n");
-	printf("Build PML: ");
-	t1 = std::chrono::high_resolution_clock::now();
 	buildPmlG(this->hierarchy->getFocus());
-	t2  = std::chrono::high_resolution_clock::now();
-	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
-	std::cout<<time_span.count()<<"\n";
-	// printPml(this->hierarchy->getFocus());
-	// printf("D Nn");
-	printf("Delete Normalized Matrix: ");
-	t1 = std::chrono::high_resolution_clock::now();
-	deleteNormalizedMatrixIG(this->hierarchy->getFocus());
-	t2  = std::chrono::high_resolution_clock::now();
-	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
-	std::cout<<time_span.count()<<"\n";
-
 	// 4 - calculate the PG
 	// printf("B PG\n");
-	printf("Build Pg: ");
-	t1 = std::chrono::high_resolution_clock::now();
 	buildPgG(this->hierarchy->getFocus());
-	t2  = std::chrono::high_resolution_clock::now();
-	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
-	std::cout<<time_span.count()<<"\n";
-	// printf("D P\n");
-	// deletePml(this->hierarchy->getFocus());
-	// printPg(this->hierarchy->getFocus());
-	// Print all information
 }
 
 void AHPG::consistencyG() {
@@ -720,9 +732,6 @@ void AHPG::consistencyG() {
 }
 
 void AHPG::run(Host** alternatives, int size) {
-	std::chrono::high_resolution_clock::time_point t1;
-	std::chrono::high_resolution_clock::time_point t2;
-	std::chrono::duration<double> time_span;
 	this->setHierarchyG();
 	if (size == 0) {
 		this->conceptionG(true);
@@ -741,27 +750,15 @@ void AHPG::run(Host** alternatives, int size) {
 		for (auto it : resource->mBool) {
 			this->hierarchy->addResource((char*)it.first.c_str());
 		}
-		t1 = std::chrono::high_resolution_clock::now();
-		printf("Conception\n");
+		// printf("Conception\n");
 		this->conceptionG(false);
-		t2  = std::chrono::high_resolution_clock::now();
-		time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
-		std::cout<<time_span.count()<<"\n";
 		this->setAlternatives(alternatives, size);
 		if(this->hierarchy->getSheetsSize()==0) exit(0);
 	}
-	t1 = std::chrono::high_resolution_clock::now();
-	printf("Aquisition");
+	// printf("Aquisition: ");
 	this->acquisitionG();
-	t2  = std::chrono::high_resolution_clock::now();
-	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
-	std::cout<<time_span.count()<<"\n";
-	printf("Synthesis\n");
-	t1 = std::chrono::high_resolution_clock::now();
+	// printf("Synthesis\n");
 	this->synthesisG();
-	t2  = std::chrono::high_resolution_clock::now();
-	time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
-	std::cout<<time_span.count()<<"\n";
 	// this->consistency();
 }
 

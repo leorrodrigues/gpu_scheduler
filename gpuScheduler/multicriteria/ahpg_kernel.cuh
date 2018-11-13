@@ -34,27 +34,51 @@ void acquisitonKernel(float* data, float* min_max, float* result, int sheets_siz
 }
 
 static __global__
-void calculateNMatrix(float* data, float* result, int size){
+void calculateSUM_Row(float* data, float* sum, int size){
+	int i = blockIdx.x*blockDim.x+threadIdx.x;
+	if(i<size) {
+		float s = 0;
+		int j;
+		for(j=0; j<size; j++) {
+			s+= data[i*size+j];
+		}
+		sum[i] = s;
+	}
+}
+
+static __global__
+void calculateSUM_Line(float* data, float* sum, int size){
+	int i = blockIdx.x*blockDim.x+threadIdx.x;
+	if(i<size) {
+		float s = 0;
+		int j;
+		for(j=0; j<size; j++) {
+			s+= data[j*size+i];
+		}
+		sum[i] = s;
+	}
+}
+
+static __global__
+void calculateNMatrix(float* data, float* sum, float* result, int size){
 	int i = blockIdx.x*blockDim.x+threadIdx.x;
 	int j = blockIdx.y*blockDim.y+threadIdx.y;
 	// printf("Inside the kernel!!\n");
 	if( i < size && j < size) {
-		float sum=0;
-		sum = 0;
-		sum += data[j*size+i];
-		result[j*size+i] = data[j*size+i] / sum;
+		result[j*size+i] = data[j*size+i] / sum[i];
 	}
 }
 
 static __global__
 void calculateCPml(float* data, float* result, int size){
 	int i = blockIdx.x*blockDim.x+threadIdx.x;
-	int j = blockIdx.y*blockDim.y+threadIdx.y;
 	// printf("Inside the kernel!!\n");
-	if( i < size && j < size) {
+	if( i < size ) {
 		float sum=0;
-		sum = 0;
-		sum += data[i*size+j];
+		int j;
+		for(j=0; j<size; j++) {
+			sum += data[i*size+j];
+		}
 		result[i] = sum / (float)size;
 	}
 }

@@ -178,7 +178,6 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 			// std::cout << "Deleted Complete\n";
 		} else it++;
 	}
-
 }
 
 
@@ -283,7 +282,8 @@ int main(int argc, char **argv){
 		std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
-		std::cout<<options->multicriteria_method<<";"<<options->topology_size<<";"<<message_count<<";"<<time_span.count()<<"\n";
+		// std::cout<<options->multicriteria_method<<";"<<options->topology_size<<";"<<message_count<<";"<<time_span.count()<<"\n";
+		std::cout<<"MCL + AHPG;" << options->topology_size << ";" << message_count << ";" << time_span.count() << "\n";
 	}
 	// Free the allocated pointers
 	delete(scheduler);
