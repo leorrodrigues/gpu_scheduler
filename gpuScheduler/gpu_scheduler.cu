@@ -6,6 +6,7 @@
 #include "builder.cuh"
 #include "thirdparty/clara.hpp"
 
+#include "allocator/pure_mcl.hpp"
 #include "allocator/naive.hpp"
 #include "allocator/free.hpp"
 #include "allocator/all.cuh"
@@ -86,6 +87,18 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	}else if(multicriteria_method == "ahp" ) {
 		builder->setAHP();
 		options->multicriteria_method=multicriteria_method;
+	}else if(multicriteria_method == "mcl") {
+		builder->setAHPG();
+		allocation_type= "dc";
+		options->multicriteria_method="pure mcl";
+	}else if(multicriteria_method=="mcl_ahpg") {
+		builder->setAHPG();
+		allocation_type="dc";
+		options->multicriteria_method="mcl ahpg";
+	}else if(multicriteria_method=="mcl_ahp") {
+		builder->setAHP();
+		allocation_type="dc";
+		options->multicriteria_method="mcl ahp";
 	}else{
 		std::cerr << "Invalid multicriteria method\n";
 		exit(0);
@@ -93,6 +106,7 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	if( clustering_method == "mcl" ) {
 		builder->setMCL();
 		options->clustering_method=clustering_method;
+		test_type = 2;
 	}else{
 		std::cerr << "Invalid clustering method\n";
 		exit(0);
@@ -119,7 +133,7 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 		std::cerr << "Invalid allocation type\n";
 		exit(0);
 	}
-	if(test_type >=0 && test_type<2) {
+	if(test_type >=0 && test_type<=2) {
 		options->test_type=test_type;
 	}else{
 		std::cerr << "Invalid Type of test\n" << test_type << "\n";
@@ -194,7 +208,11 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				allocation_success=Allocator::naive(builder,c, scheduler->allocated_task);
 				// std::cout<<"Allocated\n";
 			}else if(options->allocation_type==Allocation_t::DC) {
-				allocation_success=Allocator::dc(builder,c,scheduler->allocated_task);
+				if(options->test_type!=2) {
+					allocation_success=Allocator::dc(builder,c,scheduler->allocated_task);
+				}else{
+					allocation_success=Allocator::mcl_pure(builder,c,scheduler->allocated_task);
+				}
 			}else if(options->allocation_type==Allocation_t::ALL) {
 				allocation_success=Allocator::all();
 			}
@@ -240,7 +258,8 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 		}
 		// Search the containers to delete
 		// printf("Delete\n");
-		delete_tasks(scheduler, builder, options);
+		if(options->test_type!=2)
+			delete_tasks(scheduler, builder, options);
 		// Search the containers in the vector to allocate in the DC
 		// std::cout<<"New Allocation\n";
 		// printf("Allocate\n");
@@ -270,21 +289,24 @@ int main(int argc, char **argv){
 	// std::cout<<"Multicriteria method;Fat Tree Size;Number of containers;Time\n";
 
 	if (options->test_type==0) {         // no test is set
-		schedule(builder, conn, scheduler, options, message_count);
-	}else if(options->test_type==1) {        // container test
-		// force cout to not print in cientific notation
-		options->end_time = message_count+2;
-		std::cout<<std::fixed;
-
-		std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-		schedule(builder, conn, scheduler, options, message_count);
-
-		std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-
-		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
-		// std::cout<<options->multicriteria_method<<";"<<options->topology_size<<";"<<message_count<<";"<<time_span.count()<<"\n";
-		std::cout<<"MCL + AHPG;" << options->topology_size << ";" << message_count << ";" << time_span.count() << "\n";
+    #define _TEST_SET_
 	}
+    #ifndef _TEST_SET_
+	schedule(builder, conn, scheduler, options, message_count);
+    #else
+	// force cout to not print in cientific notation
+	options->end_time = message_count+2;
+	std::cout<<std::fixed;
+
+	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	schedule(builder, conn, scheduler, options, message_count);
+
+	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+
+	std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
+	// std::cout<<options->multicriteria_method<<";"<<options->topology_size<<";"<<message_count<<";"<<time_span.count()<<"\n";
+	std::cout<<options->multicriteria_method<<";" << options->topology_size << ";" << message_count << ";" << time_span.count() << "\n";
+	#endif
 	// Free the allocated pointers
 	delete(scheduler);
 	delete(builder);

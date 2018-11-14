@@ -2,7 +2,7 @@ library(ggplot2)
 library(wesanderson)
 library(RColorBrewer)
 
-all <- read.table("merge.data",header=T,sep=";")
+all <- read.table("times_trabalho_ppa",header=T,sep=";")
 
 ggplot(data=all, aes(x=Size, 
                      y=Time, 
@@ -14,7 +14,7 @@ ggplot(data=all, aes(x=Size,
     geom_point(size=3) + 
     coord_cartesian(ylim = c(0, 900)) + 
     scale_y_continuous(breaks = seq(0,900, by=100)) +
-    scale_x_continuous(breaks = seq(4,48, by=4))+
+    scale_x_continuous(breaks = seq(4,44, by=4))+
     theme_bw()+ 
     theme(panel.border = element_blank(), 
           panel.grid.major = element_blank(),

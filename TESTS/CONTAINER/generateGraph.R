@@ -5,7 +5,11 @@ cols <- c('character', 'integer', 'integer', 'numeric')
 
 all <- read.table("times_total.txt",header=T,sep=";",colClasses = cols)
 
-names <- c("ahp","ahpg","MCL + AHPG","Pure MCL")
+pMAHPG <- all[all[,1]=="MCL + AHPG",]
+pM <- all[all[,1]=="Pure MCL",]
+
+
+names <- c("AHP","AHPG","MCL + AHPG","Pure MCL","AHPG Clustered")
 
 for(name in names){
     
