@@ -29,7 +29,7 @@ void acquisitonKernel(float* data, float* min_max, float* result, int sheets_siz
 			}
 		}
 		result[ index ] = temp;
-		// printf("Thread Row %d Col %d, inserted in result[%d] = %2f and temp = %2f\n", x, y, index, result[index], temp);
+		printf("Thread Row %d Col %d, inserted in result[%d] = %2f and temp = %2f\n", x, y, index, result[index], temp);
 	}
 }
 

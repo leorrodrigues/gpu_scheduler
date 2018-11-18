@@ -5,11 +5,11 @@ cols <- c('character', 'integer', 'integer', 'numeric')
 
 all <- read.table("times_total.txt",header=T,sep=";",colClasses = cols)
 
-pMAHPG <- all[all[,1]=="MCL + AHPG",]
-pM <- all[all[,1]=="Pure MCL",]
+#pMAHPG <- all[all[,1]=="MCL + AHPG",]
+#pM <- all[all[,1]=="Pure MCL",]
 
 
-names <- c("AHP","AHPG","MCL + AHPG","Pure MCL","AHPG Clustered")
+names <- c("ahp","ahpg","mcl ahp","mcl ahpg","pure mcl")
 
 for(name in names){
     
@@ -18,7 +18,7 @@ for(name in names){
     legend<-"Container clustering with"
     legend<-paste(legend,name,sep=" ")
     legend<-paste(legend,"method",sep=" ")
-    pl<-ggplot(data=pg, aes(x=Number.of.containers, 
+    pl<-ggplot(data=pg, aes(x=Number.of.Containers, 
                          y=Time, 
                          group=factor(Fat.Tree.Size), 
                          colour=factor(Fat.Tree.Size), 
@@ -36,7 +36,7 @@ for(name in names){
               axis.line = element_line(colour = "black"),
               legend.position="bottom",
               plot.title = element_text(color="black", size=16, face="bold.italic"))+
-        scale_color_manual(values=wes_palette(n=5, name="FantasticFox1"))+
+       # scale_color_manual(values=wes_palette(n=5, name="FantasticFox1"))+
         labs(colour="Fat Tree Size", shape="Fat Tree Size", x="Number of Containers", y="Time (s)", title=legend)
     plot(pl)
     ggsave(paste(name,".pdf",sep=""),device="pdf")

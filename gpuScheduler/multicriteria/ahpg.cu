@@ -219,7 +219,11 @@ void AHPG::buildPmlG(Node* node) {
 	cudaDeviceSynchronize();
 	checkCuda( cudaMemcpy(pml, d_pml, sizeof(float)*size, cudaMemcpyDeviceToHost));
 	cudaDeviceSynchronize();
-
+	printf("INSIDE FUNCTION\n");
+	for(int i=0; i<size; i++) {
+		printf("%f ",pml[i]);
+	}
+	printf("\n");
 	node->setPml(pml);
 	deleteNormalizedMatrixG(node);
 	cudaFree(d_pml);
@@ -349,6 +353,7 @@ void AHPG::printMatrixG(Node* node) {
 	int i,j;
 	float* matrix = node->getMatrix();
 	int tam = node->getSize();
+	if(tam==0) return;
 	printf("Matrix of %s\n", node->getName());
 	for (i = 0; i < tam; i++) {
 		for (j = 0; j < tam; j++) {
@@ -364,6 +369,7 @@ void AHPG::printNormalizedMatrixG(Node* node) {
 	int i,j;
 	float* matrix = node->getNormalizedMatrix();
 	int tam = node->getSize();
+	if(tam==0) return;
 	printf("Normalized Matrix of %s\n", node->getName());
 	for (i = 0; i < tam; i++) {
 		for (j = 0; j < tam; j++) {
@@ -379,6 +385,7 @@ void AHPG::printPmlG(Node* node) {
 	int i;
 	float* pml = node->getPml();
 	int tam = node->getSize();
+	if(tam==0) return;
 	printf("PML of %s\n", node->getName());
 	for (i = 0; i < tam; i++) {
 		printf("%010lf\t", pml[i]);
@@ -716,14 +723,18 @@ void AHPG::synthesisG() {
 	// 1 - Build the construccd the matrix
 	// printf("B M\n");
 	buildMatrixG(this->hierarchy->getFocus());
+	printMatrixG(this->hierarchy->getFocus());
 	// 2 - Normalize the matrix
 	// printf("B N\n");
 	buildNormalizedMatrixG(this->hierarchy->getFocus());
+	printNormalizedMatrixG(this->hierarchy->getFocus());
 	// printf("B P\n");
 	buildPmlG(this->hierarchy->getFocus());
+	printPmlG(this->hierarchy->getFocus());
 	// 4 - calculate the PG
 	// printf("B PG\n");
 	buildPgG(this->hierarchy->getFocus());
+	printPgG(this->hierarchy->getFocus());
 }
 
 void AHPG::consistencyG() {
