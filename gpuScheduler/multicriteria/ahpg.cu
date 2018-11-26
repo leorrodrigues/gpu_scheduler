@@ -117,7 +117,7 @@ void AHPG::buildMatrixG(Node* node) {
 		weights = (node->getEdges())[i]->getWeights();
 		for (j = i + 1; j < size; j++) {
 			if(weights == NULL ) {
-				printf("ERRO BRUSCO BUILD MATRIX WEIGHT = NULL\n");
+				printf("ahpg.cu(120) Error build matrix weight=NULL\n");
 				exit(0);
 			}
 			matrix[i*size+j] = weights[j];
@@ -209,7 +209,7 @@ void AHPG::buildPmlG(Node* node) {
 
 	memcpy(pinned_matrix, matrix, sizeof(float)*size*size);
 
-	checkCuda( cudaMemcpy(d_data, pinned_matrix, size, cudaMemcpyHostToDevice));
+	checkCuda( cudaMemcpy(d_data, pinned_matrix, size*size*sizeof(float), cudaMemcpyHostToDevice));
 
 	dim3 block(block_size);
 	dim3 grid(ceil(size/(float)block.x));
@@ -219,11 +219,11 @@ void AHPG::buildPmlG(Node* node) {
 	cudaDeviceSynchronize();
 	checkCuda( cudaMemcpy(pml, d_pml, sizeof(float)*size, cudaMemcpyDeviceToHost));
 	cudaDeviceSynchronize();
-	printf("INSIDE FUNCTION\n");
-	for(int i=0; i<size; i++) {
-		printf("%f ",pml[i]);
-	}
-	printf("\n");
+	// printf("INSIDE FUNCTION\n");
+	// for(int i=0; i<size; i++) {
+	//      printf("%f ",pml[i]);
+	// }
+	// printf("\n");
 	node->setPml(pml);
 	deleteNormalizedMatrixG(node);
 	cudaFree(d_pml);
@@ -609,7 +609,7 @@ void AHPG::acquisitionG() {
 	cudaDeviceProp props;
 	cudaGetDevice(&devID);
 	cudaGetDeviceProperties(&props, devID);
-	// int block_size = (props.major < 2) ? 16 : 32;
+	int block_size = (props.major < 2) ? 16 : 32;
 	//
 	int i,j;
 	// Para gerar os pesos das alterntivas, será primeiro captado o MIN e MAX
@@ -687,10 +687,8 @@ void AHPG::acquisitionG() {
 	checkCuda( cudaMemcpy(d_data, pinned_data, data_size*sizeof(float), cudaMemcpyHostToDevice));
 	checkCuda( cudaMemcpy(d_min_max, pinned_min_max, resourceSize*sizeof(float), cudaMemcpyHostToDevice));
 
-	dim3 block(4,16,16);
-	dim3 grid(ceil(sheetsSize/(float)block.x), ceil(altSize/(float)block.y), ceil(altSize/(float)block.z) );
-
-	// dim3 numBlocks( ceil(sheetsSize/(float)threadsPerBlock.x), ceil(altSize/(float)threadsPerBlock.y), ceil(altSize*altSize/(float)threadsPerBlock.z));
+	dim3 block(block_size,block_size);
+	dim3 grid(ceil(altSize/(float)block.x), ceil(altSize/(float)block.y));
 
 	// printf("Calling the kernel\n");
 	// printf("Data size %d, result size %d\n", data_size, result_size);
@@ -699,15 +697,16 @@ void AHPG::acquisitionG() {
 	cudaDeviceSynchronize();
 	checkCuda( cudaMemcpy(result, d_result, result_size*sizeof(float),cudaMemcpyDeviceToHost));
 	cudaDeviceSynchronize();
-	// exit(0);
-	// getchar();
+
 	// With all the weights calculated, now the weights are set in each edge between the sheets and alternatives
 	Edge** edges = NULL;
 	float temp[altSize];
-	for(int i=0; i< sheetsSize; i++) {
+	for(i=0; i< sheetsSize; i++) {
 		edges = sheets[i]->getEdges(); // get the array of edges' pointer
-		for (j = 0; j < altSize-1; j++) {         // iterate trhough all the edges
-			memcpy(&temp, &result[i*sheetsSize+j*altSize], altSize);
+		for (j = 0; j < altSize; j++) {         // iterate trhough all the edges
+			//memcpy(&temp, &result[i*sheetsSize+j*altSize], altSize);
+			std::copy(result+(i*altSize*sheetsSize+j*sheetsSize),result+(i*sheetsSize*altSize+j*sheetsSize+altSize), temp);
+
 			edges[j]->setWeights(temp, altSize);
 		}
 	}
@@ -723,14 +722,14 @@ void AHPG::synthesisG() {
 	// 1 - Build the construccd the matrix
 	// printf("B M\n");
 	buildMatrixG(this->hierarchy->getFocus());
-	printMatrixG(this->hierarchy->getFocus());
+	// printMatrixG(this->hierarchy->getFocus());
 	// 2 - Normalize the matrix
 	// printf("B N\n");
 	buildNormalizedMatrixG(this->hierarchy->getFocus());
-	printNormalizedMatrixG(this->hierarchy->getFocus());
+	// printNormalizedMatrixG(this->hierarchy->getFocus());
 	// printf("B P\n");
 	buildPmlG(this->hierarchy->getFocus());
-	printPmlG(this->hierarchy->getFocus());
+	// printPmlG(this->hierarchy->getFocus());
 	// 4 - calculate the PG
 	// printf("B PG\n");
 	buildPgG(this->hierarchy->getFocus());
@@ -776,25 +775,21 @@ void AHPG::run(Host** alternatives, int size) {
 std::map<int,const char*> AHPG::getResult() {
 	std::map<int,const char*> result;
 	float* values = this->hierarchy->getFocus()->getPg();
-	std::vector<std::pair<int, float> > alternativesPair;
+	std::priority_queue<std::pair<float, int> > alternativesPair;
 
 	unsigned int i;
 
 	for (i = 0; i < (unsigned int) this->hierarchy->getAlternativesSize(); i++) {
-		alternativesPair.push_back(std::make_pair(i, values[i]));
+		alternativesPair.push(std::make_pair(values[i], i));
 	}
-	// Nao e necessario fazer sort, o map ja realiza o sort do map pela chave em ordem acendente (menor - maior)
-	// std::sort(alternativesPair.begin(), alternativesPair.end(),
-	//           [](auto &left, auto &right) {
-	//      return left.second > right.second;
-	// });
 
 	char* name;
 
 	auto alternatives = this->hierarchy->getAlternatives();
 	for (i = 0; i < (unsigned int)alternativesPair.size(); i++) {
-		name = alternatives[alternativesPair[i].first]->getName();
+		name = alternatives[alternativesPair.top().second]->getName();
 		result[i+1] = name;
+		alternativesPair.pop();
 	}
 	return result;
 }

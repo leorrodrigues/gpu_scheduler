@@ -66,7 +66,7 @@ CXXFLAGS_W/BOOST = $(DEBUG_CXX) $(BOOSTFLAGS) -std=c++17 -Wall -D_GLIBCXX_ASSERT
 #CXX_FLAGS_W/BOOST = $(BOOSTFLAGS) -std=c++17 -Wall -fconcepts -L$(RABBIT_LIBS_PATH) -lrabbitmq
 
 #nvcc
-NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas  -O3 -use_fast_math -lineinfo
+NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas -O3 -use_fast_math -lineinfo
 
 #NVCCFLAGS = -std=c++14 -Xptxas -lineinfo
 

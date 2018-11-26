@@ -256,6 +256,7 @@ void AHP::printMatrix(Node* node) {
 	int i,j;
 	float* matrix = node->getMatrix();
 	int tam = node->getSize();
+	if(tam==0) return;
 	printf("Matrix of %s\n", node->getName());
 	for (i = 0; i < tam; i++) {
 		for (j = 0; j < tam; j++) {
@@ -271,6 +272,7 @@ void AHP::printNormalizedMatrix(Node* node) {
 	int i,j;
 	float* matrix = node->getNormalizedMatrix();
 	int tam = node->getSize();
+	if(tam==0) return;
 	printf("Normalized Matrix of %s\n", node->getName());
 	for (i = 0; i < tam; i++) {
 		for (j = 0; j < tam; j++) {
@@ -286,6 +288,7 @@ void AHP::printPml(Node* node) {
 	int i;
 	float* pml = node->getPml();
 	int tam = node->getSize();
+	if(tam==0) return;
 	printf("PML of %s\n", node->getName());
 	for (i = 0; i < tam; i++) {
 		printf("%010lf\t", pml[i]);
@@ -298,6 +301,7 @@ void AHP::printPg(Node* node) {
 	int i;
 	float* pg = node->getPg();
 	int tam = this->hierarchy->getAlternativesSize();
+	if(tam==0) return;
 	printf("PG of %s\n", node->getName());
 	for (i = 0; i < tam; i++) {
 		printf("%010lf\t",pg[i]);
@@ -550,8 +554,8 @@ void AHP::acquisition() {
 	for ( i=0; i< sheetsSize; i++) {
 		for ( j=0; j<altSize; j++) {
 			for ( k=0; k<altSize; k++) {
-
-				if(min_max_values[i]!=-1) {
+				if(min_max_values[i]==0) result=0;
+				else if(min_max_values[i]!=-1) {
 					result = (alt[j]->getResource()->getResource(i) - alt[k]->getResource()->getResource(i)) / min_max_values[i];
 				}else{ // boolean resource
 					if(alt[j]->getResource()->getResource(i) == alt[k]->getResource()->getResource(i)) {
@@ -589,7 +593,6 @@ void AHP::synthesis() {
 	// 1 - Build the construccd the matrix
 	// printf("B M\n");
 	buildMatrix(this->hierarchy->getFocus());
-
 	// printMatrix(this->hierarchy->getFocus());
 	// 2 - Normalize the matrix
 	// printf("B N\n");
@@ -603,7 +606,7 @@ void AHP::synthesis() {
 	// 4 - calculate the PG
 	// printf("B PG\n");
 	buildPg(this->hierarchy->getFocus());
-	// printPg(this->hierarchy->getFocus());
+	printPg(this->hierarchy->getFocus());
 	// Print all information
 }
 
@@ -649,25 +652,21 @@ void AHP::run(Host** alternatives, int size) {
 std::map<int,const char*> AHP::getResult() {
 	std::map<int,const char*> result;
 	float* values = this->hierarchy->getFocus()->getPg();
-	std::vector<std::pair<int, float> > alternativesPair;
+	std::priority_queue<std::pair<float, int> > alternativesPair;
 
 	unsigned int i;
 
 	for (i = 0; i < (unsigned int) this->hierarchy->getAlternativesSize(); i++) {
-		alternativesPair.push_back(std::make_pair(i, values[i]));
+		alternativesPair.push(std::make_pair(values[i], i));
 	}
-	// Nao e necessario fazer sort, o map ja realiza o sort do map pela chave em ordem acendente (menor - maior)
-	// std::sort(alternativesPair.begin(), alternativesPair.end(),
-	//           [](auto &left, auto &right) {
-	//      return left.second > right.second;
-	// });
 
 	char* name;
 
 	auto alternatives = this->hierarchy->getAlternatives();
 	for (i = 0; i < (unsigned int)alternativesPair.size(); i++) {
-		name = alternatives[alternativesPair[i].first]->getName();
+		name = alternatives[alternativesPair.top().second]->getName();
 		result[i+1] = name;
+		alternativesPair.pop();
 	}
 	return result;
 }

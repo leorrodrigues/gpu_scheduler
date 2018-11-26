@@ -220,7 +220,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				std::cerr << "Invalid type\n";
 			}
 			if(!allocation_success) {
-				std::cerr << "Error in allocate\n";
+				std::cerr << "gpu_scheduler(223) - Error in alocate the task\n";
 				exit(3);
 			}else{
 				// std::cout << "ALLOCATED! "<<scheduler->allocated_task[c->getId()]<<"##\n";

@@ -21,13 +21,13 @@ for(name in names){
     pl<-ggplot(data=pg, aes(x=Number.of.Containers, 
                          y=Time, 
                          group=factor(Fat.Tree.Size), 
-                         colour=factor(Fat.Tree.Size), 
-                         shape=factor(Fat.Tree.Size))
+                         colour=factor(Fat.Tree.Size),
+                         shape=factor(Algorithm))
     ) + 
         geom_line(size=1) + 
         geom_point(size=3) + 
-        coord_cartesian(ylim = c(0, 900)) + 
-        scale_y_continuous(breaks = seq(0,900, by=100)) +
+        coord_cartesian(ylim = c(0, 600)) + 
+        scale_y_continuous(breaks = seq(0,600, by=100)) +
         #scale_x_continuous(breaks = seq(4,48, by=4))+
         theme_bw()+ 
         theme(panel.border = element_blank(), 
@@ -42,10 +42,10 @@ for(name in names){
     ggsave(paste(name,".pdf",sep=""),device="pdf")
 }
 
-sizes <- c(4,16,32,40)
+sizes <- c(4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42)
 
-ylimits = c(10,100,900,900)
-xlimits = c(1024,1024,8,8)
+#ylimits = c(10,100,900,900)
+#xlimits = c(2048,2048,64,16)
 
 index=1
 for(size in sizes){
@@ -54,15 +54,15 @@ for(size in sizes){
     #all <- pl
     legend<-"Container clustering with fat tree size k="
     legend<-paste(legend,size,sep="")
-    pl<-ggplot(data=pg, aes(x=Number.of.containers, 
+    pl<-ggplot(data=pg, aes(x=Number.of.Containers, 
                             y=Time, 
                             group=factor(Algorithm), 
-                            colour=factor(Algorithm), 
+                            colour=factor(Algorithm),
                             shape=factor(Algorithm))
     ) + 
         geom_line(size=1) + 
         geom_point(size=3) + 
-        coord_cartesian(ylim = c(0, ylimits[index]),xlim=c(0,xlimits[index])) + 
+        #coord_cartesian(ylim = c(0, ylimits[index]),xlim=c(0,xlimits[index])) + 
         #scale_y_continuous(breaks = seq(0,900, by=100)) +
         #scale_x_continuous(breaks = seq(4,8, by=4))+
         theme_bw()+ 
@@ -72,7 +72,7 @@ for(size in sizes){
               axis.line = element_line(colour = "black"),
               legend.position="bottom",
               plot.title = element_text(color="black", size=16, face="bold.italic"))+
-        scale_color_manual(values=wes_palette(n=5, name="FantasticFox1"))+
+        #scale_color_manual(values=wes_palette(n=5, name="FantasticFox1"))+
         labs(colour="Multicriteria Method", shape="Multicriteria Method", x="Number of Containers", y="Time (s)", title=legend)
     plot(pl)
     ggsave(paste(size,".pdf",sep=""),device="pdf")
