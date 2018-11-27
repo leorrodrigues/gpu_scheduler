@@ -37,6 +37,7 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	           | clara::detail::Opt( end_time, "Finish Time")["--end_time"]("What is the schaduler max time?")
 	           // 0 For no Test
 	           // 1 For Container Test
+	           // 2 For Pure MCL test
 	           | clara::detail::Opt( test_type, "Type Test")["--test"]("Which type of test you want?");
 	auto result = cli.parse( clara::detail::Args( argc, argv ) );
 	if( !result ) {
@@ -84,7 +85,7 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	if( clustering_method == "mcl" ) {
 		builder->setMCL();
 		options->clustering_method=clustering_method;
-		test_type = 2;
+		// test_type = 2;
 	}else{
 		std::cerr << "Invalid clustering method\n";
 		exit(0);
@@ -111,7 +112,7 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 		std::cerr << "Invalid allocation type\n";
 		exit(0);
 	}
-	if(test_type >=0 && test_type<=2) {
+	if(test_type >=0 && test_type<=3) {
 		options->test_type=test_type;
 	}else{
 		std::cerr << "Invalid Type of test\n" << test_type << "\n";
@@ -123,6 +124,26 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	builder->parser(path.c_str());
 }
 
+inline objective_function_t calculateObjectiveFunction(consumed_resource_t consumed, total_resources_t total){
+	// printf("Started Calculate Objective Function\n");
+	objective_function_t obj;
+	// printf("Updating time\n");
+	obj.time = consumed.time;
+
+	// printf("Fragmentation\n");
+	obj.fragmentation = ObjectiveFunction::fragmentation(consumed, total);
+
+	// printf("vcpu footprint\n");
+	obj.vcpu_footprint = ObjectiveFunction::vcpu_footprint(consumed, total);
+
+	// printf("ram footprint\n");
+	obj.ram_footprint = ObjectiveFunction::ram_footprint(consumed, total);
+
+	// printf("footprint\n");
+	obj.footprint = ObjectiveFunction::footprint(consumed, total);
+	return obj;
+}
+
 inline void update_scheduler(scheduler_t* scheduler, bool allocation_success){
 	scheduler->total_containers++;
 	allocation_success == true ? scheduler->total_accepted++ : scheduler->total_refused++;
@@ -132,7 +153,7 @@ inline void update_scheduler(scheduler_t* scheduler, bool allocation_success){
 	}
 }
 
-inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, std::vector<consumed_resource_t>& consumed){
+inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed){
 	bool free_success=false;
 	// printf("%s #### %s\n", scheduler->allocated_task[0].c_str(),scheduler->allocated_task[1].c_str());
 
@@ -166,6 +187,8 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 				if(temp->getAllocatedResources()==0) {
 					temp->setActive(false);
 				}
+				consumed->vcpu -= (*it)->getResource()->vcpu_max;
+				consumed->ram  -= (*it)->getResource()->ram_max;
 			}
 			// Search the container C in the vector and removes it
 			scheduler->allocated_task.erase((*it)->getId());
@@ -178,7 +201,7 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 }
 
 
-inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, std::vector<consumed_resource_t>& consumed){
+inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed){
 	// std::cout << "Try to allocate\n";
 	bool allocation_success=false;
 	// Check the task submission
@@ -208,18 +231,8 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				exit(3);
 			}else{
 				// The container was allocated, so the consumed variable has to be updated
-				consumed_resource_t last_consumed = consumed.back();
-				consumed_resource_t new_consumed;
-
-				new_consumed.time = options->current_time;
-
-				new_consumed.vcpu = last_consumed.vcpu + c->getResource()->vcpu_max;
-
-				new_consumed.ram = last_consumed.ram + c->getResource()->ram_max;
-
-				new_consumed.active_servers = builder->getTotalActiveHosts();
-
-				consumed.push_back(new_consumed);
+				consumed->vcpu += c->getResource()->vcpu_max;
+				consumed->ram  += c->getResource()->ram_max;
 			}
 			// getchar();
 		}
@@ -227,39 +240,20 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 	// update_scheduler(scheduler, allocation_success);
 }
 
-objective_function_t calculateObjectiveFunction(consumed_resource_t consumed, total_resources_t total){
-	printf("Started Calculate Objective Function\n");
-	objective_function_t obj;
-	printf("Updating time\n");
-	obj.time = consumed.time;
-
-	printf("Fragmentation\n");
-	obj.fragmentation = ObjectiveFunction::fragmentation(consumed, total);
-
-	printf("vcpu footprint\n");
-	obj.vcpu_footprint = ObjectiveFunction::vcpu_footprint(consumed, total);
-
-	printf("ram footprint\n");
-	obj.ram_footprint = ObjectiveFunction::ram_footprint(consumed, total);
-
-	printf("footprint\n");
-	obj.footprint = ObjectiveFunction::footprint(consumed, total);
-	return obj;
-}
-
-void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, options_t* options, int message_count){
+void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, options_t* options, int message_count, std::vector<consumed_resource_t> &consumed_resources, std::vector < objective_function_t> &objective){
 	//Create the variable to store all the data center resource
 	total_resources_t total_resources;
-	//Create the resource vector
-	std::vector<consumed_resource_t> consumed_resources;
-	//Objective Function Structure
-	std::vector<objective_function_t> objective;
-
-	printf("Setting DC resources\n");
+	// printf("Setting DC resources\n");
 	builder->setDataCenterResources(&total_resources);
-	printf("set\n");
+	// printf("set\n");
 
 	while(message_count>0 || options->current_time <= options->end_time) {
+		consumed_resource_t new_consumed;
+		new_consumed.time=options->current_time;
+		if(consumed_resources.size()!=0) {
+			new_consumed.vcpu=consumed_resources.back().vcpu;
+			new_consumed.ram=consumed_resources.back().ram;
+		}
 		// #endif
 		// if(options->current_time==options->end_time) break;
 		// std::cout<<"Scheduler Time "<< options->current_time<<"\n";
@@ -278,24 +272,24 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 			// std::cout << *c << "\n";
 		}
 		// Search the containers to delete
-		// printf("Delete\n");
-		if(options->test_type!=2)
-			delete_tasks(scheduler, builder, options, consumed_resources);
+		if(options->test_type!=2) {
+			delete_tasks(scheduler, builder, options, &new_consumed);
+		}
 		// Search the containers in the vector to allocate in the DC
-		// std::cout<<"New Allocation\n";
-		// printf("Allocate\n");
-		allocate_tasks(scheduler, builder, options, consumed_resources);
-		// std::cout<<"Done Allocation\n";
+		allocate_tasks(scheduler, builder, options, &new_consumed);
 		// Update the lifetime
 		options->current_time++;
 		// printf(" Checked\n");
 		// getchar();
-		printf("Updating the objective\n");
 		//objective.push_back(calculateObjectiveFunction(consumed_resources.back(),total_resources));
+		new_consumed.active_servers = builder->getTotalActiveHosts();
+		consumed_resources.push_back(new_consumed);
+		objective.push_back(calculateObjectiveFunction(new_consumed, total_resources));
 	}
 
-	printf("Total Resources\n");
-	printf("vCPU %010f\nRAM %010f\nServers %d\n",total_resources.vcpu, total_resources.ram, total_resources.servers);
+	// printf("Total Resources\n");
+	// printf("vCPU %010f\nRAM %010f\nServers %d\n",total_resources.vcpu, total_resources.ram, total_resources.servers);
+	// printf("Consumed size %d\n", consumed_resources.size());
 }
 
 int main(int argc, char **argv){
@@ -311,29 +305,36 @@ int main(int argc, char **argv){
 	Builder *builder= new Builder();
 	// Parse the command line arguments
 	setup(argc,argv,builder,scheduler, options);
+	//Objective Function Structure
+	std::vector<objective_function_t> objective;
+	//Consumed Resources through time
+	std::vector<consumed_resource_t> consumed_resources;
+
 	// std::cout<<"Multicriteria method;Fat Tree Size;Number of containers;Time\n";
 	if (options->test_type==0) {         // no test is set
-    #define _TEST_SET_
+		schedule(builder, conn, scheduler, options, message_count, consumed_resources, objective);
+	}else if(options->test_type==1 || options->test_type==2) {
+		// Scalability Test
+		// force cout to not print in cientific notation
+		options->end_time = message_count+2;
+		std::cout<<std::fixed;
+
+		std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+		schedule(builder, conn, scheduler, options, message_count, consumed_resources, objective);
+
+		std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+
+		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
+		// std::cout<<options->multicriteria_method<<";"<<options->topology_size<<";"<<message_count<<";"<<time_span.count()<<"\n";
+		std::cout<<options->multicriteria_method<<";" << options->topology_size << ";" << message_count << ";" << time_span.count() << "\n";
+	} else if(options->test_type==3) { // Objective Function Test
+		schedule(builder, conn, scheduler, options, message_count, consumed_resources, objective);
+		int i;
+		printf("0,0,0,0,0\n"); // representing the time 0, when the DC dont have footprint neither fragmentation
+		for(i=0; i<objective.size(); i++) {
+			printf("%d,%f,%f,%f,%f\n", objective[i].time, objective[i].fragmentation, objective[i].footprint, objective[i].vcpu_footprint, objective[i].ram_footprint);
+		}
 	}
-
-    #ifndef _TEST_SET_
-	schedule(builder, conn, scheduler, options, message_count);
-
-    #else
-	// force cout to not print in cientific notation
-	options->end_time = message_count+2;
-	std::cout<<std::fixed;
-
-	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-	schedule(builder, conn, scheduler, options, message_count);
-
-	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-
-	std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
-	// std::cout<<options->multicriteria_method<<";"<<options->topology_size<<";"<<message_count<<";"<<time_span.count()<<"\n";
-	std::cout<<options->multicriteria_method<<";" << options->topology_size << ";" << message_count << ";" << time_span.count() << "\n";
-	#endif
-
 	// Free the allocated pointers
 	delete(scheduler);
 	delete(builder);
