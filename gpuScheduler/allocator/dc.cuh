@@ -68,11 +68,15 @@ bool dc(Builder* builder,  Container* container, std::map<int,const char*> &allo
 			}
 			// If can, allocate
 			(*host)-=(*container);
+
+			host->setActive(true);
+			host->addAllocatedResources();
 			// Update the allocated tasks map
 			char* host_name = (char*) malloc (strlen(host->getName().c_str())+1);
 			strcpy(host_name,host->getName().c_str());
 
 			allocated_task[container->getId()]= &host_name[0];
+
 			// std::cout<<"Allocated!\n";
 			// End the function with true signal
 			return true;

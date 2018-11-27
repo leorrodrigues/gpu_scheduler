@@ -14,31 +14,37 @@ class Host {
 public:
 Host(){
 	resources.mIntSize = 0;
-	resources.mWeightSize = 0;
+	resources.mFloatSize = 0;
 	resources.mStringSize = 0;
 	resources.mBoolSize = 0;
+	active = false;
+	allocated_resources = 0;
 }
 
 Host(Resource resource) {
 	resources.mIntSize = resource.mIntSize;
-	resources.mWeightSize = resource.mWeightSize;
+	resources.mFloatSize = resource.mFloatSize;
 	resources.mStringSize = resource.mStringSize;
 	resources.mBoolSize = resource.mBoolSize;
 	resources.mInt = resource.mInt;
-	resources.mWeight = resource.mWeight;
+	resources.mFloat = resource.mFloat;
 	resources.mString = resource.mString;
 	resources.mBool = resource.mBool;
+	active = false;
+	allocated_resources = 0;
 }
 
 Host(Resource* resource) {
 	resources.mIntSize = resource->mIntSize;
-	resources.mWeightSize = resource->mWeightSize;
+	resources.mFloatSize = resource->mFloatSize;
 	resources.mStringSize = resource->mStringSize;
 	resources.mBoolSize = resource->mBoolSize;
 	resources.mInt = resource->mInt;
-	resources.mWeight = resource->mWeight;
+	resources.mFloat = resource->mFloat;
 	resources.mString = resource->mString;
 	resources.mBool = resource->mBool;
+	active = false;
+	allocated_resources = 0;
 }
 
 ~Host(){
@@ -57,7 +63,23 @@ void setResource(std::string name, std::string v) {
 }
 
 void setResource(std::string name, WeightType v) {
-	this->resources.mWeight[name] = v;
+	this->resources.mFloat[name] = v;
+}
+
+void setActive(bool active){
+	this->active = active;
+}
+
+void setAllocatedResources(int allocated){
+	this->allocated_resources = allocated;
+}
+
+void addAllocatedResources(){
+	this->allocated_resources++;
+}
+
+void removeAllocaredResource(){
+	this->allocated_resources--;
 }
 
 Resource *getResource(){
@@ -72,6 +94,14 @@ std::string getName(){
 	return "";
 }
 
+bool getActive(){
+	return this->active;
+}
+
+int getAllocatedResources(){
+	return this->allocated_resources;
+}
+
 Host& operator+= (Host& rhs){
 	Resource* resource= this->getResource();
 	for(auto it : rhs.getResource()->mInt) {
@@ -80,11 +110,11 @@ Host& operator+= (Host& rhs){
 		else
 			resource->mInt[it.first]+=it.second;
 	}
-	for(auto it : rhs.getResource()->mWeight) {
-		if(!resource->mWeightSize)
-			resource->mWeight[it.first]=it.second;
+	for(auto it : rhs.getResource()->mFloat) {
+		if(!resource->mFloatSize)
+			resource->mFloat[it.first]=it.second;
 		else
-			resource->mWeight[it.first]+=it.second;
+			resource->mFloat[it.first]+=it.second;
 	}
 	for(auto it : rhs.getResource()->mBool) {
 		if(!resource->mBoolSize)
@@ -108,8 +138,8 @@ Host& operator+= (Resource& rhs){
 	for(auto it : rhs.mInt) {
 		resource->mInt[it.first]+=it.second;
 	}
-	for(auto it : rhs.mWeight) {
-		resource->mWeight[it.first]+=it.second;
+	for(auto it : rhs.mFloat) {
+		resource->mFloat[it.first]+=it.second;
 	}
 	return *this;
 }
@@ -119,8 +149,8 @@ Host& operator-= (Resource& rhs){
 	for(auto it : rhs.mInt) {
 		resource->mInt[it.first]-=it.second;
 	}
-	for(auto it : rhs.mWeight) {
-		resource->mWeight[it.first]-=it.second;
+	for(auto it : rhs.mFloat) {
+		resource->mFloat[it.first]-=it.second;
 	}
 	return *this;
 }
@@ -128,21 +158,24 @@ Host& operator-= (Resource& rhs){
 Host& operator+= (Container& rhs){
 	Resource* resource= this->getResource();
 
-	resource->mWeight["memory"]+=rhs.containerResources->ram_max;
-	resource->mWeight["vcpu"]+=rhs.containerResources->vcpu_max;
+	resource->mFloat["memory"]+=rhs.containerResources->ram_max;
+	resource->mFloat["vcpu"]+=rhs.containerResources->vcpu_max;
 	return *this;
 }
 
 Host& operator-= (Container& rhs){
 	Resource* resource= this->getResource();
 
-	resource->mWeight["memory"]-=rhs.containerResources->ram_max;
-	resource->mWeight["vcpu"]-=rhs.containerResources->vcpu_max;
+	resource->mFloat["memory"]-=rhs.containerResources->ram_max;
+	resource->mFloat["vcpu"]-=rhs.containerResources->vcpu_max;
 	return *this;
 }
 
 private:
 Resource resources; ///< Resource variable to store the variables.
+bool active;
+
+int allocated_resources; ///< allocated_resources Variable to store the information of how many virtual resources are allocated in this specific host.
 };
 
 #endif

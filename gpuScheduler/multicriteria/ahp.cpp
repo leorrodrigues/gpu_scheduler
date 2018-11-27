@@ -606,7 +606,7 @@ void AHP::synthesis() {
 	// 4 - calculate the PG
 	// printf("B PG\n");
 	buildPg(this->hierarchy->getFocus());
-	printPg(this->hierarchy->getFocus());
+	// printPg(this->hierarchy->getFocus());
 	// Print all information
 }
 
@@ -631,7 +631,7 @@ void AHP::run(Host** alternatives, int size) {
 		for (auto it : resource->mInt) {
 			this->hierarchy->addResource((char*)it.first.c_str());
 		}
-		for (auto it : resource->mWeight) {
+		for (auto it : resource->mFloat) {
 			this->hierarchy->addResource((char*)it.first.c_str());
 		}
 		for (auto it : resource->mBool) {
@@ -691,7 +691,7 @@ void AHP::setAlternatives(Host** alternatives, int size) {
 		for (auto it : resource->mInt) {
 			a->setResource((char*)it.first.c_str(), (float) it.second);
 		}
-		for (auto it : resource->mWeight) {
+		for (auto it : resource->mFloat) {
 			a->setResource((char*)it.first.c_str(), it.second);
 		}
 		for (auto it : resource->mBool) {

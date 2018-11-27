@@ -80,6 +80,10 @@ void Container::setTask(const char* taskMessage){
 	this->submission = std::stod(sm[2].str(),&sz);
 }
 
+void Container::setSubmission(double submission){
+	this->submission = submission;
+}
+
 Container::container_resources_t* Container::getResource(){
 	return this->containerResources;
 }

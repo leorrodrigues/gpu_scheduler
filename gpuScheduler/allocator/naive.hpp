@@ -27,7 +27,7 @@ bool naive(Builder* builder,  Container* container, std::map<int,const char*> &a
 	// std::cout << "Results Found!\nAllocating\n";
 	Host* host=NULL;
 	for( std::map<int,const char*>::iterator it = result.begin(); it!=result.end(); it++) {
-		std::cout<< "Checking the host "<<it->first<<":"<<it->second<<"\n";
+		// std::cout<< "Checking the host "<<it->first<<":"<<it->second<<"\n";
 		host=builder->getHost(std::string(it->second));
 		// std::cout << "VCPU: "<< host->getResource()->mWeight["vcpu"]<<"\n";
 		// std::cout << "HOST RESOURCES\n";
@@ -41,6 +41,9 @@ bool naive(Builder* builder,  Container* container, std::map<int,const char*> &a
 
 		// std::cout<<"Subtracting the resources\n";
 		(*host)-=(*container);
+
+		host->setActive(true);
+		host->addAllocatedResources();
 		// std::cout<<"Subtracted\n";
 		// std::cout << "HOST RESOURCES 2\n";
 		// std::cout << "VCPU: "<< host->getResource()->mWeight["vcpu"]<<"\n";

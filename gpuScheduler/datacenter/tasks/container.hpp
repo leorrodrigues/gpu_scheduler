@@ -30,6 +30,7 @@ container_resources_t *containerResources;
 Container();
 
 void setTask(const char*);
+void setSubmission(double);
 
 container_resources_t* getResource();
 double getDuration();

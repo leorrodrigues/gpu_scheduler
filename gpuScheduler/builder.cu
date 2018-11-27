@@ -2,7 +2,7 @@
 
 Builder::Builder(){
 	this->resource.mIntSize = 0;
-	this->resource.mWeightSize = 0;
+	this->resource.mFloatSize = 0;
 	this->resource.mStringSize = 0;
 	this->resource.mBoolSize = 0;
 	this->multicriteriaMethod=NULL;
@@ -17,7 +17,7 @@ void Builder::generateContentSchema() {
 		text += "\"" + it.first + "\":{\"type\":\"number\"},";
 		names += "\"" + it.first + "\",";
 	}
-	for (auto it : resource->mWeight) {
+	for (auto it : resource->mFloat) {
 		text += "\"" + it.first + "\":{\"type\":\"number\"},";
 		names += "\"" + it.first + "\",";
 	}
@@ -94,6 +94,16 @@ std::vector<Host*> Builder::getHostsInGroup(int group_index){
 	return this->clusteringMethod->getHostsInGroup(group_index);
 }
 
+int Builder::getTotalActiveHosts(){
+	int total=0;
+	int i, size = hosts.size();
+	for(i=0; i<size; i++) {
+		if(hosts[i]->getActive())
+			total++;
+	}
+	return total;
+}
+
 void Builder::addResource(std::string name, std::string type){
 	if (type == "int") {
 		//Check if the type is int.
@@ -103,8 +113,8 @@ void Builder::addResource(std::string name, std::string type){
 	} else if (type == "double" || type == "float") {
 		//Check if the type is float or float, the variable will be in the same map.
 		//Create new entry in the WeightType map.
-		this->resource.mWeight[name] = 0;
-		this->resource.mWeightSize++;
+		this->resource.mFloat[name] = 0;
+		this->resource.mFloatSize++;
 	} else if (type == "string" || type == "char*" || type == "char[]" || type == "char") {
 		//Check if the type is string or other derivative.
 		//Create new entry in the std::string map.
@@ -138,7 +148,7 @@ void Builder::printClusterResult(){
 	for(auto it: this->clusterHosts) {
 		std::cout<<it->getName()<<"\n";
 		Resource* r=it->getResource();
-		for(auto a: r->mWeight) {
+		for(auto a: r->mFloat) {
 			std::cout<<"\t"<<a.first<<" "<<a.second<<"\n";
 		}
 	}
@@ -200,6 +210,18 @@ void Builder::setDcell(int nHosts,int nLevels){
 	this->setTopology(graph);
 }
 
+void Builder::setDataCenterResources(total_resources_t* resource){
+	int i;
+	int size=hosts.size();
+	Resource* aux;
+	resource->servers = size;
+	for(i=0; i < size; i++) {
+		aux = hosts[i]->getResource();
+		resource->vcpu += aux->mFloat["vcpu"];
+		resource->ram += aux->mFloat["memory"];
+	}
+}
+
 void Builder::runMulticriteria(std::vector<Host*> alt){
 	if(this->multicriteriaMethod!=NULL)
 		this->multicriteriaMethod->run(&alt[0], alt.size());
@@ -222,8 +244,8 @@ std::string strLower(std::string s) {
 void Builder::listHosts(){
 	for(Host* host: this->hosts) {
 		std::cout << "Host: "<<host->getName() <<"\n";
-		std::cout<< "VCPU: "<<host->getResource()->mWeight["vcpu"]<<"\n";
-		std::cout<< "RAM: "<<host->getResource()->mWeight["memory"]<<"\n";
+		std::cout<< "VCPU: "<<host->getResource()->mFloat["vcpu"]<<"\n";
+		std::cout<< "RAM: "<<host->getResource()->mFloat["memory"]<<"\n";
 	}
 }
 
@@ -234,9 +256,9 @@ void Builder::listResources() {
 			std::cout << "\t" << it.first << " : " << it.second << "\n";
 		}
 	}
-	if (this->resource.mWeightSize) {
+	if (this->resource.mFloatSize) {
 		std::cout << "Float/float Resources\n";
-		for (auto it : this->resource.mWeight) {
+		for (auto it : this->resource.mFloat) {
 			std::cout << "\t" << it.first << " : " << it.second << "\n";
 		}
 	}

@@ -38,7 +38,7 @@ void setResource(Resource* resource){
 		index=this->topology->add_node_variable(it.first);
 		this->indices[it.first]=index;
 	}
-	for(auto it: resource->mWeight) {
+	for(auto it: resource->mFloat) {
 		index=this->topology->add_node_variable(it.first);
 		this->indices[it.first]=index;
 	}
@@ -57,7 +57,7 @@ void populateTopology(std::vector<Host*> hosts){
 		for(auto it: res->mInt) {
 			this->topology->set_variable_node(indices[it.first],i,(float)it.second);
 		}
-		for(auto it: res->mWeight) {
+		for(auto it: res->mFloat) {
 			this->topology->set_variable_node(indices[it.first],i,(float)it.second);
 		}
 		for(auto it: res->mBool) {

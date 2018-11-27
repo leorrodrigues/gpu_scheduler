@@ -1,6 +1,8 @@
 #ifndef _BUILDER_NOT_INCLUDED_
 #define _BUILDER_NOT_INCLUDED_
 
+#include "types.hpp"
+
 #include "multicriteria/ahp.hpp"
 #include "multicriteria/ahpg.cuh"
 
@@ -50,12 +52,15 @@ Host* getHost(std::string name);
 std::vector<Host*> getClusterHosts();
 int getHostsMedianInGroup();
 std::vector<Host*> getHostsInGroup(int);
+int getTotalActiveHosts();
+
 
 void printClusterResult();
 void printTopologyType();
 //Multicriteria set functions
 void setAHP();
 void setAHPG();
+
 
 //Clustering set functions
 void setMCL();
@@ -65,6 +70,8 @@ void setFatTree(int);
 void setBcube(int,int);
 void setDcell(int,int);
 
+// Set All Resources Data Center
+void setDataCenterResources(total_resources_t*);
 //Run functions methods
 void runMulticriteria(std::vector<Host*> alt={});
 void runClustering(std::vector<Host*> alt);
