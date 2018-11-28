@@ -9,7 +9,7 @@
 
 namespace Allocation_t {
 enum {
-	NAIVE, DC, ALL
+	NAIVE, DC, ALL, PURE, CLUSTERIZED
 };
 }
 

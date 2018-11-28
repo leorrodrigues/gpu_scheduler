@@ -7,6 +7,7 @@
 #include "builder.cuh"
 #include "thirdparty/clara.hpp"
 
+#include "allocator/ahp_clusterized.cuh"
 #include "allocator/pure_mcl.hpp"
 #include "allocator/naive.hpp"
 #include "allocator/free.hpp"
@@ -30,14 +31,14 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	auto cli = clara::detail::Help(showHelp)
 	           | clara::detail::Opt( topology, "topology" )["-t"]["--topology"]("What is the topology type? [ (default) fat_tree | dcell | bcube ]")
 	           | clara::detail::Opt( topology_size, "topology size") ["-s"] ["--topology_size"] ("What is the size of the topology? ( default 10 )")
-	           | clara::detail::Opt( multicriteria_method, "multicriteria method") ["-m"]["--multicriteria"] ("What is the multicriteria method? [ ahp | (default) ahpg ]")
-	           | clara::detail::Opt( clustering_method,"clustering method") ["-c"]["--clustering"] ("What is the clustering method? [ (default) mcl ]")
-	           | clara::detail::Opt( allocation_type,"Strategy") ["-a"] ["--strategy"] ("What is the allocation strategy? [ (default) naive | dc |  all ]")
+	           | clara::detail::Opt( multicriteria_method, "multicriteria method") ["-m"]["--multicriteria"] ("What is the multicriteria method? [ ahp | (default) ahpg | mcl_ahp | mcl_ahpg | ahp_clustered]")
+	           | clara::detail::Opt( clustering_method,"clustering method") ["-c"]["--clustering"] ("What is the clustering method? [ (default) mcl | pure_mcl]")
+	           | clara::detail::Opt( allocation_type,"Strategy") ["-a"] ["--strategy"] ("What is the allocation strategy? [ (default) naive | dc |  all | pure]")
 	           | clara::detail::Opt( start_scheduler_time, "Start Time")["--start_time"]("Start scheduler time")
 	           | clara::detail::Opt( end_time, "Finish Time")["--end_time"]("What is the schaduler max time?")
 	           // 0 For no Test
 	           // 1 For Container Test
-	           // 2 For Pure MCL test
+	           // 2 For Consolidation Test
 	           | clara::detail::Opt( test_type, "Type Test")["--test"]("Which type of test you want?");
 	auto result = cli.parse( clara::detail::Args( argc, argv ) );
 	if( !result ) {
@@ -66,18 +67,18 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	}else if(multicriteria_method == "ahp" ) {
 		builder->setAHP();
 		options->multicriteria_method=multicriteria_method;
-	}else if(multicriteria_method == "mcl") {
-		builder->setAHPG();
-		allocation_type= "dc";
-		options->multicriteria_method="pure mcl";
 	}else if(multicriteria_method=="mcl_ahpg") {
 		builder->setAHPG();
 		allocation_type="dc";
-		options->multicriteria_method="mcl ahpg";
+		options->multicriteria_method="mcl_ahpg";
 	}else if(multicriteria_method=="mcl_ahp") {
 		builder->setAHP();
 		allocation_type="dc";
-		options->multicriteria_method="mcl ahp";
+		options->multicriteria_method="mcl_ahp";
+	}else if(multicriteria_method=="ahp_clusterized") {
+		builder->setAHPG();
+		options->multicriteria_method="ahpg";
+		allocation_type="clusterized";
 	}else{
 		std::cerr << "Invalid multicriteria method\n";
 		exit(0);
@@ -85,7 +86,10 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	if( clustering_method == "mcl" ) {
 		builder->setMCL();
 		options->clustering_method=clustering_method;
-		// test_type = 2;
+	}else if( clustering_method == "pure_mcl") {
+		builder->setMCL();
+		options->clustering_method=clustering_method;
+		allocation_type=Allocation_t::PURE;
 	}else{
 		std::cerr << "Invalid clustering method\n";
 		exit(0);
@@ -108,11 +112,15 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 		options->allocation_type=Allocation_t::DC;
 	}else if(allocation_type=="all") {
 		options->allocation_type=Allocation_t::ALL;
+	}else if(allocation_type=="pure") {
+		options->allocation_type=Allocation_t::PURE;
+	}else if(allocation_type=="clusterized") {
+		options->allocation_type=Allocation_t::CLUSTERIZED;
 	}else{
 		std::cerr << "Invalid allocation type\n";
 		exit(0);
 	}
-	if(test_type >=0 && test_type<=3) {
+	if(test_type >=0 && test_type<=2) {
 		options->test_type=test_type;
 	}else{
 		std::cerr << "Invalid Type of test\n" << test_type << "\n";
@@ -209,20 +217,19 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 		if( options->current_time == (int)c->getSubmission()) {
 			// allocate the new task in the data center.
 			// std::cout<<"Allocating\n";
-			if(options->allocation_type==Allocation_t::NAIVE) {
+			if( options->allocation_type==Allocation_t::PURE) {
+				allocation_success=Allocator::mcl_pure(builder,c,scheduler->allocated_task);
+			} else if( options->allocation_type == Allocation_t::NAIVE) {
 				// std::cout<<"Naive\n";
 				allocation_success=Allocator::naive(builder,c, scheduler->allocated_task);
 				// std::cout<<"Allocated\n";
 			}else if( options->allocation_type == Allocation_t::DC) {
-				if(options->test_type!=2) {
-					allocation_success=Allocator::dc(builder,c,scheduler->allocated_task);
-				}else{
-					allocation_success=Allocator::mcl_pure(builder,c,scheduler->allocated_task);
-				}
-			}else if ( options->allocation_type == Allocation_t::ALL) {
+				allocation_success=Allocator::dc(builder,c,scheduler->allocated_task);
+			} else if ( options->allocation_type == Allocation_t::ALL) {
 				allocation_success=Allocator::all();
-			}
-			else{
+			} else if ( options->allocation_type == Allocation_t::CLUSTERIZED) {
+				allocation_success=Allocator::ahp_clusterized(builder, c, scheduler->allocated_task);
+			} else {
 				std::cerr << "Invalid type\n";
 			}
 			if(!allocation_success) {
@@ -272,9 +279,7 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 			// std::cout << *c << "\n";
 		}
 		// Search the containers to delete
-		if(options->test_type!=2) {
-			delete_tasks(scheduler, builder, options, &new_consumed);
-		}
+		delete_tasks(scheduler, builder, options, &new_consumed);
 		// Search the containers in the vector to allocate in the DC
 		allocate_tasks(scheduler, builder, options, &new_consumed);
 		// Update the lifetime
@@ -313,7 +318,7 @@ int main(int argc, char **argv){
 	// std::cout<<"Multicriteria method;Fat Tree Size;Number of containers;Time\n";
 	if (options->test_type==0) {         // no test is set
 		schedule(builder, conn, scheduler, options, message_count, consumed_resources, objective);
-	}else if(options->test_type==1 || options->test_type==2) {
+	}else if(options->test_type==1) {
 		// Scalability Test
 		// force cout to not print in cientific notation
 		options->end_time = message_count+2;
@@ -327,10 +332,9 @@ int main(int argc, char **argv){
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
 		// std::cout<<options->multicriteria_method<<";"<<options->topology_size<<";"<<message_count<<";"<<time_span.count()<<"\n";
 		std::cout<<options->multicriteria_method<<";" << options->topology_size << ";" << message_count << ";" << time_span.count() << "\n";
-	} else if(options->test_type==3) { // Objective Function Test
+	} else if(options->test_type==2) { // Objective Function Test
 		schedule(builder, conn, scheduler, options, message_count, consumed_resources, objective);
 		int i;
-		printf("0,0,0,0,0\n"); // representing the time 0, when the DC dont have footprint neither fragmentation
 		for(i=0; i<objective.size(); i++) {
 			printf("%d,%f,%f,%f,%f\n", objective[i].time, objective[i].fragmentation, objective[i].footprint, objective[i].vcpu_footprint, objective[i].ram_footprint);
 		}
