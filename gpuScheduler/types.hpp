@@ -34,24 +34,24 @@ typedef struct {
 } scheduler_t;
 
 typedef struct {
-	float vcpu=0;
-	float ram=0;
+	double vcpu=0;
+	double ram=0;
 	int servers=0;
 } total_resources_t;
 
 typedef struct {
 	int time=0;
-	float vcpu=0;
-	float ram=0;
+	double vcpu=0;
+	double ram=0;
 	int active_servers=0;
 } consumed_resource_t;
 
 typedef struct {
 	int time = 0;
-	float fragmentation = 0;
-	float footprint = 0;
-	float vcpu_footprint = 0;
-	float ram_footprint = 0;
+	double fragmentation = 0;
+	double footprint = 0;
+	double vcpu_footprint = 0;
+	double ram_footprint = 0;
 } objective_function_t;
 
 #endif

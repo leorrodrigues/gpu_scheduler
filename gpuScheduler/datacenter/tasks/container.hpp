@@ -11,6 +11,8 @@ double duration;
 double* links;
 int id;
 double submission;
+bool allocated;
+double allocated_time;
 
 typedef struct container_resources_t : public task_resource_t {
 	int pod;
@@ -31,11 +33,15 @@ Container();
 
 void setTask(const char*);
 void setSubmission(double);
+void setAllocated(bool);
+void setAllocatedTime(double);
 
 container_resources_t* getResource();
 double getDuration();
 int getId();
 double getSubmission();
+bool getAllocated();
+double getAllocatedTime();
 
 void decreaseDuration(int);
 

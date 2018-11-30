@@ -40,11 +40,12 @@ void setup(int argc, char** argv, options_t* options){
 	}
 	std::string path="json/";
 	if(type==0) {
-		path+="datacenter/";
+		path+="datacenter/data-"+std::to_string(size)+".json";
 	}else if(type==1) {
-		path+="container/";
+		path+="container/data-"+std::to_string(size)+".json";
+	}else if(type==2) {
+		path+="datacenter/google-"+std::to_string(size)+".json";
 	}
-	path+="data-"+std::to_string(size)+".json";
 	options->path=path;
 }
 
