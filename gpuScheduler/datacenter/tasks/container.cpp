@@ -3,7 +3,9 @@
 Container::Container(){
 	this->duration=0;
 	this->links=NULL;
+
 	this->containerResources = new container_resources_t;
+
 	this->containerResources->name=0;
 	this->containerResources->pod=0;
 	this->containerResources->epc_min=0;
@@ -12,8 +14,11 @@ Container::Container(){
 	this->containerResources->ram_max=0;
 	this->containerResources->vcpu_min=0;
 	this->containerResources->vcpu_max=0;
+
 	this->id=0;
 	this->submission=0;
+	this->allocated=false;
+	this->allocated_time=0;
 }
 
 void Container::setTask(const char* taskMessage){
@@ -84,12 +89,24 @@ void Container::setSubmission(double submission){
 	this->submission = submission;
 }
 
+void Container::setAllocated(bool allocated){
+	this->allocated = allocated;
+}
+
+void Container::setAllocatedTime(double allocatedTime){
+	this->allocated_time = allocatedTime;
+}
+
 Container::container_resources_t* Container::getResource(){
 	return this->containerResources;
 }
 
 double Container::getDuration(){
 	return this->duration;
+}
+
+bool Container::getAllocated(){
+	return this->allocated;
 }
 
 void Container::decreaseDuration(int reduce){
@@ -102,6 +119,10 @@ int Container::getId(){
 
 double Container::getSubmission(){
 	return this->submission;
+}
+
+double Container::getAllocatedTime(){
+	return this->allocated_time;
 }
 
 std::ostream& operator<<(std::ostream& os, const Container& c)  {
