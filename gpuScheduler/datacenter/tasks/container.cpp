@@ -17,8 +17,8 @@ Container::Container(){
 
 	this->id=0;
 	this->submission=0;
-	this->allocated=false;
 	this->allocated_time=0;
+	this->delay=0;
 }
 
 void Container::setTask(const char* taskMessage){
@@ -39,7 +39,7 @@ void Container::setTask(const char* taskMessage){
 	std::smatch sm;
 	//Duration
 	std::regex_search (taskStr, sm,durationRegex);
-	this->duration = std::stod(sm[2].str(),&sz);
+	this->duration = std::stoi(sm[2].str(),&sz);
 	//Links
 	std::regex_search (taskStr, sm,linkRegex);
 	//TODO links constuctor
@@ -78,35 +78,31 @@ void Container::setTask(const char* taskMessage){
 
 	//ID
 	std::regex_search (taskStr, sm, idRegex);
-	this->id = std::stod(sm[2].str(),&sz);
+	this->id = std::stoi(sm[2].str(),&sz);
 
 	//SUBMISSION
 	std::regex_search (taskStr, sm, submissionRegex);
-	this->submission = std::stod(sm[2].str(),&sz);
+	this->submission = std::stoi(sm[2].str(),&sz);
 }
 
-void Container::setSubmission(double submission){
+void Container::setSubmission(int submission){
 	this->submission = submission;
 }
 
-void Container::setAllocated(bool allocated){
-	this->allocated = allocated;
+void Container::setAllocatedTime(int allocatedTime){
+	this->allocated_time = allocatedTime;
 }
 
-void Container::setAllocatedTime(double allocatedTime){
-	this->allocated_time = allocatedTime;
+void Container::addDelay(){
+	this->delay++;
 }
 
 Container::container_resources_t* Container::getResource(){
 	return this->containerResources;
 }
 
-double Container::getDuration(){
+int Container::getDuration(){
 	return this->duration;
-}
-
-bool Container::getAllocated(){
-	return this->allocated;
 }
 
 void Container::decreaseDuration(int reduce){
@@ -117,12 +113,16 @@ int Container::getId(){
 	return this->id;
 }
 
-double Container::getSubmission(){
+int Container::getSubmission(){
 	return this->submission;
 }
 
-double Container::getAllocatedTime(){
+int Container::getAllocatedTime(){
 	return this->allocated_time;
+}
+
+int Container::getDelay(){
+	return this->delay;
 }
 
 std::ostream& operator<<(std::ostream& os, const Container& c)  {

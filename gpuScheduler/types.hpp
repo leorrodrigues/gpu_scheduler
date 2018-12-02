@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <queue>
 #include <map>
 
 #include "datacenter/tasks/container.hpp"
@@ -12,6 +13,18 @@ enum {
 	NAIVE, DC, ALL, PURE, CLUSTERIZED
 };
 }
+
+struct CompareContainerOnSubmission {
+	bool operator()( Container* lhs, Container* rhs) const {
+		return (lhs->getSubmission()+lhs->getDelay()) > (rhs->getSubmission()+rhs->getDelay());
+	}
+};
+
+struct CompareContainerOnDelete {
+	bool operator()( Container* lhs, Container* rhs) const {
+		return (lhs->getAllocatedTime()+lhs->getDuration()) > (rhs->getAllocatedTime()+rhs->getDuration());
+	}
+};
 
 typedef struct {
 	int allocation_type=Allocation_t::NAIVE;
@@ -27,7 +40,8 @@ typedef struct {
 
 typedef struct {
 	std::map<int, const char*> allocated_task;
-	std::vector<Container*> containers;
+	std::priority_queue<Container*, std::vector<Container*>, CompareContainerOnSubmission> containers_to_allocate;
+	std::priority_queue<Container*, std::vector<Container*>, CompareContainerOnDelete> containers_to_delete;
 	int total_containers=0;
 	int total_accepted=0;
 	int total_refused=0;

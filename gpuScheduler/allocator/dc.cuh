@@ -7,7 +7,7 @@
 
 namespace Allocator {
 
-bool dc(Builder* builder,  Container* container, std::map<int,const char*> &allocated_task){
+bool dc(Builder* builder,  Container* container, std::map<int,const char*> &allocated_task,consumed_resource_t* consumed){
 	// std::cout << "Running Clustering\n";
 	// Now the MCL is used to cluster the DC
 	builder->runClustering(builder->getHosts());
@@ -68,8 +68,10 @@ bool dc(Builder* builder,  Container* container, std::map<int,const char*> &allo
 			}
 			// If can, allocate
 			(*host)-=(*container);
-
-			host->setActive(true);
+			if(host->getActive()==false) {
+				host->setActive(true);
+				consumed->active_servers++;
+			}
 			host->addAllocatedResources();
 			// Update the allocated tasks map
 			char* host_name = (char*) malloc (strlen(host->getName().c_str())+1);
