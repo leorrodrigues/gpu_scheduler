@@ -6,6 +6,7 @@ Builder::Builder(){
 	this->resource.mStringSize = 0;
 	this->resource.mBoolSize = 0;
 	this->multicriteriaMethod=NULL;
+	this->multicriteriaClusteredMethod=NULL;
 	this->clusteringMethod=NULL;
 }
 
@@ -39,6 +40,10 @@ Multicriteria* Builder::getMulticriteria(){
 	return this->multicriteriaMethod;
 }
 
+Multicriteria* Builder::getMulticriteriaClustered(){
+	return this->multicriteriaClusteredMethod;
+}
+
 Clustering* Builder::getClustering(){
 	return this->clusteringMethod;
 }
@@ -49,6 +54,10 @@ Topology* Builder::getTopology(){
 
 std::map<int,const char*> Builder::getMulticriteriaResult(){
 	return this->multicriteriaMethod->getResult();
+}
+
+std::map<int,const char*> Builder::getMulticriteriaClusteredResult(){
+	return this->multicriteriaClusteredMethod->getResult();
 }
 
 int Builder::getClusteringResultSize(){
@@ -168,6 +177,16 @@ void Builder::setAHPG(){
 	this->setMulticriteria(ahpg);
 }
 
+void Builder::setClusteredAHP(){
+	AHP *ahp=new AHP();
+	this->multicriteriaClusteredMethod=ahp;
+}
+
+void Builder::setClusteredAHPG(){
+	AHPG *ahpg=new AHPG();
+	this->multicriteriaClusteredMethod=ahpg;
+}
+
 void Builder::setClustering(Clustering* method){
 	this->clusteringMethod=method;
 }
@@ -225,6 +244,11 @@ void Builder::setDataCenterResources(total_resources_t* resource){
 void Builder::runMulticriteria(std::vector<Host*> alt){
 	if(this->multicriteriaMethod!=NULL)
 		this->multicriteriaMethod->run(&alt[0], alt.size());
+}
+
+void Builder::runMulticriteriaClustered(std::vector<Host*> alt){
+	if(this->multicriteriaClusteredMethod!=NULL)
+		this->multicriteriaClusteredMethod->run(&alt[0], alt.size());
 }
 
 void Builder::runClustering(std::vector<Host*> alt){
@@ -294,7 +318,7 @@ void Builder::parserResources(JSON::jsonGenericType* dataResource) {
 			} else if (strcmp(objectData.name.GetString(), "variableType") == 0) {
 				variableType = strLower(objectData.value.GetString());
 			} else {
-				std::cout << "Error in reading resources\nExiting...\n";
+				std::cout << "(builder.cu 321) Error in reading resources\nExiting...\n";
 				exit(0);
 			}
 		}
@@ -323,7 +347,7 @@ void Builder::parserTopology(JSON::jsonGenericType* dataTopology){
 	}else if(topologyType == "dcell") {
 		this->setDcell(size,level);
 	}else{
-		std::cout<<"unknow topology...\nexiting....\n";
+		std::cout<<"(builder.cu 350) unknow topology...\nexiting....\n";
 		exit(1);
 	}
 }

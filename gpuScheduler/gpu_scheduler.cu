@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <chrono>
 #include <ctime>
@@ -42,7 +43,7 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	           | clara::detail::Opt( test_type, "Type Test")["--test"]("Which type of test you want?");
 	auto result = cli.parse( clara::detail::Args( argc, argv ) );
 	if( !result ) {
-		std::cerr << "Error in command line: " << result.errorMessage() <<std::endl;
+		std::cerr << "(gpu_scheduler 45) Error in command line: " << result.errorMessage() <<std::endl;
 		exit(1);
 	}
 	if ( showHelp ) {
@@ -50,13 +51,13 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 		exit(0);
 	}
 	if( topology != "fat_tree" && topology != "dcell" && topology != "bcube" ) {
-		std::cerr << "Invalid entered topology\n";
+		std::cerr << "(gpu_scheduler 53) Invalid entered topology\n";
 		exit(0);
 	}else{
 		options->topology_type=topology;
 	}
 	if( (topology_size<2 || topology_size>48) && topology_size!=0) {
-		std::cerr << "Invalid topology size ( must be between 4 and 48 )\n";
+		std::cerr << "(gpu_scheduler 59) Invalid topology size ( must be between 4 and 48 )\n";
 		exit(0);
 	}else{
 		options->topology_size=topology_size;
@@ -77,14 +78,16 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 		options->multicriteria_method="mcl_ahp";
 	}else if(multicriteria_method=="ahp_clusterized") {
 		builder->setAHP();
+		builder->setClusteredAHP();
 		options->multicriteria_method="ahp";
 		allocation_type="clusterized";
 	}else if(multicriteria_method=="ahpg_clusterized") {
 		builder->setAHPG();
+		builder->setClusteredAHPG();
 		options->multicriteria_method="ahpg";
 		allocation_type="clusterized";
 	}else{
-		std::cerr << "Invalid multicriteria method\n";
+		std::cerr << "(gpu_scheduler 89) Invalid multicriteria method\n";
 		exit(0);
 	}
 	if( clustering_method == "mcl" ) {
@@ -95,17 +98,17 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 		options->clustering_method=clustering_method;
 		allocation_type=Allocation_t::PURE;
 	}else{
-		std::cerr << "Invalid clustering method\n";
+		std::cerr << "(gpu_scheduler 100) Invalid clustering method\n";
 		exit(0);
 	}
 	if( start_scheduler_time < 0 ) {
-		std::cerr << "Invalid start scheduler time\n";
+		std::cerr << "(gpu_scheduler 104) Invalid start scheduler time\n";
 		exit(0);
 	}else{
 		options->start_time=start_scheduler_time;
 	}
 	if( end_time< -1 ) {
-		std::cerr << "Invalid end scheduler time\n";
+		std::cerr << "(gpu_scheduler 110) Invalid end scheduler time\n";
 		exit(0);
 	}else{
 		options->end_time=end_time;
@@ -121,13 +124,13 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	}else if(allocation_type=="clusterized") {
 		options->allocation_type=Allocation_t::CLUSTERIZED;
 	}else{
-		std::cerr << "Invalid allocation type\n";
+		std::cerr << "(gpu_scheduler 126) Invalid allocation type\n";
 		exit(0);
 	}
 	if(test_type >=0 && test_type<=2) {
 		options->test_type=test_type;
 	}else{
-		std::cerr << "Invalid Type of test\n" << test_type << "\n";
+		std::cerr << "(gpu_scheduler 132) Invalid Type of test\n" << test_type << "\n";
 		exit(0);
 	}
 	options->current_time=options->start_time;
@@ -160,7 +163,7 @@ inline void update_scheduler(scheduler_t* scheduler, bool allocation_success){
 	scheduler->total_containers++;
 	allocation_success == true ? scheduler->total_accepted++ : scheduler->total_refused++;
 	if(scheduler->total_refused+scheduler->total_accepted!=scheduler->total_containers) {
-		std::cerr << "Erro in containers total check\n";
+		std::cerr << "(gpu_scheduler 165) Erro in containers total check\n";
 		exit(1);
 	}
 }
@@ -195,7 +198,7 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 			current
 			);
 		if(!free_success) {
-			std::cerr << "gpu_scheduler(170) - Error in free the task " << current->getId() << " from the data center\n";
+			std::cerr << "(gpu_scheduler 200) gpu_scheduler(170) - Error in free the task " << current->getId() << " from the data center\n";
 			exit(1);
 		}
 		if(temp->getAllocatedResources()==0) {
@@ -226,12 +229,8 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			break;
 		}
 		current = scheduler->containers_to_allocate.top();
-		if(current->getSubmission()+current->getDelay() < options->current_time) {
-			// printf("Scheduler Time %d and Container %d Time %d\n", options->current_time, current->getId(),current->getSubmission()+current->getDelay());
-			// getchar();
-			break;
-		}
-		else if( current->getSubmission()+current->getDelay() != options->current_time) {
+		// printf("\tALLOCATING CONTAINER %d\n", current->getId());
+		if( current->getSubmission()+current->getDelay() != options->current_time) {
 			// printf("Scheduler Time %d and Container %d Time %d\n", options->current_time, current->getId(),current->getSubmission()+current->getDelay());
 			break;
 		}
@@ -248,7 +247,8 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 		} else if ( options->allocation_type == Allocation_t::CLUSTERIZED) {
 			allocation_success=Allocator::ahp_clusterized(builder, current, scheduler->allocated_task,consumed);
 		} else {
-			std::cerr << "Invalid type\n";
+			std::cerr << "(gpu_scheduler 249) Invalid type\n";
+			exit(1);
 		}
 		if(!allocation_success) {
 			// printf("Container %d Add Delay, old time %d ", current->getId(), current->getSubmission()+current->getDelay());
@@ -303,7 +303,6 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 				// Set the resources to the container
 				current->setTask(conn->getNextTask());
 				// Put the container in the vector
-				// printf("Inserting new container\n");
 				scheduler->containers_to_allocate.push(current);
 				// getchar();
 				message_count--;
@@ -315,18 +314,13 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 			// Print the container
 			// std::cout << *c << "\n";
 		}
-		// printf("Insert container size: %d\nDelete Container Size: %d\n",scheduler->containers_to_allocate.size(), scheduler->containers_to_delete.size());
 		// Search the containers to delete
-		// printf("Calling delete tasks\n");
 		delete_tasks(scheduler, builder, options, &consumed_resources);
 		// Search the containers in the vector to allocate in the DC
-		// printf("Calling allocate tasks\n");
 		allocate_tasks(scheduler, builder, options, &consumed_resources);
 		// Update the lifetime
-		// printf(" Checked\n");
 		// getchar();
 		// consumed_resources.active_servers = builder->getTotalActiveHosts();
-		// printf("Calling calculate OBJ\n");
 		objective=calculateObjectiveFunction(consumed_resources, total_resources);
 		if(options->test_type==2) {
 			printf("%d,%.7lf,%.7lf,%.7lf,%.7lf\n",
@@ -340,9 +334,9 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 		options->current_time++;
 	}
 
-	// printf("Total Resources\n");
-	// printf("vCPU %010f\nRAM %010f\nServers %d\n",total_resources.vcpu, total_resources.ram, total_resources.servers);
-	// printf("Consumed size %d\n", consumed_resources.size());
+// printf("Total Resources\n");
+// printf("vCPU %010f\nRAM %010f\nServers %d\n",total_resources.vcpu, total_resources.ram, total_resources.servers);
+// printf("Consumed size %d\n", consumed_resources.size());
 }
 
 int main(int argc, char **argv){
@@ -360,7 +354,7 @@ int main(int argc, char **argv){
 	setup(argc,argv,builder,scheduler, options);
 
 	// std::cout<<"Multicriteria method;Fat Tree Size;Number of containers;Time\n";
-	if (options->test_type==0) {         // no test is set
+	if (options->test_type==0) {     // no test is set
 		schedule(builder, conn, scheduler, options, message_count);
 	}else if(options->test_type==1 || options->test_type==2) {
 		// Scalability Test or Objective Function Test

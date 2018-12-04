@@ -17,11 +17,13 @@
 class Builder {
 private:
 Multicriteria* multicriteriaMethod;
+Multicriteria* multicriteriaClusteredMethod;
 Clustering* clusteringMethod;
 Topology* topology;
 Resource resource;
 std::vector<Host*> hosts;
 std::vector<Host*> clusterHosts;
+std::map<int,const char*> clusteredMulticriteria;
 
 void setMulticriteria(Multicriteria*);
 void setClustering(Clustering*);
@@ -41,9 +43,11 @@ public:
 Builder();
 
 Multicriteria* getMulticriteria();
+Multicriteria* getMulticriteriaClustered();
 Clustering* getClustering();
 Topology* getTopology();
 std::map<int,const char*> getMulticriteriaResult();
+std::map<int,const char*> getMulticriteriaClusteredResult();
 int getClusteringResultSize();
 void getClusteringResult();
 Resource* getResource();
@@ -60,6 +64,8 @@ void printTopologyType();
 //Multicriteria set functions
 void setAHP();
 void setAHPG();
+void setClusteredAHP();
+void setClusteredAHPG();
 
 
 //Clustering set functions
@@ -74,6 +80,7 @@ void setDcell(int,int);
 void setDataCenterResources(total_resources_t*);
 //Run functions methods
 void runMulticriteria(std::vector<Host*> alt={});
+void runMulticriteriaClustered(std::vector<Host*> alt={});
 void runClustering(std::vector<Host*> alt);
 
 void listHosts();
