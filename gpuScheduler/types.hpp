@@ -16,7 +16,11 @@ enum {
 
 struct CompareContainerOnSubmission {
 	bool operator()( Container* lhs, Container* rhs) const {
-		return (lhs->getSubmission()+lhs->getDelay()) > (rhs->getSubmission()+rhs->getDelay());
+		if ((lhs->getSubmission()+lhs->getDelay()) == (rhs->getSubmission()+rhs->getDelay())) {
+			return (lhs->getId()>rhs->getId());
+		}else{
+			return (lhs->getSubmission()+lhs->getDelay()) > (rhs->getSubmission()+rhs->getDelay());
+		}
 	}
 };
 

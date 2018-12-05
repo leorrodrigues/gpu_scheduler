@@ -3,8 +3,8 @@
 
 #include <fstream>
 #include <iostream>
-#include "thirdparty/rapidjson/pointer.h"
 #include "thirdparty/rapidjson/schema.h"
+#include "thirdparty/rapidjson/pointer.h"
 #include "thirdparty/rapidjson/prettywriter.h"
 #include "thirdparty/rapidjson/filereadstream.h"
 

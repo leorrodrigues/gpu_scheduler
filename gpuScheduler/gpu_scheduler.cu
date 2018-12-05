@@ -5,6 +5,7 @@
 #include <ratio>
 
 #include "types.hpp"
+#include "reader.hpp"
 #include "builder.cuh"
 #include "thirdparty/clara.hpp"
 
@@ -159,15 +160,6 @@ inline objective_function_t calculateObjectiveFunction(consumed_resource_t consu
 	return obj;
 }
 
-inline void update_scheduler(scheduler_t* scheduler, bool allocation_success){
-	scheduler->total_containers++;
-	allocation_success == true ? scheduler->total_accepted++ : scheduler->total_refused++;
-	if(scheduler->total_refused+scheduler->total_accepted!=scheduler->total_containers) {
-		std::cerr << "(gpu_scheduler 165) Erro in containers total check\n";
-		exit(1);
-	}
-}
-
 inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed){
 	bool free_success=false;
 	// printf("%s #### %s\n", scheduler->allocated_task[0].c_str(),scheduler->allocated_task[1].c_str());
@@ -219,7 +211,6 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 	}
 }
 
-
 inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed){
 	bool allocation_success=false;
 	// Check the task submission
@@ -229,11 +220,11 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			break;
 		}
 		current = scheduler->containers_to_allocate.top();
-		// printf("\tALLOCATING CONTAINER %d\n", current->getId());
 		if( current->getSubmission()+current->getDelay() != options->current_time) {
 			// printf("Scheduler Time %d and Container %d Time %d\n", options->current_time, current->getId(),current->getSubmission()+current->getDelay());
 			break;
 		}
+		// printf("\tREMOVE ALLOCATING CONTAINER %d\n", current->getId());
 		scheduler->containers_to_allocate.pop();
 		// allocate the new task in the data center.
 		if( options->allocation_type==Allocation_t::PURE) {
@@ -251,14 +242,17 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			exit(1);
 		}
 		if(!allocation_success) {
-			// printf("Container %d Add Delay, old time %d ", current->getId(), current->getSubmission()+current->getDelay());
+			if(current->getResource()->vcpu_max>24 || current->getResource()->ram_max>256) {
+				continue;
+			}
+			// printf("\tContainer %d Add Delay, old time %d\n", current->getId(), current->getSubmission()+current->getDelay());
 			current->addDelay();
 			// printf("; new time %d\n", current->getSubmission()+current->getDelay());
 			scheduler->containers_to_allocate.push(current);
 			// getchar();
 			// exit(3);
 		}else{
-			// printf("Container %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
+			// printf("\tContainer %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
 			current->setAllocatedTime(options->current_time);
 			// The container was allocated, so the consumed variable has to be updated
 			consumed->vcpu += current->getResource()->vcpu_max;
@@ -270,6 +264,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 }
 
 void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, options_t* options, int message_count){
+	int total_containers = scheduler->containers_to_allocate.size();
 	//Create the variable to store all the data center resource
 	total_resources_t total_resources;
 	// printf("Setting DC resources\n");
@@ -288,7 +283,7 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 	objective.vcpu_footprint=0;
 	objective.ram_footprint=0;
 
-	while(message_count>0 || options->current_time <= options->end_time) {
+	while(message_count>0 || options->current_time <= options->end_time || !scheduler->containers_to_allocate.empty() || !scheduler->containers_to_delete.empty()) {
 		consumed_resources.time=options->current_time;
 		// #endif
 		// if(options->current_time==options->end_time) break;
@@ -323,12 +318,13 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 		// consumed_resources.active_servers = builder->getTotalActiveHosts();
 		objective=calculateObjectiveFunction(consumed_resources, total_resources);
 		if(options->test_type==2) {
-			printf("%d,%.7lf,%.7lf,%.7lf,%.7lf\n",
+			printf("%d,%.7lf,%.7lf,%.7lf,%.7lf,%.3lf\%\n",
 			       objective.time,
 			       objective.fragmentation,
 			       objective.footprint,
 			       objective.vcpu_footprint,
-			       objective.ram_footprint
+			       objective.ram_footprint,
+			       (100.0-(containers_to_allocate.size()/total_containers))
 			       );
 		}
 		options->current_time++;
@@ -357,6 +353,23 @@ int main(int argc, char **argv){
 	if (options->test_type==0) {     // no test is set
 		schedule(builder, conn, scheduler, options, message_count);
 	}else if(options->test_type==1 || options->test_type==2) {
+		// parse all json
+		if(options->test_type==2) {
+			Reader* reader = new Reader();
+			reader->openDocument("../simulator/json/datacenter/google-1.json");
+			std::string message;
+			while((message=reader->getNextTask())!="eof") {
+				// Create new container
+				Container *current = new Container();
+				// Set the resources to the container
+				current->setTask(message.c_str());
+				// Put the container in the vector
+				scheduler->containers_to_allocate.push(current);
+				message_count--;
+			}
+			delete(reader);
+			builder->runClustering(builder->getHosts());
+		}
 		// Scalability Test or Objective Function Test
 		// force cout to not print in cientific notation
 		options->end_time = message_count+2;
@@ -368,13 +381,6 @@ int main(int argc, char **argv){
 		std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
 		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
-
-		// if(options->test_type==2) {
-		//      int i;
-		//      for(i=0; i<objective.size(); i++) {
-		//              printf("%d,%f,%f,%f,%f\n", objective[i].time, objective[i].fragmentation, objective[i].footprint, objective[i].vcpu_footprint, objective[i].ram_footprint);
-		//      }
-		// }
 
 		std::cout<<options->multicriteria_method<<";" << options->topology_size << ";" << message_count << ";" << time_span.count() << "\n";
 	}
