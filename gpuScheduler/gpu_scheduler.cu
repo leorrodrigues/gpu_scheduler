@@ -318,13 +318,13 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 		// consumed_resources.active_servers = builder->getTotalActiveHosts();
 		objective=calculateObjectiveFunction(consumed_resources, total_resources);
 		if(options->test_type==2) {
-			printf("%d,%.7lf,%.7lf,%.7lf,%.7lf,%.3lf\%\n",
+			printf("%d,%.7lf,%.7lf,%.7lf,%.7lf,%.3lf%%\n",
 			       objective.time,
 			       objective.fragmentation,
 			       objective.footprint,
 			       objective.vcpu_footprint,
 			       objective.ram_footprint,
-			       (100.0-(containers_to_allocate.size()/total_containers))
+			       (100.0-(scheduler->containers_to_allocate.size()/total_containers))
 			       );
 		}
 		options->current_time++;
