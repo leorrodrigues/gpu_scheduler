@@ -1,0 +1,2 @@
+fat_tree_size,google_size,time
+44,0,55778.493090
