@@ -224,7 +224,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			// printf("Scheduler Time %d and Container %d Time %d\n", options->current_time, current->getId(),current->getSubmission()+current->getDelay());
 			break;
 		}
-		// printf("\tREMOVE ALLOCATING CONTAINER %d\n", current->getId());
+		printf("\tREMOVE ALLOCATING CONTAINER %d\n", current->getId());
 		scheduler->containers_to_allocate.pop();
 		// allocate the new task in the data center.
 		if( options->allocation_type==Allocation_t::PURE) {
@@ -289,7 +289,6 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 		// if(options->current_time==options->end_time) break;
 		// std::cout<<"Scheduler Time "<< options->current_time<<"\n";
 		// std::cout<<"message_count "<<message_count<<"\n";
-		// std::cout<<"contianers size "<<scheduler->containers.size()<<"\n";
 		// make sure there is work in the queue
 		if(message_count>0) {
 			while(true) {
@@ -324,7 +323,7 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 			       objective.footprint,
 			       objective.vcpu_footprint,
 			       objective.ram_footprint,
-			       (100.0-(scheduler->containers_to_allocate.size()/total_containers))
+			       (100.0-(scheduler->containers_to_allocate.size()/(float)total_containers))
 			       );
 		}
 		options->current_time++;
@@ -355,8 +354,9 @@ int main(int argc, char **argv){
 	}else if(options->test_type==1 || options->test_type==2) {
 		// parse all json
 		if(options->test_type==2) {
+			printf("REMOVE READING CONTAINERS\n");
 			Reader* reader = new Reader();
-			reader->openDocument("../simulator/json/datacenter/google-1.json");
+			reader->openDocument("../simulator/json/datacenter/google-0.json");
 			std::string message;
 			while((message=reader->getNextTask())!="eof") {
 				// Create new container
