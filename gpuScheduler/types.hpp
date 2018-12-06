@@ -40,6 +40,7 @@ typedef struct {
 	int start_time=0;
 	int test_type=0;
 	int end_time=0;
+	int request_size=0;
 } options_t;
 
 typedef struct {

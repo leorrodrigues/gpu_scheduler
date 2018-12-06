@@ -35,6 +35,7 @@ void setTask(const char*);
 void setSubmission(int);
 void setAllocatedTime(int);
 void addDelay();
+void addDelay(int);
 
 container_resources_t* getResource();
 int getDuration();

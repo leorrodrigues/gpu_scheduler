@@ -30,6 +30,7 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	// dont show the help by default. Use `-h or `--help` to enable it.
 	bool showHelp = false;
 	int test_type=0;
+	int request_size=0;
 	auto cli = clara::detail::Help(showHelp)
 	           | clara::detail::Opt( topology, "topology" )["-t"]["--topology"]("What is the topology type? [ (default) fat_tree | dcell | bcube ]")
 	           | clara::detail::Opt( topology_size, "topology size") ["-s"] ["--topology_size"] ("What is the size of the topology? ( default 10 )")
@@ -41,7 +42,8 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	           // 0 For no Test
 	           // 1 For Container Test
 	           // 2 For Consolidation Test
-	           | clara::detail::Opt( test_type, "Type Test")["--test"]("Which type of test you want?");
+	           | clara::detail::Opt( test_type, "Type Test")["--test"]("Which type of test you want?")
+	           | clara::detail::Opt( request_size, "Request Size")["--request-size"]("Which is the request size?");
 	auto result = cli.parse( clara::detail::Args( argc, argv ) );
 	if( !result ) {
 		std::cerr << "(gpu_scheduler 45) Error in command line: " << result.errorMessage() <<std::endl;
@@ -131,8 +133,14 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	if(test_type >=0 && test_type<=2) {
 		options->test_type=test_type;
 	}else{
-		std::cerr << "(gpu_scheduler 132) Invalid Type of test\n" << test_type << "\n";
+		std::cerr << "(gpu_scheduler 132) Invalid Type of test: " << test_type << "\n";
 		exit(0);
+	}
+	if(request_size<0 || request_size>2) {
+		std::cerr << "(gpu_scheduler 140) Invalid Size of Requestz\n";
+		exit(0);
+	}else{
+		options->request_size=request_size;
 	}
 	options->current_time=options->start_time;
 	// Load the Topology
@@ -215,6 +223,8 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 	bool allocation_success=false;
 	// Check the task submission
 	Container* current;
+
+	int total_delay=0;
 	while(true) {
 		if(scheduler->containers_to_allocate.empty()) {
 			break;
@@ -246,9 +256,14 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				continue;
 			}
 			// printf("\tContainer %d Add Delay, old time %d\n", current->getId(), current->getSubmission()+current->getDelay());
-			current->addDelay();
+			Container* first_to_delete = scheduler->containers_to_delete.top();
+			int delay = (first_to_delete->getDuration() + first_to_delete->getAllocatedTime()) - ( current->getSubmission() + current->getDelay() ) +1;
+			current->addDelay(delay);
+			printf("delay,%d,%d\n",current->getId(), current->getDelay());
 			// printf("; new time %d\n", current->getSubmission()+current->getDelay());
 			scheduler->containers_to_allocate.push(current);
+
+			total_delay+=current->getDelay();
 			// getchar();
 			// exit(3);
 		}else{
@@ -261,6 +276,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			// scheduler->containers_to_allocate.pop();
 		}
 	}
+	printf("total_delay,%d,%d\n", options->current_time,total_delay);
 }
 
 void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, options_t* options, int message_count){
@@ -317,13 +333,13 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 		// consumed_resources.active_servers = builder->getTotalActiveHosts();
 		objective=calculateObjectiveFunction(consumed_resources, total_resources);
 		if(options->test_type==2) {
-			printf("%d,%.7lf,%.7lf,%.7lf,%.7lf,%.3lf%%\n",
+			printf("%d,%.7lf,%.7lf,%.7lf,%.7lf,%.5lf%%\n",
 			       objective.time,
 			       objective.fragmentation,
 			       objective.footprint,
 			       objective.vcpu_footprint,
 			       objective.ram_footprint,
-			       (100.0-(scheduler->containers_to_allocate.size()/(float)total_containers))
+			       (100.0*(scheduler->containers_to_allocate.size()/(float)total_containers))
 			       );
 		}
 		options->current_time++;
@@ -354,9 +370,11 @@ int main(int argc, char **argv){
 	}else if(options->test_type==1 || options->test_type==2) {
 		// parse all json
 		if(options->test_type==2) {
-			printf("REMOVE READING CONTAINERS\n");
 			Reader* reader = new Reader();
-			reader->openDocument("../simulator/json/datacenter/google-0.json");
+			std::string path = "../simulator/json/datacenter/google-";
+			path+= std::to_string(options->request_size);
+			path+=".json";
+			reader->openDocument(path.c_str());
 			std::string message;
 			while((message=reader->getNextTask())!="eof") {
 				// Create new container
@@ -390,5 +408,6 @@ int main(int argc, char **argv){
 	delete(builder);
 	delete(options);
 	delete(conn);
+
 	return 0;
 }

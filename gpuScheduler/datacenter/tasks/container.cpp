@@ -97,6 +97,10 @@ void Container::addDelay(){
 	this->delay++;
 }
 
+void Container::addDelay(int delay){
+	this->delay+=delay;
+}
+
 Container::container_resources_t* Container::getResource(){
 	return this->containerResources;
 }
