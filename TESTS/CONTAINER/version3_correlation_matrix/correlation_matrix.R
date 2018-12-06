@@ -1,9 +1,7 @@
-#NEED TO PUT LEGEND IN THE X AND Y AXIS
-#NEED TO PUT LEGEND IN THE COLOR BAR -  INDENTIFYNG THE TIME(SECONDS)
-
 library(corrplot)
 library(RColorBrewer)
-library(yarrr)
+
+pallet <- c("#006A40FF","#75B41EFF","#95828DFF","#708C98FF","#8AB8CFFF","#358359FF","#8BA1BCFF","#5A5895FF","#F2990CFF","#E5BA3AFF","#D86C4FFF" )
 
 file_names <- c("ahp","ahpg","mcl_ahp","mcl_ahpg","mcl","ahpg_clusterized")
 
@@ -35,7 +33,7 @@ for(f_names in file_names){
     title_n <- paste(title_n,plot_names[index],sep="")
 
     files_save <- paste("correlation_matrix_of_",f_names,sep="")
-    pdf(paste(files_save,".pdf",sep=""), width=8, height=6.8)
+    pdf(paste(files_save,".pdf",sep=""), width=8.2, height=4.2)
 
         corrplot(
             as.matrix(t(wide)),
@@ -44,21 +42,20 @@ for(f_names in file_names){
             is.corr=FALSE,
             tl.srt=0,
             tl.col="black",
-            col=yarrr::piratepal("info2",trans=0, length.out = 14),
+            col=pallet,
             cl.pos="r",
             cl.align.text="c",
             cl.ratio=0.2,
             number.digits=7,
             win.asp=1,
-            na.label="X",
+            na.label="  ",
             addgrid.col="black"
             )+
-            title(title_n, font.main=4, cex.main=1.7)+
-            mtext("Container Request Size", side=2, line=2.5, cex=1.4)+
-            mtext("Fat Tree Size", side=3, line=-1.9, cex=1.4)+
-            mtext("                                                                                                                        Time(s)", side=3, line=-2.7 , cex=1.2)+
-            mtext("                                                                                                                X values corresponds to execution\n                                                                                                              that needs more than 10 minutes", side=1, line=1)
-
+            #title(title_n, font.main=4, cex.main=1.7)+
+            mtext("                                                                                                                              Tempo (s)", line=2.4 , cex=1.2)+
+            mtext("Tamanho da Requisição", side=2, line=2.5, cex=1.4)+
+            mtext("Tamanho da Fat Tree", side=3, line=2.7, cex=1.4)+
+            #mtext("X values corresponds to execution\nthat needs more than 10 minutes", side=1, line=1)
     dev.off()
 }
 

@@ -11,7 +11,7 @@
 
 namespace Allocator {
 
-bool naive(Builder* builder,  Container* container, std::map<int,const char*> &allocated_task){
+bool naive(Builder* builder,  Container* container, std::map<int,const char*> &allocated_task,consumed_resource_t* consumed){
 	// std::cout << "##############################\nTry the allocation\n";
 
 	// std::cout << "Running Multicriteria\n";
@@ -41,6 +41,11 @@ bool naive(Builder* builder,  Container* container, std::map<int,const char*> &a
 
 		// std::cout<<"Subtracting the resources\n";
 		(*host)-=(*container);
+		if(host->getActive()==false) {
+			host->setActive(true);
+			consumed->active_servers++;
+		}
+		host->addAllocatedResources();
 		// std::cout<<"Subtracted\n";
 		// std::cout << "HOST RESOURCES 2\n";
 		// std::cout << "VCPU: "<< host->getResource()->mWeight["vcpu"]<<"\n";

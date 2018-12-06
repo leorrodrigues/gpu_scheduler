@@ -39,7 +39,7 @@ void setResource(Resource* resource){
 		index=this->topology->add_node_variable(it.first);
 		this->indices[it.first]=index;
 	}
-	for(auto it: resource->mWeight) {
+	for(auto it: resource->mFloat) {
 		index=this->topology->add_node_variable(it.first);
 		this->indices[it.first]=index;
 	}
@@ -70,7 +70,7 @@ void populateTopology(std::vector<Host*> hosts){
 			this->topology->set_variable_node(indices[it.first],i+k*step,(float)it.second);
 			//std::cout<<"\t\tSet "<<std::setw(15)<<it.first<<" with "<<std::setw(15)<<it.second<<"\n";
 		}
-		for(auto it: res->mWeight) {
+		for(auto it: res->mFloat) {
 			this->topology->set_variable_node(indices[it.first],i+k*step,(float)it.second);
 			//std::cout<<"\t\tSet "<<std::setw(15)<<it.first<<" with "<<std::setw(15)<< it.second<<"\n";
 		}
@@ -84,10 +84,10 @@ void populateTopology(std::vector<Host*> hosts){
 		}
 		//For each edge in the host i+k*step
 		for(int x=this->topology->get_source_offset(i+k*step); x<this->topology->get_source_offset((i+k*step)+1); x++) {
-			this->topology->set_variable_edge(indexEdge,x,res->mWeight["bandwidth"]);
+			this->topology->set_variable_edge(indexEdge,x,res->mFloat["bandwidth"]);
 		}
-		//this->topology->set_variable_edge_undirected(indexEdge,(i+k*step),res->mWeight["bandwidth"]);
-		//std::cout<<"\t\tSet in "<<i*k<<std::setw(20)<<" edge weight with"<<std::setw(12)<<res->mWeight["bandwidth"]<<"\n";
+		//this->topology->set_variable_edge_undirected(indexEdge,(i+k*step),res->mFloat["bandwidth"]);
+		//std::cout<<"\t\tSet in "<<i*k<<std::setw(20)<<" edge weight with"<<std::setw(12)<<res->mFloat["bandwidth"]<<"\n";
 		i++;
 		if(i%this->size==0) k++;
 	}

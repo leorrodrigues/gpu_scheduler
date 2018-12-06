@@ -6,12 +6,12 @@
 namespace Allocator {
 
 inline bool checkFit(Host* host, Container* container){
-	if(host->getResource()->mWeight["vcpu"]<container->containerResources->vcpu_max) {
-		// std::cout<<"VCPU "<<host->getResource()->mWeight["vcpu"]<<" AND "<<container->containerResources->vcpu_max;
+	if(host->getResource()->mFloat["vcpu"]<container->containerResources->vcpu_max) {
+		// std::cout<<"VCPU "<<host->getResource()->mFloat["vcpu"]<<" AND "<<container->containerResources->vcpu_max;
 		return false;
 	}
-	if(host->getResource()->mWeight["memory"]<container->containerResources->ram_max) {
-		// std::cout<<"Memory "<<host->getResource()->mWeight["memory"]<<" AND "<<container->containerResources->ram_max<<"\n";
+	if(host->getResource()->mFloat["memory"]<container->containerResources->ram_max) {
+		// std::cout<<"Memory "<<host->getResource()->mFloat["memory"]<<" AND "<<container->containerResources->ram_max<<"\n";
 		return false;
 	}
 	return true;

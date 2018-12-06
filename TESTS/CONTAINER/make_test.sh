@@ -1,6 +1,7 @@
 #echo "Multicriteria method;Fat Tree Size;Number of containers;Time" >> times.txt
-for m in mcl mcl_ahp mcl_ahpg ahp ahpg; do
-	for k in 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48; do
+#for m in ahp_clusterized; do
+for m in mcl mcl_ahp mcl_ahpg ahp ahpg ahp_clusterized; do
+	for k in 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44; do
         for i in 1 2 4 8 16 32 64 128 256 512 1024 2048; do
             #for round in 1 2 3 4 5 6 7 8 9 10; do
             #sync; echo 3 > /proc/sys/vm/drop_caches #clear all ram memory

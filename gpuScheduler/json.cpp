@@ -26,6 +26,23 @@ rapidjson::Document generateDocument(const char *path){
 	return sd;
 }
 
+rapidjson::Document* generateDocumentP(const char *path){
+	FILE* fp = fopen(path, "r");
+	fseek(fp, 0, SEEK_END);
+	size_t filesize = (size_t)ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+	char* buffer = (char*)malloc(filesize + 1);
+	size_t readLength = fread(buffer, 1, filesize, fp);
+	buffer[readLength] = '\0';
+	fclose(fp);
+	rapidjson::Document* sd = new rapidjson::Document;
+	if(sd->Parse(buffer).HasParseError()) {
+		free(buffer);
+		std::cout<<"Erro in parsing the json";
+	}
+	return sd;
+}
+
 rapidjson::SchemaDocument generateSchema(const char* path){
 	rapidjson::Document sd=generateDocument(path);
 	rapidjson::SchemaDocument schema(sd);

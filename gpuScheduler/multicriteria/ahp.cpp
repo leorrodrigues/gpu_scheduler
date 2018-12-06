@@ -606,7 +606,7 @@ void AHP::synthesis() {
 	// 4 - calculate the PG
 	// printf("B PG\n");
 	buildPg(this->hierarchy->getFocus());
-	printPg(this->hierarchy->getFocus());
+	// printPg(this->hierarchy->getFocus());
 	// Print all information
 }
 
@@ -631,7 +631,7 @@ void AHP::run(Host** alternatives, int size) {
 		for (auto it : resource->mInt) {
 			this->hierarchy->addResource((char*)it.first.c_str());
 		}
-		for (auto it : resource->mWeight) {
+		for (auto it : resource->mFloat) {
 			this->hierarchy->addResource((char*)it.first.c_str());
 		}
 		for (auto it : resource->mBool) {
@@ -639,6 +639,8 @@ void AHP::run(Host** alternatives, int size) {
 		}
 		// printf("Conception\n");
 		this->conception(false);
+		// Add the resource of how many virtual resources are allocated in the host
+		this->hierarchy->addResource((char*)"allocated_resources");
 		this->setAlternatives(alternatives, size);
 		if(this->hierarchy->getSheetsSize()==0) exit(0);
 	}
@@ -691,12 +693,15 @@ void AHP::setAlternatives(Host** alternatives, int size) {
 		for (auto it : resource->mInt) {
 			a->setResource((char*)it.first.c_str(), (float) it.second);
 		}
-		for (auto it : resource->mWeight) {
+		for (auto it : resource->mFloat) {
 			a->setResource((char*)it.first.c_str(), it.second);
 		}
 		for (auto it : resource->mBool) {
 			a->setResource((char*)it.first.c_str(), (float) it.second);
 		}
+
+		// Populate the alternative node with the Host Value
+		a->setResource((char*)"allocated_resources", alternatives[i]->getAllocatedResources());
 
 		this->hierarchy->addAlternative(a);
 	}

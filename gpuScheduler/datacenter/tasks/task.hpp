@@ -17,9 +17,9 @@ virtual void setTask(const char*)=0;
 
 virtual task_resource_t* getResource()=0;
 
-virtual double getDuration()=0;
+virtual int getDuration()=0;
 virtual int getId()=0;
-virtual double getSubmission()=0;
+virtual int getSubmission()=0;
 
 };
 

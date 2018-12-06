@@ -7,10 +7,12 @@
 
 class Container : public Task {
 private:
-double duration;
+int duration;
 double* links;
 int id;
-double submission;
+int submission;
+int allocated_time;
+int delay;
 
 typedef struct container_resources_t : public task_resource_t {
 	int pod;
@@ -30,11 +32,16 @@ container_resources_t *containerResources;
 Container();
 
 void setTask(const char*);
+void setSubmission(int);
+void setAllocatedTime(int);
+void addDelay();
 
 container_resources_t* getResource();
-double getDuration();
+int getDuration();
 int getId();
-double getSubmission();
+int getSubmission();
+int getAllocatedTime();
+int getDelay();
 
 void decreaseDuration(int);
 

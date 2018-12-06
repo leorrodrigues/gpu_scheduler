@@ -1,5 +1,5 @@
-#ifndef _DC_ALLOCATION_
-#define _DC_ALLOCATION_
+#ifndef _AHP_CLUSTERIZED_ALLOCATION_
+#define _AHP_CLUSTERIZED_ALLOCATION_
 
 #include <iostream>
 
@@ -7,19 +7,22 @@
 
 namespace Allocator {
 
-bool dc(Builder* builder,  Container* container, std::map<int,const char*> &allocated_task,consumed_resource_t* consumed){
-	// std::cout << "Running Clustering\n";
-	// Now the MCL is used to cluster the DC
-	builder->runClustering(builder->getHosts());
-
-	// std::cout << "Cluster ok\n";
-	// std::cout << "Getting Cluster Result\n";
-	// std::cout << "Groups Made "<<builder->getClusteringResultSize()<<"\n";
+// Run the group one time and all the others executions are only with the AHP
+bool ahp_clusterized(Builder* builder,  Container* container, std::map<int,const char*> &allocated_task,consumed_resource_t* consumed){
+	// printf("##################################################\n");
+	// std::cout << "\t\tRunning Clustering\n";
+	// If the AHP_CLUSTERIZED is not clusterized
+	if(builder->getClusterHosts().size()==0) {
+		// Now the MCL is used to cluster the AHP_CLUSTERIZED
+		builder->runClustering(builder->getHosts());
+	}
+	// std::cout << "\t\tCluster ok\n";
+	// std::cout << "\t\tGroups Made "<<builder->getClusteringResultSize()<<"\n";
 
 	// Get the cluster results and update the builder
-	// std::cout << "Cluster Results ok\n";
+	// std::cout << "\t\tCluster Results ok\n";
 	builder->getClusteringResult();
-	// printf("Done\n");
+	// printf("\t\tDone\n");
 	// Create the result map
 	std::map<int,const char*> result;
 
@@ -27,40 +30,38 @@ bool dc(Builder* builder,  Container* container, std::map<int,const char*> &allo
 	if(builder->getClusteringResultSize()>1) {
 		// std::cout << "Running Multicriteria\n";
 		// Run the multicriteria with the cluster
-		builder->runMulticriteria( builder->getClusterHosts() );
+		builder->runMulticriteriaClustered( builder->getClusterHosts() );
 
 		// Get the results
-		result = builder->getMulticriteriaResult();
+		result = builder->getMulticriteriaClusteredResult();
 		// std::cout << "Multicriteria OK\n";
 	}else{
 		// Create the first entry in the result map
 		result[0]="0";
 	}
 
-	// After the DC groups are made and the Multicriteria method selected the most suitable group in the DC, the selected group is opened ah their hosts selected by the multicriteria method to select the host for the request.
+	// After the AHP_CLUSTERIZED groups are made and the Multicriteria method selected the most suitable group in the AHP_CLUSTERIZED, the selected group is opened ah their hosts selected by the multicriteria method to select the host for the request.
 	// Create the empty host
 	Host* host=NULL;
 
 	//Iterate through the groups and explode each of them
 	// std::cout << "Start the iteration\n";
-	for( std::map<int,const char*>::iterator it = result.begin(); it!=result.end(); it++) {
+	for( auto const& it: result) {
 		host=NULL;
 		// std::cout<<it->first<<" AND "<<it->second<<"\n";
-		std::vector<Host*> hostsInGroup = builder->getHostsInGroup(std::stoi(it->second));
+		std::vector<Host*> hostsInGroup = builder->getHostsInGroup(std::stoi(it.second));
 		// std::cout<<"Running host multicriteria\n";
 		// Run the Multicriteria in the hosts
 		builder->runMulticriteria(hostsInGroup);
 		// std::cout<<"Get the multicriteria result\n";
 		// Get the result
+
 		std::map<int,const char*> ranked_hosts = builder->getMulticriteriaResult();
-		// std::cout<<"start iteration\n";
 		// Iterate through all the hosts in the selected group
 		for(std::map<int,const char*>::iterator h_it = ranked_hosts.begin(); h_it!= ranked_hosts.end(); h_it++) {
 			// Get the host pointer
-			// std::cout<<"iterating host\n";
 
 			host=builder->getHost(std::string(h_it->second));
-
 			// Check if the host can support the resource
 			if(!checkFit(host,container)) {
 				// If can't ignore the rest of the loop
@@ -68,10 +69,12 @@ bool dc(Builder* builder,  Container* container, std::map<int,const char*> &allo
 			}
 			// If can, allocate
 			(*host)-=(*container);
+
 			if(host->getActive()==false) {
 				host->setActive(true);
 				consumed->active_servers++;
 			}
+
 			host->addAllocatedResources();
 			// Update the allocated tasks map
 			char* host_name = (char*) malloc (strlen(host->getName().c_str())+1);
@@ -79,11 +82,12 @@ bool dc(Builder* builder,  Container* container, std::map<int,const char*> &allo
 
 			allocated_task[container->getId()]= &host_name[0];
 
-			// std::cout<<"Allocated!\n";
+			// std::cout<<"\t\tAllocated!\n";
 			// End the function with true signal
 			return true;
 		}
 	}
+	// printf("\t\tError in Allocated!\n");
 	// If didn't has one group and host to support the request, return a false signal
 	return false;
 }
