@@ -570,7 +570,7 @@ void AHPG::conceptionG(bool alternativeParser) {
 	strcpy(hierarchy_data, path);
 
 	strcat(hierarchy_schema, "multicriteria/json/hierarchySchema.json");
-	strcat(hierarchy_data, "multicriteria/json/hierarchyData.json");
+	strcat(hierarchy_data, "multicriteria/json/hierarchyDataFrag.json");
 
 	rapidjson::SchemaDocument hierarchySchema =
 		JSON::generateSchema(hierarchy_schema);

@@ -14,5 +14,4 @@ SIZE=20
 
 cd ./../../gpuScheduler/;
 echo "Executing scheduler"
-./gpuscheduler.out --test 2 -s $SIZE -m ahp_clusterized >> ./../TESTS/OBJECTIVE_FUNCTION/obj.txt
-
+./gpuscheduler.out --test 2 -s $SIZE -m ahp_clusterized --request-size $1 >> ./../TESTS/OBJECTIVE_FUNCTION/obj.txt
