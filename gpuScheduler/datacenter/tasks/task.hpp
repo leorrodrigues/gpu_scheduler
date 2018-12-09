@@ -13,6 +13,8 @@ typedef struct {
 private:
 public:
 
+virtual ~Task()=0;
+
 virtual void setTask(const char*)=0;
 
 virtual task_resource_t* getResource()=0;
@@ -23,4 +25,6 @@ virtual int getSubmission()=0;
 
 };
 
+inline Task::~Task(){
+}
 #endif

@@ -18,7 +18,7 @@ inline int checkFit(Host* host, Container* container){
 	}else if(host->getResource()["vcpu"]>=container->containerResources->vcpu_min) {
 		total+=4;
 	}else{
-		total=0;
+		return 0;
 	}
 	if(host->getResource()["memory"]>=container->containerResources->ram_max) {
 		// std::cout<<"Memory "<<host->getResource()->mFloat["memory"]<<" AND "<<container->containerResources->ram_max<<"\n";
@@ -26,7 +26,7 @@ inline int checkFit(Host* host, Container* container){
 	} else if(host->getResource()["memory"]>=container->containerResources->ram_min) {
 		total+=7;
 	}else{
-		total=0;
+		return 0;
 	}
 	return total;
 }

@@ -1,2 +1,3 @@
-fat_tree_size,google_size,time
-44,0,55778.493090
+version https://git-lfs.github.com/spec/v1
+oid sha256:0e147f634380c2f28c3d946999465a3a4a28129adc75195d07b579243752dda0
+size 48
