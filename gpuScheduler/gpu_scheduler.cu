@@ -257,8 +257,11 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				continue;
 			}
 			printf("\tContainer %d Add Delay, old time %d\n", current->getId(), current->getSubmission()+current->getDelay());
-			Container* first_to_delete = scheduler->containers_to_delete.top();
-			int delay = (first_to_delete->getDuration() + first_to_delete->getAllocatedTime()) - ( current->getSubmission() + current->getDelay() ) +1;
+			int delay=1;
+			if(!scheduler->containers_to_delete.empty()) {
+				Container* first_to_delete = scheduler->containers_to_delete.top();
+				delay = (first_to_delete->getDuration() + first_to_delete->getAllocatedTime()) - ( current->getSubmission() + current->getDelay() ) +1;
+			}
 			current->addDelay(delay);
 			// printf("delay,%d,%d\n",current->getId(), current->getDelay());
 
