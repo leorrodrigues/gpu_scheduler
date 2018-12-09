@@ -13,7 +13,7 @@ bool freeHostResource(Host* host, Container* container){
 		exit(2);
 	}
 	// std::cout << "Free Host Resource Function\n";
-	(*host)+=(*container);
+	host->removeContainer(container);
 	host->removeAllocaredResource();
 	return true;
 }

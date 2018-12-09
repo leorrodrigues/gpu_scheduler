@@ -1,33 +1,43 @@
 #include  "builder.cuh"
 
 Builder::Builder(){
-	this->resource.mIntSize = 0;
-	this->resource.mFloatSize = 0;
-	this->resource.mStringSize = 0;
-	this->resource.mBoolSize = 0;
 	this->multicriteriaMethod=NULL;
 	this->multicriteriaClusteredMethod=NULL;
 	this->clusteringMethod=NULL;
+	this->topology=NULL;
+}
+
+Builder::~Builder(){
+	delete(this->multicriteriaMethod);
+	delete(this->multicriteriaClusteredMethod);
+	delete(this->clusteringMethod);
+	delete(this->topology);
+	this->multicriteriaMethod=NULL;
+	this->multicriteriaClusteredMethod=NULL;
+	this->clusteringMethod=NULL;
+	this->topology=NULL;
+	this->resource.clear();
+
+	for(std::vector<Host*>::iterator it=hosts.begin(); it!=hosts.end(); it++) {
+		delete(*it);
+	}
+	hosts.clear();
+
+
+	for(std::vector<Host*>::iterator it=clusterHosts.begin(); it!=clusterHosts.end(); it++) {
+		delete(*it);
+	}
+	clusterHosts.clear();
+
+	clusteredMulticriteria.clear();
 }
 
 void Builder::generateContentSchema() {
 	std::string names;
 	std::string text = "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"definitions\":{\"topology\": {\"type\": \"object\",\"minProperties\": 1,\"additionalProperties\": false,\"properties\": {\"type\": {\"type\": \"string\"},\"size\": {\"type\": \"number\"},\"level\": {\"type\": \"number\"}},\"required\": [\"type\",\"size\"]},     \"host\": {\"type\": \"array\",\"minItems\": 1,\"items\":{\"properties\": {";
 	auto resource = this->getResource();
-	for (auto it : resource->mInt) {
+	for (auto it : resource) {
 		text += "\"" + it.first + "\":{\"type\":\"number\"},";
-		names += "\"" + it.first + "\",";
-	}
-	for (auto it : resource->mFloat) {
-		text += "\"" + it.first + "\":{\"type\":\"number\"},";
-		names += "\"" + it.first + "\",";
-	}
-	for (auto it : resource->mBool) {
-		text += "\"" + it.first + "\":{\"type\":\"boolean\"},";
-		names += "\"" + it.first + "\",";
-	}
-	for (auto it : resource->mString) {
-		text += "\"" + it.first + "\":{\"type\":\"string\"},";
 		names += "\"" + it.first + "\",";
 	}
 	names.pop_back();
@@ -71,8 +81,8 @@ void Builder::getClusteringResult(){
 
 }
 
-Resource* Builder::getResource(){
-	return &(this->resource);
+std::map<std::string, float> Builder::getResource(){
+	return this->resource;
 }
 
 Host* Builder::getHost(std::string name){
@@ -113,32 +123,8 @@ int Builder::getTotalActiveHosts(){
 	return total;
 }
 
-void Builder::addResource(std::string name, std::string type){
-	if (type == "int") {
-		//Check if the type is int.
-		//Create new entry in the int map.
-		this->resource.mInt[name] = 0;
-		this->resource.mIntSize++;
-	} else if (type == "double" || type == "float") {
-		//Check if the type is float or float, the variable will be in the same map.
-		//Create new entry in the WeightType map.
-		this->resource.mFloat[name] = 0;
-		this->resource.mFloatSize++;
-	} else if (type == "string" || type == "char*" || type == "char[]" || type == "char") {
-		//Check if the type is string or other derivative.
-		//Create new entry in the std::string map.
-		this->resource.mString[name] = "";
-		this->resource.mStringSize++;
-	} else if (type == "bool" || type == "boolean") {
-		//Check if the type is bool or boolean.
-		//Create the new entry in the bool map.
-		this->resource.mBool[name] = false;
-		this->resource.mBoolSize++;
-	} else {
-		//If the type is unknow the program exit.
-		std::cout << "Builder -> Unrecognizable type\nExiting...\n";
-		exit(0);
-	}
+void Builder::addResource(std::string name){
+	this->resource[name] = 0;
 }
 
 Host* Builder::addHost() {
@@ -156,8 +142,8 @@ void Builder::setMulticriteria(Multicriteria* method){
 void Builder::printClusterResult(){
 	for(auto it: this->clusterHosts) {
 		std::cout<<it->getName()<<"\n";
-		Resource* r=it->getResource();
-		for(auto a: r->mFloat) {
+		std::map<std::string, float> r=it->getResource();
+		for(auto a: r) {
 			std::cout<<"\t"<<a.first<<" "<<a.second<<"\n";
 		}
 	}
@@ -204,7 +190,7 @@ void Builder::setFatTree(int k){
 	FatTree* graph=new FatTree();
 	graph->setSize(k);
 	graph->setTopology();
-	graph->setResource(&(this->resource));
+	graph->setResource(this->resource);
 	graph->populateTopology(this->hosts);
 	this->setTopology(graph);
 }
@@ -214,7 +200,7 @@ void Builder::setBcube(int nHosts,int nLevels){
 	graph->setSize(nHosts);
 	graph->setLevel(nLevels);
 	graph->setTopology();
-	graph->setResource(&(this->resource));
+	graph->setResource(this->resource);
 	graph->populateTopology(this->hosts);
 	this->setTopology(graph);
 }
@@ -224,7 +210,7 @@ void Builder::setDcell(int nHosts,int nLevels){
 	graph->setSize(nHosts);
 	graph->setLevel(nLevels);
 	graph->setTopology();
-	graph->setResource(&(this->resource));
+	graph->setResource(this->resource);
 	graph->populateTopology(this->hosts);
 	this->setTopology(graph);
 }
@@ -232,12 +218,10 @@ void Builder::setDcell(int nHosts,int nLevels){
 void Builder::setDataCenterResources(total_resources_t* resource){
 	int i;
 	int size=hosts.size();
-	Resource* aux;
 	resource->servers = size;
 	for(i=0; i < size; i++) {
-		aux = hosts[i]->getResource();
-		resource->vcpu += aux->mFloat["vcpu"];
-		resource->ram += aux->mFloat["memory"];
+		resource->vcpu += hosts[i]->getResource()["vcpu"];
+		resource->ram += hosts[i]->getResource()["memory"];
 	}
 }
 
@@ -247,8 +231,11 @@ void Builder::runMulticriteria(std::vector<Host*> alt){
 }
 
 void Builder::runMulticriteriaClustered(std::vector<Host*> alt){
-	if(this->multicriteriaClusteredMethod!=NULL)
+	if(this->multicriteriaClusteredMethod!=NULL) {
+		delete(this->multicriteriaClusteredMethod);
+		this->multicriteriaClusteredMethod = new AHP();
 		this->multicriteriaClusteredMethod->run(&alt[0], alt.size());
+	}
 }
 
 void Builder::runClustering(std::vector<Host*> alt){
@@ -268,35 +255,15 @@ std::string strLower(std::string s) {
 void Builder::listHosts(){
 	for(Host* host: this->hosts) {
 		std::cout << "Host: "<<host->getName() <<"\n";
-		std::cout<< "VCPU: "<<host->getResource()->mFloat["vcpu"]<<"\n";
-		std::cout<< "RAM: "<<host->getResource()->mFloat["memory"]<<"\n";
+		std::cout<< "VCPU: "<<host->getResource()["vcpu"]<<"\n";
+		std::cout<< "RAM: "<<host->getResource()["memory"]<<"\n";
 	}
 }
 
 void Builder::listResources() {
-	if (this->resource.mIntSize) {
-		std::cout << "Int Resources\n";
-		for (auto it : this->resource.mInt) {
-			std::cout << "\t" << it.first << " : " << it.second << "\n";
-		}
-	}
-	if (this->resource.mFloatSize) {
-		std::cout << "Float/float Resources\n";
-		for (auto it : this->resource.mFloat) {
-			std::cout << "\t" << it.first << " : " << it.second << "\n";
-		}
-	}
-	if (this->resource.mStringSize) {
-		std::cout << "String Resources\n";
-		for (auto it : this->resource.mString) {
-			std::cout << "\t" << it.first << " : " << it.second << "\n";
-		}
-	}
-	if (this->resource.mBoolSize) {
-		std::cout << "Boolean Resources\n";
-		for (auto it : this->resource.mBool) {
-			std::cout << "\t" << it.first << " : " << it.second << "\n";
-		}
+	std::cout << "Float/float Resources\n";
+	for (auto it : this->resource) {
+		std::cout << "\t" << it.first << " : " << it.second << "\n";
 	}
 }
 
@@ -322,7 +289,7 @@ void Builder::parserResources(JSON::jsonGenericType* dataResource) {
 				exit(0);
 			}
 		}
-		this->addResource(variableName, variableType);
+		this->addResource(variableName);
 	}
 }
 
@@ -358,15 +325,13 @@ void Builder::parserHosts(JSON::jsonGenericType* dataHost) {
 		for (auto &alt : arrayHost.GetObject()) {
 			std::string name(alt.name.GetString());
 			if (alt.value.IsNumber()) {
-				if (host->getResource()->mInt.count(name) > 0) {
-					host->setResource(name, alt.value.GetInt());
-				} else {
-					host->setResource(name, alt.value.GetFloat());
-				}
+				host->setResource(name, alt.value.GetFloat());
 			} else if (alt.value.IsBool()) {
 				host->setResource(name, alt.value.GetBool());
 			} else {
-				host->setResource(name, strLower(std::string(alt.value.GetString())));
+				if(name=="name") {
+					host->setName(strLower(std::string(alt.value.GetString())));
+				}
 			}
 		}
 	}
@@ -399,7 +364,7 @@ void Builder::parser(
 	if (!resourcesData.Accept(resourcesValidator))
 		JSON::jsonError(&resourcesValidator);
 	parserDOM(&resourcesData);
-	generateContentSchema();
+	// generateContentSchema();
 	//Parser the hosts
 	rapidjson::SchemaDocument hostsSchema =
 		JSON::generateSchema(hostsSchemaPath);

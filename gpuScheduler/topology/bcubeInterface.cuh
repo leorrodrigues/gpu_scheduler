@@ -9,7 +9,7 @@ class Bcube : public Topology {
 private:
 vnegpu::graph<float> *topology;
 std::map<std::string,int> indices;
-Resource* resource;
+std::map<std::string, float> resource;
 int indexEdge;
 int level;
 int size;
@@ -18,6 +18,11 @@ public:
 Bcube(){
 	topology=NULL;
 	level=size=0;
+}
+
+~Bcube(){
+	topology->free_graph();
+	topology=NULL;
 }
 
 void setTopology(){
@@ -32,7 +37,7 @@ void setLevel(int level){
 	this->level=level;
 }
 
-void setResource(Resource* resource){
+void setResource(std::map<std::string, float> resource){
 }
 
 void populateTopology(std::vector<Host*> hosts){
@@ -51,7 +56,7 @@ int getIndexEdge(){
 	return this->indexEdge;
 }
 
-Resource* getResource(){
+std::map<std::string, float> getResource(){
 	return this->resource;
 }
 

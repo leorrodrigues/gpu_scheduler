@@ -108,6 +108,13 @@ Comunicator(const char* user = "guest", const char* password = "guest", const ch
 	this->channel=0;
 }
 
+~Comunicator(){
+	free(this->connInfo);
+	free(this->res);
+	this->connInfo=NULL;
+	this->res=NULL;
+}
+
 void setup(const char *queue = "test_scheduler", const char *exchange = "amq.direct", const char *routing_key = "task", int declare = 0, int exclusive = 0, int durable = 1, int passive = 0, int autoDelete = 0, int channel = 1) {
 	amqp_bytes_t queue_bytes = cstring_bytes(queue);
 

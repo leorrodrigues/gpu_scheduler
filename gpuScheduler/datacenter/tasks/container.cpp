@@ -1,6 +1,8 @@
 #include "container.hpp"
 
 Container::Container(){
+	this->fit=0;
+
 	this->duration=0;
 	this->links=NULL;
 
@@ -19,6 +21,10 @@ Container::Container(){
 	this->submission=0;
 	this->allocated_time=0;
 	this->delay=0;
+}
+
+Container::~Container(){
+	delete(this->containerResources);
 }
 
 void Container::setTask(const char* taskMessage){
@@ -93,6 +99,10 @@ void Container::setAllocatedTime(int allocatedTime){
 	this->allocated_time = allocatedTime;
 }
 
+void Container::setFit(int fit){
+	this->fit=fit;
+}
+
 void Container::addDelay(){
 	this->delay++;
 }
@@ -123,6 +133,10 @@ int Container::getSubmission(){
 
 int Container::getAllocatedTime(){
 	return this->allocated_time;
+}
+
+int Container::getFit(){
+	return this->fit;
 }
 
 int Container::getDelay(){

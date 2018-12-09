@@ -3,6 +3,12 @@
 #include <iostream>
 
 MCLInterface::MCLInterface(){
+	this->dataCenter=NULL;
+}
+
+MCLInterface::~MCLInterface(){
+	if(this->dataCenter!=NULL)
+		this->dataCenter->free_graph();
 }
 
 void MCLInterface::run(Topology* topology){
@@ -33,7 +39,7 @@ std::vector<Host*> MCLInterface::getResult(Topology* topology,std::vector<Host*>
 			// std::cout<<"GRAPH_GROUPS[i] "<< graph_groups[i]<<" AND I "<<i<<"\n";
 			convertion[graph_groups[i]]=group_index++;
 			groups[convertion[graph_groups[i]]]=new Host(topology->getResource());
-			groups[convertion[graph_groups[i]]]->setResource("name",std::to_string(convertion[graph_groups[i]]));//or ID
+			groups[convertion[graph_groups[i]]]->setName(std::to_string(convertion[graph_groups[i]]));//or ID
 		} // else{
 		// std::cout << "KEY FOUND\n";
 		// }

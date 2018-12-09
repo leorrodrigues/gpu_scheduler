@@ -9,15 +9,21 @@ class FatTree : public Topology {
 private:
 vnegpu::graph<float> *topology;
 std::map<std::string,int> indices;
-Resource* resource;
+std::map<std::string, float> resource;
 int indexEdge;
 int size;
 public:
 
 FatTree(){
 	topology=NULL;
-	resource=NULL;
 	size=0;
+}
+
+~FatTree(){
+	if(this->topology!=NULL) {
+		this->topology->free_graph();
+	}
+	this->resource.clear();
 }
 
 void setTopology(){
@@ -31,21 +37,13 @@ void setSize(int size){
 void setLevel(int level){
 }
 
-void setResource(Resource* resource){
-	//std::cout<<"SetResource\n";
-	this->resource=resource;
+void setResource(std::map<std::string, float> resource){
 	int index;
-	for(auto it: resource->mInt) {
+	for(auto it: resource) {
+		// for(auto it: resource->mInt) {
 		index=this->topology->add_node_variable(it.first);
 		this->indices[it.first]=index;
-	}
-	for(auto it: resource->mFloat) {
-		index=this->topology->add_node_variable(it.first);
-		this->indices[it.first]=index;
-	}
-	for(auto it: resource->mBool) {
-		index=this->topology->add_node_variable(it.first);
-		this->indices[it.first]=index;
+		this->resource[it.first]=it.second;
 	}
 	this->indexEdge=this->topology->add_edge_variable("bandwidth");
 	//std::cout<<"\t\tEdge Capacity "<<this->topology->get_num_var_edges()<<"\n";
@@ -65,26 +63,13 @@ void populateTopology(std::vector<Host*> hosts){
 	step=this->size;
 	for(auto itHosts: hosts) {
 		//std::cout<<"\tNew Host\n";
-		Resource* res=itHosts->getResource();
-		for(auto it: res->mInt) {
-			this->topology->set_variable_node(indices[it.first],i+k*step,(float)it.second);
-			//std::cout<<"\t\tSet "<<std::setw(15)<<it.first<<" with "<<std::setw(15)<<it.second<<"\n";
-		}
-		for(auto it: res->mFloat) {
-			this->topology->set_variable_node(indices[it.first],i+k*step,(float)it.second);
-			//std::cout<<"\t\tSet "<<std::setw(15)<<it.first<<" with "<<std::setw(15)<< it.second<<"\n";
-		}
-		for(auto it: res->mBool) {
-			if(it.second==false) {
-				this->topology->set_variable_node(indices[it.first],i+k*step,(float)0);
-			}else{
-				this->topology->set_variable_node(indices[it.first],i+k*step,(float)1);
-			}
-			//std::cout<<"\t\tSet "<<std::setw(15)<<it.first<<" with "<<std::setw(15) <<it.second<<"\n";
+		std::map<std::string, float> res=itHosts->getResource();
+		for(auto it: res) {
+			this->topology->set_variable_node(indices[it.first],i+k*step,it.second);
 		}
 		//For each edge in the host i+k*step
 		for(int x=this->topology->get_source_offset(i+k*step); x<this->topology->get_source_offset((i+k*step)+1); x++) {
-			this->topology->set_variable_edge(indexEdge,x,res->mFloat["bandwidth"]);
+			this->topology->set_variable_edge(indexEdge,x,res["bandwidth"]);
 		}
 		//this->topology->set_variable_edge_undirected(indexEdge,(i+k*step),res->mFloat["bandwidth"]);
 		//std::cout<<"\t\tSet in "<<i*k<<std::setw(20)<<" edge weight with"<<std::setw(12)<<res->mFloat["bandwidth"]<<"\n";
@@ -107,7 +92,7 @@ int getIndexEdge(){
 	return this->indexEdge;
 }
 
-Resource* getResource(){
+std::map<std::string, float> getResource(){
 	return this->resource;
 }
 

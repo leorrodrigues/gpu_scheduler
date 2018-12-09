@@ -20,7 +20,7 @@ Multicriteria* multicriteriaMethod;
 Multicriteria* multicriteriaClusteredMethod;
 Clustering* clusteringMethod;
 Topology* topology;
-Resource resource;
+std::map<std::string,float> resource;
 std::vector<Host*> hosts;
 std::vector<Host*> clusterHosts;
 std::map<int,const char*> clusteredMulticriteria;
@@ -31,7 +31,7 @@ void setTopology(Topology*);
 
 void generateContentSchema();
 
-void addResource(std::string,std::string);
+void addResource(std::string);
 Host* addHost();
 
 void parserDOM(JSON::jsonGenericDocument*);
@@ -41,6 +41,7 @@ void parserTopology(JSON::jsonGenericType*);
 public:
 
 Builder();
+~Builder();
 
 Multicriteria* getMulticriteria();
 Multicriteria* getMulticriteriaClustered();
@@ -50,7 +51,7 @@ std::map<int,const char*> getMulticriteriaResult();
 std::map<int,const char*> getMulticriteriaClusteredResult();
 int getClusteringResultSize();
 void getClusteringResult();
-Resource* getResource();
+std::map<std::string,float> getResource();
 std::vector<Host*> getHosts();
 Host* getHost(std::string name);
 std::vector<Host*> getClusterHosts();
