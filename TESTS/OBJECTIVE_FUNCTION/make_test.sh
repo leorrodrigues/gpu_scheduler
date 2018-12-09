@@ -2,7 +2,8 @@
 su -c "echo 3 >'/proc/sys/vm/drop_caches' && swapoff -a && swapon -a && printf '\n%s\n' 'Ram-cache and Swap Cleared'" root
 #rabbitmqadmin purge queue name=test_scheduler
 sleep 3;
-SIZE=20
+SIZE=$1
+FILE_SIZE=$2
 #echo "Fat Tree k=$SIZE Algoritmo ahpg_clusterized"
 
 #cd ./../../simulator/;
@@ -14,4 +15,4 @@ SIZE=20
 
 cd ./../../gpuScheduler/;
 echo "Executing scheduler"
-./gpuscheduler.out --test 2 -s $SIZE -m ahp_clusterized --request-size $1 >> ./../TESTS/OBJECTIVE_FUNCTION/obj.txt
+./gpuscheduler.out --test 2 -s $SIZE -m ahp_clusterized --request-size $FILE_SIZE >> ./../TESTS/OBJECTIVE_FUNCTION/obj.txt

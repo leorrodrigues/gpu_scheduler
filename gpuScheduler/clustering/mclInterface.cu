@@ -9,6 +9,7 @@ MCLInterface::MCLInterface(){
 MCLInterface::~MCLInterface(){
 	if(this->dataCenter!=NULL)
 		this->dataCenter->free_graph();
+	host_groups.clear();
 }
 
 void MCLInterface::run(Topology* topology){

@@ -37,15 +37,31 @@ bool naive(Builder* builder,  Container* container, std::map<int,const char*> &a
 		if(fit==0) {
 			// If can't ignore the rest of the loop
 			continue;
-		}else{
-			container->setFit(fit);
-			host->addContainer(container);
 		}
+
+		container->setFit(fit);
+		host->addContainer(container);
 
 		if(host->getActive()==false) {
 			host->setActive(true);
 			consumed->active_servers++;
 		}
+
+		// The container was allocated, so the consumed variable has to be updated
+		if(fit==7) { // allocate MAX VCPU AND RAM
+			consumed->ram += container->containerResources->ram_max;
+			consumed->vcpu +=container->containerResources->vcpu_max;
+		}else if(fit==8) { // ALLOCATE MAX VCPU AND RAM MIN
+			consumed->ram += container->containerResources->ram_min;
+			consumed->vcpu += container->containerResources->vcpu_max;
+		}else if(fit==10) { // ALLOCATE VCPU MIN AND RAM MAX
+			consumed->ram += container->containerResources->ram_max;
+			consumed->vcpu +=container->containerResources->vcpu_min;
+		}else if(fit==11) { // ALLOCATE VCPU AND RAM MIN
+			consumed->ram += container->containerResources->ram_min;
+			consumed->vcpu += container->containerResources->vcpu_min;
+		}
+
 		host->addAllocatedResources();
 		// std::cout<<"Subtracted\n";
 		// std::cout << "HOST RESOURCES 2\n";

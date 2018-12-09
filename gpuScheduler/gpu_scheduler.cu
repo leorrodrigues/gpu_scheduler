@@ -195,7 +195,9 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 			/* the specific host that have the container*/
 			temp,
 			/* The container to be removed*/
-			current
+			current,
+			/* The consumed DC status*/
+			consumed
 			);
 		if(!free_success) {
 			std::cerr << "(gpu_scheduler 200) gpu_scheduler(170) - Error in free the task " << current->getId() << " from the data center\n";
@@ -208,9 +210,6 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 				consumed->active_servers--;
 			}
 		}
-
-		consumed->vcpu -= current->getResource()->vcpu_max;
-		consumed->ram  -= current->getResource()->ram_max;
 
 		// Search the container C in the vector and removes it
 		scheduler->allocated_task.erase(current->getId());
@@ -271,9 +270,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 		}else{
 			printf("\tContainer %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
 			current->setAllocatedTime(options->current_time);
-			// The container was allocated, so the consumed variable has to be updated
-			consumed->vcpu += current->getResource()->vcpu_max;
-			consumed->ram  += current->getResource()->ram_max;
+
 			scheduler->containers_to_delete.push(current);
 			// scheduler->containers_to_allocate.pop();
 		}
@@ -371,25 +368,23 @@ int main(int argc, char **argv){
 
 	}else if(options.test_type==1 || options.test_type==2) {
 		// parse all json
-		if(options.test_type==2) {
-			Reader* reader = new Reader();
-			std::string path = "../simulator/json/datacenter/google-";
-			path+= std::to_string(options.request_size);
-			path+=".json";
-			reader->openDocument(path.c_str());
-			std::string message;
-			while((message=reader->getNextTask())!="eof") {
-				// Create new container
-				Container *current = new Container();
-				// Set the resources to the container
-				current->setTask(message.c_str());
-				// Put the container in the vector
-				scheduler.containers_to_allocate.push(current);
-			}
-			delete(reader);
-			builder->runClustering(builder->getHosts());
-			builder->getClusteringResult();
+		Reader* reader = new Reader();
+		std::string path = "../simulator/json/datacenter/google-";
+		path+= std::to_string(options.request_size);
+		path+=".json";
+		reader->openDocument(path.c_str());
+		std::string message;
+		while((message=reader->getNextTask())!="eof") {
+			// Create new container
+			Container *current = new Container();
+			// Set the resources to the container
+			current->setTask(message.c_str());
+			// Put the container in the vector
+			scheduler.containers_to_allocate.push(current);
 		}
+		delete(reader);
+		builder->runClustering(builder->getHosts());
+		builder->getClusteringResult();
 		// Scalability Test or Objective Function Test
 		// force cout to not print in cientific notation
 		std::cout<<std::fixed;
