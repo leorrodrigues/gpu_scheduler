@@ -7,9 +7,9 @@
 
 class Dcell : public Topology {
 private:
-vnegpu::graph<float> *topology;
+vnegpu::graph<float>* topology;
 std::map<std::string,int> indices;
-Resource* resource;
+std::map<std::string, float> resource;
 int indexEdge;
 int level;
 int size;
@@ -18,6 +18,11 @@ public:
 Dcell(){
 	topology=NULL;
 	level=size=0;
+}
+
+~Dcell(){
+	this->topology->free_graph();
+	this->topology=NULL;
 }
 
 void setTopology(){
@@ -32,17 +37,9 @@ void setLevel(int level){
 	this->level=level;
 }
 
-void setResource(Resource* resource){
+void setResource(std::map<std::string, float> resource){
 	int index;
-	for(auto it: resource->mInt) {
-		index=this->topology->add_node_variable(it.first);
-		this->indices[it.first]=index;
-	}
-	for(auto it: resource->mFloat) {
-		index=this->topology->add_node_variable(it.first);
-		this->indices[it.first]=index;
-	}
-	for(auto it: resource->mBool) {
+	for(auto it: resource) {
 		index=this->topology->add_node_variable(it.first);
 		this->indices[it.first]=index;
 	}
@@ -53,19 +50,9 @@ void populateTopology(std::vector<Host*> hosts){
 	std::cout<<"Populate topology\n";
 	int i=0;
 	for(auto itHosts: hosts) {
-		Resource* res=itHosts->getResource();
-		for(auto it: res->mInt) {
-			this->topology->set_variable_node(indices[it.first],i,(float)it.second);
-		}
-		for(auto it: res->mFloat) {
-			this->topology->set_variable_node(indices[it.first],i,(float)it.second);
-		}
-		for(auto it: res->mBool) {
-			if(it.second==false) {
-				this->topology->set_variable_node(indices[it.first],i,(float)1);
-			}else{
-				this->topology->set_variable_node(indices[it.first],i,(float)0);
-			}
+		std::map<std::string, float> res=itHosts->getResource();
+		for(auto it: res) {
+			this->topology->set_variable_node(indices[it.first],i,it.second);
 		}
 		this->topology->set_node_type(i,vnegpu::TYPE_HOST);
 		i++;
@@ -85,7 +72,7 @@ int getIndexEdge(){
 	return this->indexEdge;
 }
 
-Resource* getResource(){
+std::map<std::string, float> getResource(){
 	return this->resource;
 }
 

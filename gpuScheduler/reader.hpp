@@ -12,6 +12,7 @@ Reader(){
 	doc = NULL;
 	index = 0;
 }
+
 ~Reader(){
 	delete(this->doc);
 }

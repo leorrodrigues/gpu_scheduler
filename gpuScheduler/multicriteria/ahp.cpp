@@ -34,6 +34,7 @@ AHP::AHP() {
 
 AHP::~AHP(){
 	delete(hierarchy);
+	IR.clear();
 }
 
 void AHP::setHierarchy(){
@@ -624,19 +625,11 @@ void AHP::run(Host** alternatives, int size) {
 		// printf("Clear Resource\n");
 		this->hierarchy->clearResource();
 
-		// printf("Get Resource\n");
-		Resource *resource = alternatives[0]->getResource();
-
 		// printf("Update the hierarchy resource\n");
-		for (auto it : resource->mInt) {
+		for (auto it : alternatives[0]->getResource()) {
 			this->hierarchy->addResource((char*)it.first.c_str());
 		}
-		for (auto it : resource->mFloat) {
-			this->hierarchy->addResource((char*)it.first.c_str());
-		}
-		for (auto it : resource->mBool) {
-			this->hierarchy->addResource((char*)it.first.c_str());
-		}
+
 		// printf("Conception\n");
 		this->conception(false);
 		// Add the resource of how many virtual resources are allocated in the host
@@ -678,7 +671,7 @@ void AHP::setAlternatives(Host** alternatives, int size) {
 
 	// this->hierarchy->clearAlternatives();
 
-	Resource* resource = NULL;
+	std::map<std::string, float> resource;
 	Node* a = NULL;
 	for ( i=0; i<size; i++) {
 		resource = alternatives[i]->getResource(); // Host resource
@@ -690,14 +683,8 @@ void AHP::setAlternatives(Host** alternatives, int size) {
 		a->setName((char*) alternatives[i]->getName().c_str()); // set the node name
 
 		// Update the node h_resource values by the host resource values
-		for (auto it : resource->mInt) {
-			a->setResource((char*)it.first.c_str(), (float) it.second);
-		}
-		for (auto it : resource->mFloat) {
+		for (auto it : resource) {
 			a->setResource((char*)it.first.c_str(), it.second);
-		}
-		for (auto it : resource->mBool) {
-			a->setResource((char*)it.first.c_str(), (float) it.second);
 		}
 
 		// Populate the alternative node with the Host Value

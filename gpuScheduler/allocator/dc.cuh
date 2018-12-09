@@ -62,12 +62,15 @@ bool dc(Builder* builder,  Container* container, std::map<int,const char*> &allo
 			host=builder->getHost(std::string(h_it->second));
 
 			// Check if the host can support the resource
-			if(!checkFit(host,container)) {
+			int fit=checkFit(host,container);
+			if(fit==0) {
 				// If can't ignore the rest of the loop
 				continue;
+			}else{
+				container->setFit(fit);
+				host->addContainer(container);
 			}
-			// If can, allocate
-			(*host)-=(*container);
+
 			if(host->getActive()==false) {
 				host->setActive(true);
 				consumed->active_servers++;

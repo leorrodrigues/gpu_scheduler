@@ -17,6 +17,7 @@ std::map<int,std::vector<Host*> > host_groups;
 
 public:
 MCLInterface();
+~MCLInterface();
 
 void run(Topology*);
 

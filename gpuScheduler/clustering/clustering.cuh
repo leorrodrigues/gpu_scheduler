@@ -15,6 +15,8 @@
 class Clustering {
 public:
 
+virtual ~Clustering()=0;
+
 virtual void run(Topology*)=0;
 
 //virtual std::map<int,Host*> getResult(Topology* topology,std::vector<Host*>)=0;
@@ -26,4 +28,7 @@ virtual std::vector<Host*> getHostsInGroup(int)=0;
 virtual void listGroups(Topology*)=0;
 
 };
+
+inline Clustering::~Clustering(){
+}
 #endif

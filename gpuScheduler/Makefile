@@ -3,6 +3,9 @@
 all:
 	reset
 	cd .. && make all
+debug:
+	reset
+	cd .. && make all DBG=1
 run:
 	cd .. && make clear
 	cd .. && make all

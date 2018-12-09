@@ -7,12 +7,15 @@
 
 class Topology {
 public:
+
+virtual ~Topology()=0;
+
 virtual void setTopology()=0;
 
 virtual void setSize(int)=0;
 virtual void setLevel(int)=0;
 
-virtual void setResource(Resource* resource)=0;
+virtual void setResource(std::map<std::string, float> resource)=0;
 
 virtual void populateTopology(std::vector<Host*>)=0;
 
@@ -22,9 +25,11 @@ virtual std::string getTopology()=0;
 
 virtual int getIndexEdge()=0;
 
-virtual Resource* getResource()=0;
+virtual std::map<std::string, float> getResource()=0;
 
 virtual void listTopology()=0;
 };
 
+inline Topology::~Topology(){
+}
 #endif

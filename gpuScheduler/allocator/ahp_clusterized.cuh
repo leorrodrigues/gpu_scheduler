@@ -15,13 +15,13 @@ bool ahp_clusterized(Builder* builder,  Container* container, std::map<int,const
 	if(builder->getClusterHosts().size()==0) {
 		// Now the MCL is used to cluster the AHP_CLUSTERIZED
 		builder->runClustering(builder->getHosts());
+		builder->getClusteringResult();
 	}
 	// std::cout << "\t\tCluster ok\n";
 	// std::cout << "\t\tGroups Made "<<builder->getClusteringResultSize()<<"\n";
 
 	// Get the cluster results and update the builder
 	// std::cout << "\t\tCluster Results ok\n";
-	builder->getClusteringResult();
 	// printf("\t\tDone\n");
 	// Create the result map
 	std::map<int,const char*> result;
@@ -63,12 +63,14 @@ bool ahp_clusterized(Builder* builder,  Container* container, std::map<int,const
 
 			host=builder->getHost(std::string(h_it->second));
 			// Check if the host can support the resource
-			if(!checkFit(host,container)) {
+			int fit=checkFit(host,container);
+			if(fit==0) {
 				// If can't ignore the rest of the loop
 				continue;
+			}else{
+				container->setFit(fit);
+				host->addContainer(container);
 			}
-			// If can, allocate
-			(*host)-=(*container);
 
 			if(host->getActive()==false) {
 				host->setActive(true);

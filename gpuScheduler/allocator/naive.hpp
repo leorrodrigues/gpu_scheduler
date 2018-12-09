@@ -33,14 +33,15 @@ bool naive(Builder* builder,  Container* container, std::map<int,const char*> &a
 		// std::cout << "HOST RESOURCES\n";
 		// std::cout << "RAM: "<< host->getResource()->mWeight["memory"] <<"\n";
 
-		if(!checkFit(host,container)) {
-			// std::cout<<"This host cant support the container\n";
-
+		int fit=checkFit(host,container);
+		if(fit==0) {
+			// If can't ignore the rest of the loop
 			continue;
+		}else{
+			container->setFit(fit);
+			host->addContainer(container);
 		}
 
-		// std::cout<<"Subtracting the resources\n";
-		(*host)-=(*container);
 		if(host->getActive()==false) {
 			host->setActive(true);
 			consumed->active_servers++;
@@ -55,9 +56,11 @@ bool naive(Builder* builder,  Container* container, std::map<int,const char*> &a
 		strcpy(host_name,host->getName().c_str());
 
 		allocated_task[container->getId()]= &host_name[0];
+
 		// std::cout << "Allocated! ID " << container->getId() << " HOST:"<<allocated_task[container->getId()]<<"!!!!!\n";
 		// need to include the host name and container id in the allocated_task
 		// std::cout<<"######################################\n";
+
 		return true;
 	}
 	// std::cout<<"######################################\n";

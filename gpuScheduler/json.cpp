@@ -40,6 +40,7 @@ rapidjson::Document* generateDocumentP(const char *path){
 		free(buffer);
 		std::cout<<"Erro in parsing the json";
 	}
+	free(buffer);
 	return sd;
 }
 
