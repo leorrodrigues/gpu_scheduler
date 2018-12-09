@@ -136,8 +136,8 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 		std::cerr << "(gpu_scheduler 132) Invalid Type of test: " << test_type << "\n";
 		exit(0);
 	}
-	if(request_size!=0 && request_size!=10 && request_size!=22) {
-		std::cerr << "(gpu_scheduler 140) Invalid Size of Requestz\n";
+	if(request_size!=0 && request_size!=1 && request_size!=10 && request_size!=22) {
+		std::cerr << "(gpu_scheduler 140) Invalid Size of Request\n";
 		exit(0);
 	}else{
 		options->request_size=request_size;
