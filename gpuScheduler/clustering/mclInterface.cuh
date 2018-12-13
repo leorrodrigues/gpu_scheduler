@@ -12,7 +12,7 @@
 class MCLInterface : public Clustering {
 private:
 vnegpu::graph<float>* dataCenter;
-
+int resultSize;
 std::map<int,std::vector<Host*> > host_groups;
 
 public:
@@ -23,7 +23,7 @@ void run(Topology*);
 
 //std::map<int,Host*> getResult(Topology* topology,std::vector<Host*>);
 std::vector<Host*> getResult(Topology*,std::vector<Host*>);
-
+int getResultSize();
 int getHostsMedianInGroup();
 std::vector<Host*> getHostsInGroup(int);
 

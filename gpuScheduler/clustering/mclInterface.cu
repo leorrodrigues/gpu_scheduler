@@ -4,6 +4,7 @@
 
 MCLInterface::MCLInterface(){
 	this->dataCenter=NULL;
+	this->resultSize=0;
 }
 
 MCLInterface::~MCLInterface(){
@@ -53,7 +54,12 @@ std::vector<Host*> MCLInterface::getResult(Topology* topology,std::vector<Host*>
 		vGroups.push_back(it.second);
 	}
 	this->host_groups=host_groups;
+	this->resultSize=vGroups.size();
 	return vGroups;
+}
+
+int MCLInterface::getResultSize(){
+	return this->resultSize;
 }
 
 int MCLInterface::getHostsMedianInGroup(){
