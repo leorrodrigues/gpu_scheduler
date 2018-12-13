@@ -647,7 +647,7 @@ void AHPG::acquisitionG() {
 		}
 	}
 	// Create the data host memory
-	int data_size = sheetsSize*altSize;
+	int data_size = resourceSize*altSize;
 	int result_size = sheetsSize*altSize*altSize;
 
 	float* h_data = (float*) malloc (sizeof(float)* data_size );

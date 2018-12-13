@@ -4,6 +4,7 @@ su -c "echo 3 >'/proc/sys/vm/drop_caches' && swapoff -a && swapon -a && printf '
 sleep 3;
 SIZE=$1
 FILE_SIZE=$2
+METHOD=$3
 #echo "Fat Tree k=$SIZE Algoritmo ahpg_clusterized"
 
 #cd ./../../simulator/;
@@ -15,4 +16,4 @@ FILE_SIZE=$2
 
 cd ./../../gpuScheduler/;
 echo "Executing scheduler"
-./gpuscheduler.out --test 2 -s $SIZE -m ahp_clusterized --request-size $FILE_SIZE >> ./../TESTS/OBJECTIVE_FUNCTION/obj.txt
+./gpuscheduler.out --test 2 -s $SIZE -m $3 --request-size $FILE_SIZE >> ./../TESTS/OBJECTIVE_FUNCTION/obj.txt
