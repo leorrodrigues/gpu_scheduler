@@ -71,7 +71,7 @@ std::map<int,const char*> Builder::getMulticriteriaClusteredResult(){
 }
 
 int Builder::getClusteringResultSize(){
-	return this->clusteringMethod->getResult(this->topology,this->hosts).size();
+	return this->clusteringMethod->getResultSize();
 }
 
 void Builder::getClusteringResult(){
