@@ -383,7 +383,9 @@ int main(int argc, char **argv){
 			scheduler.containers_to_allocate.push(current);
 		}
 		delete(reader);
+		printf("CONTAINERS READ DONE!\n");
 		builder->runClustering(builder->getHosts());
+		printf("CLUSTER DONE\n");
 		builder->getClusteringResult();
 		// Scalability Test or Objective Function Test
 		// force cout to not print in cientific notation
