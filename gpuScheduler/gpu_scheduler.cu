@@ -218,7 +218,7 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 	}
 }
 
-inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed){
+inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed, total_resources_t* total_dc){
 	bool allocation_success=false;
 	// Check the task submission
 	Container* current;
@@ -235,20 +235,24 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 		}
 		// printf("\tREMOVE ALLOCATING CONTAINER %d\n", current->getId());
 		scheduler->containers_to_allocate.pop();
-		// allocate the new task in the data center.
-		if( options->allocation_type==Allocation_t::PURE) {
-			allocation_success=Allocator::mcl_pure(builder,current,scheduler->allocated_task);
-		} else if( options->allocation_type == Allocation_t::NAIVE) {
-			allocation_success=Allocator::naive(builder,current, scheduler->allocated_task,consumed);
-		}else if( options->allocation_type == Allocation_t::DC) {
-			allocation_success=Allocator::dc(builder,current,scheduler->allocated_task,consumed);
-		} else if ( options->allocation_type == Allocation_t::ALL) {
-			allocation_success=Allocator::all();
-		} else if ( options->allocation_type == Allocation_t::CLUSTERIZED) {
-			allocation_success=Allocator::ahp_clusterized(builder, current, scheduler->allocated_task,consumed);
-		} else {
-			std::cerr << "(gpu_scheduler 249) Invalid type\n";
-			exit(1);
+		if(Allocator::checkFit(total_dc, consumed,current)!=0) {
+			// allocate the new task in the data center.
+			if( options->allocation_type==Allocation_t::PURE) {
+				allocation_success=Allocator::mcl_pure(builder,current,scheduler->allocated_task);
+			} else if( options->allocation_type == Allocation_t::NAIVE) {
+				allocation_success=Allocator::naive(builder,current, scheduler->allocated_task,consumed);
+			}else if( options->allocation_type == Allocation_t::DC) {
+				allocation_success=Allocator::dc(builder,current,scheduler->allocated_task,consumed);
+			} else if ( options->allocation_type == Allocation_t::ALL) {
+				allocation_success=Allocator::all();
+			} else if ( options->allocation_type == Allocation_t::CLUSTERIZED) {
+				allocation_success=Allocator::ahp_clusterized(builder, current, scheduler->allocated_task,consumed);
+			} else {
+				std::cerr << "(gpu_scheduler 249) Invalid type\n";
+				exit(1);
+			}
+		}else{
+			allocation_success=false;
 		}
 		if(!allocation_success) {
 			if(current->getResource()->vcpu_max>24 || current->getResource()->ram_max>256) {
