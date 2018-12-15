@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <chrono>
 #include <ctime>
@@ -12,6 +11,7 @@
 #include "allocator/ahp_clusterized.cuh"
 #include "allocator/pure_mcl.hpp"
 #include "allocator/naive.hpp"
+#include "allocator/utils.hpp"
 #include "allocator/free.hpp"
 #include "allocator/all.cuh"
 #include "allocator/dc.cuh"
