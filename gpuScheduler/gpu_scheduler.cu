@@ -330,7 +330,7 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 		// Search the containers to delete
 		delete_tasks(scheduler, builder, options, &consumed_resources);
 		// Search the containers in the vector to allocate in the DC
-		allocate_tasks(scheduler, builder, options, &consumed_resources);
+		allocate_tasks(scheduler, builder, options, &consumed_resources, &total_resources);
 		// Update the lifetime
 		// getchar();
 		// consumed_resources.active_servers = builder->getTotalActiveHosts();
