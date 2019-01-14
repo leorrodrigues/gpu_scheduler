@@ -769,8 +769,9 @@ void AHPG::run(Host** alternatives, int size) {
 	// this->consistency();
 }
 
-std::map<int,const char*> AHPG::getResult() {
-	std::map<int,const char*> result;
+unsigned int* AHPG::getResult(unsigned int& size) {
+	unsigned int* result = (unsigned int*) malloc (sizeof(unsigned int));
+
 	float* values = this->hierarchy->getFocus()->getPg();
 	std::priority_queue<std::pair<float, int> > alternativesPair;
 
@@ -780,14 +781,16 @@ std::map<int,const char*> AHPG::getResult() {
 		alternativesPair.push(std::make_pair(values[i], i));
 	}
 
-	char* name;
+	size = this->hierarchy->getAlternativesSize();
 
-	auto alternatives = this->hierarchy->getAlternatives();
+	Node** alternatives = this->hierarchy->getAlternatives();
+
 	for (i = 0; i < (unsigned int)alternativesPair.size(); i++) {
-		name = alternatives[alternativesPair.top().second]->getName();
-		result[i+1] = name;
+		result = (unsigned int*) realloc (result, sizeof(unsigned int)*(i+1));
+		result[i] = atoi(alternatives[alternativesPair.top().second]->getName());
 		alternativesPair.pop();
 	}
+
 	return result;
 }
 
@@ -805,7 +808,7 @@ void AHPG::setAlternatives(Host** alternatives, int size) {
 
 		a->setResource(this->hierarchy->getResource()); // set the default resources in the node
 
-		a->setName((char*) alternatives[i]->getName().c_str()); // set the node name
+		a->setName((char*) std::to_string(alternatives[i]->getId()).c_str()); // set the node name
 
 		// Update the node h_resource values by the host resource values
 		for (auto it : resource) {

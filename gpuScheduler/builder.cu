@@ -35,8 +35,8 @@ Builder::~Builder(){
 void Builder::generateContentSchema() {
 	std::string names;
 	std::string text = "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"definitions\":{\"topology\": {\"type\": \"object\",\"minProperties\": 1,\"additionalProperties\": false,\"properties\": {\"type\": {\"type\": \"string\"},\"size\": {\"type\": \"number\"},\"level\": {\"type\": \"number\"}},\"required\": [\"type\",\"size\"]},     \"host\": {\"type\": \"array\",\"minItems\": 1,\"items\":{\"properties\": {";
-	auto resource = this->getResource();
-	for (auto it : resource) {
+	for (auto it : this->resource) {
+		//need to correct the type of the variable
 		text += "\"" + it.first + "\":{\"type\":\"number\"},";
 		names += "\"" + it.first + "\",";
 	}
@@ -62,12 +62,12 @@ Topology* Builder::getTopology(){
 	return this->topology;
 }
 
-std::map<int,const char*> Builder::getMulticriteriaResult(){
-	return this->multicriteriaMethod->getResult();
+unsigned int* Builder::getMulticriteriaResult(unsigned int& size){
+	return this->multicriteriaMethod->getResult(size);
 }
 
-std::map<int,const char*> Builder::getMulticriteriaClusteredResult(){
-	return this->multicriteriaClusteredMethod->getResult();
+unsigned int* Builder::getMulticriteriaClusteredResult(unsigned int& size){
+	return this->multicriteriaClusteredMethod->getResult(size);
 }
 
 int Builder::getClusteringResultSize(){
@@ -85,10 +85,10 @@ std::map<std::string, float> Builder::getResource(){
 	return this->resource;
 }
 
-Host* Builder::getHost(std::string name){
+Host* Builder::getHost(unsigned int id){
 	// std::cout << "Looking for "<<name<<"\n";
 	for(Host* h : this->hosts) {
-		if(name == h->getName()) {
+		if(id == h->getId()) {
 			// std::cout<<" Name Found!\n";
 			return h;
 		}
@@ -109,7 +109,7 @@ int Builder::getHostsMedianInGroup(){
 	return this->clusteringMethod->getHostsMedianInGroup();
 }
 
-std::vector<Host*> Builder::getHostsInGroup(int group_index){
+std::vector<Host*> Builder::getHostsInGroup(unsigned int group_index){
 	return this->clusteringMethod->getHostsInGroup(group_index);
 }
 
@@ -140,8 +140,8 @@ void Builder::setMulticriteria(Multicriteria* method){
 }
 
 void Builder::printClusterResult(){
-	for(auto it: this->clusterHosts) {
-		std::cout<<it->getName()<<"\n";
+	for(Host* it: this->clusterHosts) {
+		std::cout<<it->getId()<<"\n";
 		std::map<std::string, float> r=it->getResource();
 		for(auto a: r) {
 			std::cout<<"\t"<<a.first<<" "<<a.second<<"\n";
@@ -232,8 +232,6 @@ void Builder::runMulticriteria(std::vector<Host*> alt){
 
 void Builder::runMulticriteriaClustered(std::vector<Host*> alt){
 	if(this->multicriteriaClusteredMethod!=NULL) {
-		delete(this->multicriteriaClusteredMethod);
-		this->multicriteriaClusteredMethod = new AHP();
 		this->multicriteriaClusteredMethod->run(&alt[0], alt.size());
 	}
 }
@@ -254,7 +252,7 @@ std::string strLower(std::string s) {
 
 void Builder::listHosts(){
 	for(Host* host: this->hosts) {
-		std::cout << "Host: "<<host->getName() <<"\n";
+		std::cout << "Host: "<<host->getId() <<"\n";
 		std::cout<< "VCPU: "<<host->getResource()["vcpu"]<<"\n";
 		std::cout<< "RAM: "<<host->getResource()["memory"]<<"\n";
 	}
@@ -325,13 +323,15 @@ void Builder::parserHosts(JSON::jsonGenericType* dataHost) {
 		for (auto &alt : arrayHost.GetObject()) {
 			std::string name(alt.name.GetString());
 			if (alt.value.IsNumber()) {
+				if(name=="id" || name=="name") {
+					host->setId(alt.value.GetInt());
+				}
 				host->setResource(name, alt.value.GetFloat());
 			} else if (alt.value.IsBool()) {
 				host->setResource(name, alt.value.GetBool());
 			} else {
-				if(name=="name") {
-					host->setName(strLower(std::string(alt.value.GetString())));
-				}
+				printf("builder.cu(333) ERROR TYPE\n");
+				exit(0);
 			}
 		}
 	}

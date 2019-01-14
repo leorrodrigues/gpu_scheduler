@@ -10,6 +10,7 @@ MCLInterface::MCLInterface(){
 MCLInterface::~MCLInterface(){
 	if(this->dataCenter!=NULL)
 		this->dataCenter->free_graph();
+	this->dataCenter = NULL;
 	host_groups.clear();
 }
 
@@ -24,32 +25,22 @@ void MCLInterface::run(Topology* topology){
 
 //std::map<int,Host*> MCLInterface::getResult(Topology* topology,std::vector<Host*> hosts){
 std::vector<Host*> MCLInterface::getResult(Topology* topology,std::vector<Host*> hosts){
-	vnegpu::graph<float>* cluster=topology->getGraph();
 	std::map<int,Host*> groups;
 	std::map<int,std::vector<Host*> > host_groups;
 	std::map<int,int> convertion;
 	std::vector<Host*> vGroups;
-	int* graph_groups=cluster->get_group_ptr();
+	int* graph_groups=topology->getGraph()->get_group_ptr();
 	int group_index=0;
-	for(int i=0; i<cluster->get_hosts(); i++) {
+	for(int i=0; i<topology->getGraph()->get_hosts(); i++) {
 		if ( convertion.find(graph_groups[i]) == convertion.end() ) {
-			// std::cout << "Key not presented\n";
-			// if ( groups.find(convertion[graph_groups[i]]) == groups.end() ) { // if the group key don't exists
-			//Host *host=new Host(topology->getResource());
-			//std::cout<<host->getResource()->mIntSize<<"\n";
-			//groups[i]=host;
-			// std::cout<<"GRAPH_GROUPS[i] "<< graph_groups[i]<<" AND I "<<i<<"\n";
 			convertion[graph_groups[i]]=group_index++;
 			groups[convertion[graph_groups[i]]]=new Host(topology->getResource());
-			groups[convertion[graph_groups[i]]]->setName(std::to_string(convertion[graph_groups[i]]));//or ID
-		} // else{
-		// std::cout << "KEY FOUND\n";
-		// }
-		// std::cout<<"CONVERTION "<<convertion[graph_groups[i]]<<" GRAPH_GROUP "<<graph_groups[i]<<"\n";
+			groups[convertion[graph_groups[i]]]->setId(convertion[graph_groups[i]]);//or ID
+		}
 		(*groups[convertion[graph_groups[i]]])+=(*hosts[i]); // the group ID has the node i
 		host_groups[convertion[graph_groups[i]]].push_back(hosts[i]);
 	}
-	//a vazao (edge) do grupo é o menor valor destre os    hosts do grupo.
+
 	for(auto it: groups) {
 		vGroups.push_back(it.second);
 	}

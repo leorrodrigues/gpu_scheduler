@@ -47,16 +47,16 @@ Multicriteria* getMulticriteria();
 Multicriteria* getMulticriteriaClustered();
 Clustering* getClustering();
 Topology* getTopology();
-std::map<int,const char*> getMulticriteriaResult();
-std::map<int,const char*> getMulticriteriaClusteredResult();
+unsigned int* getMulticriteriaResult(unsigned int&);
+unsigned int* getMulticriteriaClusteredResult(unsigned int&);
 int getClusteringResultSize();
 void getClusteringResult();
 std::map<std::string,float> getResource();
 std::vector<Host*> getHosts();
-Host* getHost(std::string name);
+Host* getHost(unsigned int);
 std::vector<Host*> getClusterHosts();
 int getHostsMedianInGroup();
-std::vector<Host*> getHostsInGroup(int);
+std::vector<Host*> getHostsInGroup(unsigned int);
 int getTotalActiveHosts();
 
 

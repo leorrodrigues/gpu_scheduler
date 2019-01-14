@@ -65,7 +65,7 @@ void consistencyG();
 /******* Virtual Functions Override*******/
 void run(Host** alternatives={}, int size=0);
 
-std::map<int,const char*> getResult();
+unsigned int* getResult(unsigned int&);
 
 void setAlternatives(Host** host,int size);
 /************************************/

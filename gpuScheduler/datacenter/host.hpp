@@ -13,7 +13,7 @@ public:
 Host(){
 	active = false;
 	allocated_resources = 0;
-	name="";
+	id=0;
 }
 
 Host(std::map<std::string, float> resource) {
@@ -28,15 +28,15 @@ Host(std::map<std::string, float> resource) {
 	this->resource.clear();
 };
 
-void setResource(std::string name, float v) {
-	this->resource[name] = v;
+void setResource(std::string resourceName, float value) {
+	this->resource[resourceName] = value;
 }
 
 void setActive(bool active){
 	this->active = active;
 }
 
-void setAllocatedResources(int allocated){
+void setAllocatedResources(unsigned int allocated){
 	this->allocated_resources = allocated;
 }
 
@@ -45,26 +45,27 @@ void addAllocatedResources(){
 }
 
 void removeAllocaredResource(){
-	this->allocated_resources--;
+	if(this->allocated_resources>=1)
+		this->allocated_resources--;
 }
 
 std::map<std::string,float> getResource(){
 	return this->resource;
 }
 
-std::string getName(){
-	return this->name;
+unsigned int getId(){
+	return this->id;
 }
 
-void setName(std::string name){
-	this->name = name;
+void setId(unsigned int id){
+	this->id = id;
 }
 
 bool getActive(){
 	return this->active;
 }
 
-int getAllocatedResources(){
+unsigned int getAllocatedResources(){
 	return this->allocated_resources;
 }
 
@@ -132,8 +133,8 @@ void removeContainer(Container* rhs){
 private:
 std::map<std::string, float> resource;
 bool active;
-int allocated_resources;     ///< allocated_resources Variable to store the information of how many virtual resources are allocated in this specific host.
-std::string name;
+unsigned int allocated_resources;     ///< allocated_resources Variable to store the information of how many virtual resources are allocated in this specific host.
+unsigned int id;
 };
 
 #endif

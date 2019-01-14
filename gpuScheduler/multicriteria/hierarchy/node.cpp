@@ -13,7 +13,6 @@ Node::Node(){
 	this->active=true;
 	this->size=0;
 	this->type= node_t::ALTERNATIVE;
-	this->name = NULL;
 }
 
 Node::~Node(){

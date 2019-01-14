@@ -169,28 +169,35 @@ inline objective_function_t calculateObjectiveFunction(consumed_resource_t consu
 }
 
 inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed){
-	bool free_success=false;
-	// printf("%s #### %s\n", scheduler->allocated_task[0].c_str(),scheduler->allocated_task[1].c_str());
-	Container* current;
-	Host* temp;
+
+	bool free_success = false;
+	Container* current = NULL;
+	Host* temp = NULL;
+
 	while(true) {
+
 		if(scheduler->containers_to_delete.empty()) {
-			// printf("No containers in the Delete Queue\n");
 			break;
 		}
+
 		current=scheduler->containers_to_delete.top();
-		if(current->getDuration()+current->getAllocatedTime() != options->current_time) {
-			// printf("No containers to free\n");
+
+		if( current->getDuration() + current->getAllocatedTime() != options->current_time) {
 			break;
 		}
+
 		scheduler->containers_to_delete.pop();
-		if(scheduler->allocated_task [ current->getId() ]!=NULL) {
-			temp =  builder->getHost ( scheduler->allocated_task [ current->getId() ] );
-		}else{
-			continue;
-		}
+
+		// if( scheduler->allocated_task [ current->getId() ]!=NULL ) {
+		temp =  builder->getHost ( scheduler->allocated_task [ current->getId() ] );
+		// } else {
+		// continue;
+		// }
+
 		// printf("Scheduler Time %d Deleting container %d\n", options->current_time, current->getId());
+
 		const bool active_status=temp->getActive();
+
 		free_success=Allocator::freeHostResource(
 			/* the specific host that have the container*/
 			temp,
@@ -199,10 +206,12 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 			/* The consumed DC status*/
 			consumed
 			);
+
 		if(!free_success) {
 			std::cerr << "(gpu_scheduler 200) gpu_scheduler(170) - Error in free the task " << current->getId() << " from the data center\n";
 			exit(1);
 		}
+
 		if(temp->getAllocatedResources()==0) {
 			temp->setActive(false);
 			//Check if the server was on and now is off
@@ -211,30 +220,36 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 			}
 		}
 
-		// Search the container C in the vector and removes it
+		// Search the container in the vector and removes it
 		scheduler->allocated_task.erase(current->getId());
 
 		delete(current);
 	}
+
+	current = NULL;
+	temp = NULL;
 }
 
 inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed, total_resources_t* total_dc){
-	bool allocation_success=false;
-	// Check the task submission
-	Container* current;
 
-	int total_delay=0;
+	bool allocation_success = false;
+	Container* current = NULL;
+	int total_delay = 0;
+	int delay=1;
+
 	while(true) {
 		if(scheduler->containers_to_allocate.empty()) {
 			break;
 		}
+
 		current = scheduler->containers_to_allocate.top();
+
 		if( current->getSubmission()+current->getDelay() != options->current_time) {
-			// printf("Scheduler Time %d and Container %d Time %d\n", options->current_time, current->getId(),current->getSubmission()+current->getDelay());
 			break;
 		}
-		// printf("\tREMOVE ALLOCATING CONTAINER %d\n", current->getId());
+
 		scheduler->containers_to_allocate.pop();
+
 		if(Allocator::checkFit(total_dc, consumed,current)!=0) {
 			// allocate the new task in the data center.
 			if( options->allocation_type==Allocation_t::PURE) {
@@ -254,29 +269,26 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 		}else{
 			allocation_success=false;
 		}
+
 		if(!allocation_success) {
-			if(current->getResource()->vcpu_max>24 || current->getResource()->ram_max>256) {
-				delete(current);
-				continue;
-			}
-			printf("\tContainer %d Add Delay, old time %d\n", current->getId(), current->getSubmission()+current->getDelay());
-			int delay=1;
+
 			if(!scheduler->containers_to_delete.empty()) {
 				Container* first_to_delete = scheduler->containers_to_delete.top();
+
 				delay = (first_to_delete->getDuration() + first_to_delete->getAllocatedTime()) - ( current->getSubmission() + current->getDelay() );
 			}
+
 			current->addDelay(delay);
-			// printf("delay,%d,%d\n",current->getId(), current->getDelay());
 
 			scheduler->containers_to_allocate.push(current);
 
 			total_delay+=current->getDelay();
 		}else{
-			printf("\tContainer %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
-			current->setAllocatedTime(options->current_time);
 
+			//printf("\tContainer %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
+			current->setAllocatedTime(options->current_time);
 			scheduler->containers_to_delete.push(current);
-			// scheduler->containers_to_allocate.pop();
+
 		}
 	}
 	printf("total_delay,%d,%d\n", options->current_time,total_delay);
@@ -286,55 +298,58 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 	const int total_containers = scheduler->containers_to_allocate.size();
 	//Create the variable to store all the data center resource
 	total_resources_t total_resources;
-	// printf("Setting DC resources\n");
+
 	builder->setDataCenterResources(&total_resources);
-	// printf("set\n");
+
 	consumed_resource_t consumed_resources;
-	consumed_resources.vcpu=0;
-	consumed_resources.ram=0;
-	consumed_resources.active_servers=0;
-	consumed_resources.time=0;
-
 	objective_function_t objective;
-	objective.time=0;
-	objective.fragmentation=0;
-	objective.footprint=0;
-	objective.vcpu_footprint=0;
-	objective.ram_footprint=0;
 
-	while(message_count>0 || options->current_time <= options->end_time || !scheduler->containers_to_allocate.empty() || !scheduler->containers_to_delete.empty()) {
-		consumed_resources.time=options->current_time;
-		// #endif
+	while(
+		!scheduler->containers_to_allocate.empty() ||
+		!scheduler->containers_to_delete.empty()
+		) {
+
+		consumed_resources.time = options->current_time;
 		// if(options->current_time==options->end_time) break;
 		// std::cout<<"Scheduler Time "<< options->current_time<<"\n";
 		// std::cout<<"message_count "<<message_count<<"\n";
-		// make sure there is work in the queue
-		if(message_count>0) {
-			while(true) {
-				// Create new container
-				Container *current = new Container();
-				// Set the resources to the container
-				current->setTask(conn->getNextTask());
-				// Put the container in the vector
-				scheduler->containers_to_allocate.push(current);
-				// getchar();
-				message_count--;
-				// printf("Receiving new container %d\n in time %d", current->getId(), options->current_time);
-				if(current->getSubmission()!=options->current_time) {
-					break;
-				}
-			}
-			// Print the container
-			// std::cout << *c << "\n";
-		}
+
+		//************************************************//
+		//     READ CONTAINER REQUEST THROUGH RABBITMQ    //
+		//************************************************//
+		// while(message_count>0 || options->current_time <= options->end_time || !scheduler->containers_to_allocate.empty() || !scheduler->containers_to_delete.empty()) {
+		// if(message_count>0) {
+		//      while(true) {
+		//              // Create new container
+		//              Container *current = new Container();
+		//              // Set the resources to the container
+		//              current->setTask(conn->getNextTask());
+		//              // Put the container in the vector
+		//              scheduler->containers_to_allocate.push(current);
+		//              // getchar();
+		//              message_count--;
+		//              // printf("Receiving new container %d\n in time %d", current->getId(), options->current_time);
+		//              if(current->getSubmission()!=options->current_time) {
+		//                      break;
+		//              }
+		//      }
+		//    // Print the container
+		//    std::cout << *c << "\n";
+		// }
+		//************************************************//
+		//************************************************//
+		//************************************************//
+
 		// Search the containers to delete
 		delete_tasks(scheduler, builder, options, &consumed_resources);
 		// Search the containers in the vector to allocate in the DC
 		allocate_tasks(scheduler, builder, options, &consumed_resources, &total_resources);
-		// Update the lifetime
-		// getchar();
-		// consumed_resources.active_servers = builder->getTotalActiveHosts();
+
+		//************************************************//
+		//       Print All the metrics information        //
+		//************************************************//
 		objective=calculateObjectiveFunction(consumed_resources, total_resources);
+
 		if(options->test_type==2) {
 			printf("%d,%.7lf,%.7lf,%.7lf,%.7lf,%.5lf%%\n",
 			       objective.time,
@@ -342,9 +357,17 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 			       objective.footprint,
 			       objective.vcpu_footprint,
 			       objective.ram_footprint,
-			       (100-(100.0*(scheduler->containers_to_allocate.size()/(float)total_containers)))
+			       (100 - (
+					100.0*(
+						scheduler->containers_to_allocate.size()/(float)total_containers)
+					)
+			       )
 			       );
 		}
+		//************************************************//
+		//************************************************//
+		//************************************************//
+
 		options->current_time++;
 	}
 }
@@ -370,10 +393,16 @@ int main(int argc, char **argv){
 
 		delete(conn);
 
-	}else if(options.test_type==1 || options.test_type==2) {
+	}else if(options.test_type>0) {
 		// parse all json
 		Reader* reader = new Reader();
-		std::string path = "../simulator/json/datacenter/google-";
+		std::string path = "../simulator/json/datacenter/";
+		if(options.test_type==1) {
+			path+="container-";
+		}
+		else if(options.test_type==2) {
+			path+="google-";
+		}
 		path+= std::to_string(options.request_size);
 		path+=".json";
 		reader->openDocument(path.c_str());
@@ -386,11 +415,13 @@ int main(int argc, char **argv){
 			// Put the container in the vector
 			scheduler.containers_to_allocate.push(current);
 		}
+		message.clear();
 		delete(reader);
-		printf("CONTAINERS READ DONE!\n");
+
 		builder->runClustering(builder->getHosts());
-		printf("CLUSTER DONE\n");
+
 		builder->getClusteringResult();
+
 		// Scalability Test or Objective Function Test
 		// force cout to not print in cientific notation
 		std::cout<<std::fixed;
