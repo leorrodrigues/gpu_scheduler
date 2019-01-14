@@ -1,3 +1,76 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:8791086af0ce80d1d5e85c832c3e6f086d82e0e4726648b71dc2bc66cf68db29
-size 3229
+datacenter/json/hostsDataDefault1.jsonOLA
+SetResource
+		Edge Capacity 2
+			Index 1
+		Variables Capacity 6
+Populate topology
+
+
+MCL Clustering Topology
+# Number of Nodes Variables:            6    
+# Number of Edges Variables:            2    
+# Number of Nodes:                      36   
+# Number of Hosts:                      16   
+# Number of Edges:                      48   
+	Groups formed 7
+		The Group with ID 4 has 5 nodes
+			Host node            with ID 0    witch containes: 17 as bandwidth
+			Host node            with ID 1    witch containes: 16 as bandwidth
+			Switch node          with ID 4    witch containes: 0 as bandwidth
+			Switch node          with ID 6    witch containes: 0 as bandwidth
+			Switch node          with ID 7    witch containes: 0 as bandwidth
+		The Group with ID 5 has 3 nodes
+			Host node            with ID 2    witch containes: 15 as bandwidth
+			Host node            with ID 3    witch containes: 14 as bandwidth
+			Switch node          with ID 5    witch containes: 0 as bandwidth
+		The Group with ID 12 has 5 nodes
+			Host node            with ID 8    witch containes: 13 as bandwidth
+			Host node            with ID 9    witch containes: 12 as bandwidth
+			Switch node          with ID 12   witch containes: 0 as bandwidth
+			Switch node          with ID 14   witch containes: 0 as bandwidth
+			Switch node          with ID 15   witch containes: 0 as bandwidth
+		The Group with ID 13 has 3 nodes
+			Host node            with ID 10   witch containes: 11 as bandwidth
+			Host node            with ID 11   witch containes: 10 as bandwidth
+			Switch node          with ID 13   witch containes: 0 as bandwidth
+		The Group with ID 20 has 5 nodes
+			Host node            with ID 16   witch containes: 9 as bandwidth
+			Host node            with ID 17   witch containes: 8 as bandwidth
+			Switch node          with ID 20   witch containes: 0 as bandwidth
+			Switch node          with ID 22   witch containes: 0 as bandwidth
+			Switch node          with ID 23   witch containes: 0 as bandwidth
+		The Group with ID 21 has 3 nodes
+			Host node            with ID 18   witch containes: 7 as bandwidth
+			Host node            with ID 19   witch containes: 6 as bandwidth
+			Switch node          with ID 21   witch containes: 0 as bandwidth
+		The Group with ID 28 has 12 nodes
+			Host node            with ID 24   witch containes: 5 as bandwidth
+			Host node            with ID 25   witch containes: 4 as bandwidth
+			Host node            with ID 26   witch containes: 3 as bandwidth
+			Host node            with ID 27   witch containes: 2 as bandwidth
+			Switch node          with ID 28   witch containes: 0 as bandwidth
+			Switch node          with ID 29   witch containes: 0 as bandwidth
+			Switch node          with ID 30   witch containes: 0 as bandwidth
+			Switch node          with ID 31   witch containes: 0 as bandwidth
+			Core switch node     with ID 32   witch containes: 0 as bandwidth
+			Core switch node     with ID 33   witch containes: 0 as bandwidth
+			Core switch node     with ID 34   witch containes: 0 as bandwidth
+			Core switch node     with ID 35   witch containes: 0 as bandwidth
+
+
+h1 1
+h10 10
+h11 11
+h12 12
+h13 13
+h14 14
+h15 15
+h16 16
+h2 2
+h3 3
+h4 4
+h5 5
+h6 6
+h7 7
+h8 8
+h9 9

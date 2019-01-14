@@ -27,6 +27,8 @@ virtual std::vector<Host*> getHostsInGroup(int)=0;
 
 virtual void listGroups(Topology*)=0;
 
+virtual int getResultSize()=0;
+
 };
 
 inline Clustering::~Clustering(){

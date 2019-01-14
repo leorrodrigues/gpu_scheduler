@@ -55,7 +55,7 @@ void synthesis();
 void consistency();
 void run(Host** host={}, int size=0);
 
-std::map<int,const char*> getResult();
+unsigned int* getResult(unsigned int&);
 
 void setAlternatives(Host** alternatives,int size);
 

@@ -16,7 +16,8 @@ Reader(){
 ~Reader(){
 	delete(this->doc);
 }
-void openDocument(const char* taskDataPath, const char* taskSchemaPath = "../simulator/json/requestSchema.json"){
+
+void openDocument(const char* taskDataPath, const char* taskSchemaPath = "../simulator/json/containerRequestSchema.json"){
 	rapidjson::SchemaDocument taskSchema =
 		JSON::generateSchema(taskSchemaPath);
 	JSON::jsonGenericDocument* taskData =                                       JSON::generateDocumentP ( taskDataPath );
@@ -24,6 +25,7 @@ void openDocument(const char* taskDataPath, const char* taskSchemaPath = "../sim
 	if (!taskData->Accept(taskValidator))
 		JSON::jsonError(&taskValidator);
 	this->doc = taskData;
+	taskData = NULL;
 }
 
 std::string getNextTask(){

@@ -12,7 +12,7 @@ bool freeHostResource(Host* host, Container* container, consumed_resource_t* con
 		std::cerr << " Free Host Resource received NULL host\n";
 		exit(2);
 	}
-	// std::cout << "Free Host Resource Function\n";
+
 	host->removeContainer(container);
 	host->removeAllocaredResource();
 

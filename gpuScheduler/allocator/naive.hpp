@@ -11,27 +11,20 @@
 
 namespace Allocator {
 
-bool naive(Builder* builder,  Container* container, std::map<int,const char*> &allocated_task,consumed_resource_t* consumed){
-	// std::cout << "##############################\nTry the allocation\n";
+bool naive(Builder* builder,  Container* container, std::map<unsigned int, unsigned int> &allocated_task,consumed_resource_t* consumed){
 
-	// std::cout << "Running Multicriteria\n";
-	// builder->listHosts();
+	unsigned int* result = NULL;
+	unsigned int resultSize = 0;
 
 	builder->runMulticriteria( builder->getHosts() );
 
-	// std::cout << "Multicriteria OK\n";
-	// std::cout << "Getting Results\n";
-	std::map<int,const char*> result = builder->getMulticriteriaResult();
+	result = builder->getMulticriteriaResult(resultSize);
 
-	// Para testes
-	// std::cout << "Results Found!\nAllocating\n";
 	Host* host=NULL;
-	for( std::map<int,const char*>::iterator it = result.begin(); it!=result.end(); it++) {
-		// std::cout<< "Checking the host "<<it->first<<":"<<it->second<<"\n";
-		host=builder->getHost(std::string(it->second));
-		// std::cout << "VCPU: "<< host->getResource()->mWeight["vcpu"]<<"\n";
-		// std::cout << "HOST RESOURCES\n";
-		// std::cout << "RAM: "<< host->getResource()->mWeight["memory"] <<"\n";
+
+	int i=0;
+	for( i=0; i<resultSize; i++ ) {
+		host=builder->getHost(result[i]);
 
 		int fit=checkFit(host,container);
 		if(fit==0) {
@@ -63,23 +56,17 @@ bool naive(Builder* builder,  Container* container, std::map<int,const char*> &a
 		}
 
 		host->addAllocatedResources();
-		// std::cout<<"Subtracted\n";
-		// std::cout << "HOST RESOURCES 2\n";
-		// std::cout << "VCPU: "<< host->getResource()->mWeight["vcpu"]<<"\n";
-		// std::cout << "RAM: "<< host->getResource()->mWeight["memory"] <<"\n";
 
-		char* host_name = (char*) malloc (strlen(host->getName().c_str())+1);
-		strcpy(host_name,host->getName().c_str());
+		allocated_task[container->getId()]= host->getId();
 
-		allocated_task[container->getId()]= &host_name[0];
-
-		// std::cout << "Allocated! ID " << container->getId() << " HOST:"<<allocated_task[container->getId()]<<"!!!!!\n";
-		// need to include the host name and container id in the allocated_task
-		// std::cout<<"######################################\n";
+		free(result);
+		result=NULL;
 
 		return true;
 	}
-	// std::cout<<"######################################\n";
+	free(result);
+	result=NULL;
+
 	return false;
 }
 

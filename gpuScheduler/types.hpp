@@ -44,7 +44,7 @@ typedef struct {
 } options_t;
 
 typedef struct {
-	std::map<int, const char*> allocated_task;
+	std::map<unsigned int, unsigned int> allocated_task;
 	std::priority_queue<Container*, std::vector<Container*>, CompareContainerOnSubmission> containers_to_allocate;
 	std::priority_queue<Container*, std::vector<Container*>, CompareContainerOnDelete> containers_to_delete;
 	int total_containers=0;

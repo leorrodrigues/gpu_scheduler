@@ -475,7 +475,7 @@ void AHP::conception(bool alternativeParser) {
 	strcpy(hierarchy_data, path);
 
 	strcat(hierarchy_schema, "/multicriteria/json/hierarchySchema.json");
-	strcat(hierarchy_data, "/multicriteria/json/hierarchyDataFrag.json");
+	strcat(hierarchy_data, "/multicriteria/json/hierarchyData.json");
 
 	rapidjson::SchemaDocument hierarchySchema =
 		JSON::generateSchema(hierarchy_schema);
@@ -644,10 +644,12 @@ void AHP::run(Host** alternatives, int size) {
 	// this->consistency();
 }
 
-std::map<int,const char*> AHP::getResult() {
-	std::map<int,const char*> result;
+unsigned int* AHP::getResult(unsigned int& size) {
+	size = this->hierarchy->getAlternativesSize();
+
+	unsigned int* result = (unsigned int*) malloc(sizeof(unsigned int));
 	float* values = this->hierarchy->getFocus()->getPg();
-	std::priority_queue<std::pair<float, int> > alternativesPair;
+	std::priority_queue<std::pair<float, unsigned int> > alternativesPair;
 
 	unsigned int i;
 
@@ -655,12 +657,11 @@ std::map<int,const char*> AHP::getResult() {
 		alternativesPair.push(std::make_pair(values[i], i));
 	}
 
-	char* name;
+	Node** alternatives = this->hierarchy->getAlternatives();
 
-	auto alternatives = this->hierarchy->getAlternatives();
 	for (i = 0; i < (unsigned int)alternativesPair.size(); i++) {
-		name = alternatives[alternativesPair.top().second]->getName();
-		result[i+1] = name;
+		result = (unsigned int*) realloc (result, sizeof(unsigned int)*(i+1));
+		result[i] =  atoi(alternatives[alternativesPair.top().second]->getName());
 		alternativesPair.pop();
 	}
 	return result;
@@ -680,7 +681,7 @@ void AHP::setAlternatives(Host** alternatives, int size) {
 
 		a->setResource(this->hierarchy->getResource()); // set the default resources in the node
 
-		a->setName((char*) alternatives[i]->getName().c_str()); // set the node name
+		a->setName((char*) std::to_string(alternatives[i]->getId()).c_str()); // set the node name
 
 		// Update the node h_resource values by the host resource values
 		for (auto it : resource) {
