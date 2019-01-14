@@ -1,2 +1,0 @@
-fat_tree_size,google_size,time
-20,0,55778.493090
