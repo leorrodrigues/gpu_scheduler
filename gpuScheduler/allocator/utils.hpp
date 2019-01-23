@@ -31,7 +31,6 @@ inline int checkFit(Host* host, Container* container){
 	return total;
 }
 
-
 inline int checkFit(total_resources_t* dc, consumed_resource_t* consumed, Container* container){
 	// 7 VCPU AND RAM MAX
 	// 8 VCPU MAX RAM MIN
@@ -57,5 +56,6 @@ inline int checkFit(total_resources_t* dc, consumed_resource_t* consumed, Contai
 	}
 	return total;
 }
+
 }
 #endif

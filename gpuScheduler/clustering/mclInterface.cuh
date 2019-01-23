@@ -1,3 +1,4 @@
+
 #ifndef _MCLINTERFACE_NOT_INCLUDED_
 #define _MCLINTERFACE_NOT_INCLUDED_
 
@@ -26,6 +27,7 @@ std::vector<Host*> getResult(Topology*,std::vector<Host*>);
 int getResultSize();
 int getHostsMedianInGroup();
 std::vector<Host*> getHostsInGroup(int);
+bool findHostInGroup(unsigned int, unsigned int);
 
 void listGroups(Topology*);
 

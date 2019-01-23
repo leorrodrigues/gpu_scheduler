@@ -6,7 +6,6 @@
 #include <map>
 
 #include "tasks/container.hpp"
-#include "resource.hpp"
 
 class Host {
 public:

@@ -24,6 +24,7 @@ virtual std::vector<Host*> getResult(Topology* topology,std::vector<Host*>)=0;
 
 virtual int getHostsMedianInGroup()=0;
 virtual std::vector<Host*> getHostsInGroup(int)=0;
+virtual bool findHostInGroup(unsigned int, unsigned int)=0;
 
 virtual void listGroups(Topology*)=0;
 

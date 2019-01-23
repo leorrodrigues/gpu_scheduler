@@ -3,8 +3,9 @@
 
 #include "types.hpp"
 
-#include "multicriteria/ahp.hpp"
-#include "multicriteria/ahpg.cuh"
+#include "multicriteria/ahp/ahp.hpp"
+#include "multicriteria/ahp/ahpg.cuh"
+#include "multicriteria/topsis/topsis.cuh"
 
 #include "clustering/mclInterface.cuh"
 
@@ -23,7 +24,6 @@ Topology* topology;
 std::map<std::string,float> resource;
 std::vector<Host*> hosts;
 std::vector<Host*> clusterHosts;
-std::map<int,const char*> clusteredMulticriteria;
 
 void setMulticriteria(Multicriteria*);
 void setClustering(Clustering*);
@@ -57,6 +57,7 @@ Host* getHost(unsigned int);
 std::vector<Host*> getClusterHosts();
 int getHostsMedianInGroup();
 std::vector<Host*> getHostsInGroup(unsigned int);
+bool findHostInGroup(unsigned int, unsigned int);
 int getTotalActiveHosts();
 
 
@@ -65,9 +66,10 @@ void printTopologyType();
 //Multicriteria set functions
 void setAHP();
 void setAHPG();
+void setTOPSIS();
 void setClusteredAHP();
 void setClusteredAHPG();
-
+void setClusteredTOPSIS();
 
 //Clustering set functions
 void setMCL();

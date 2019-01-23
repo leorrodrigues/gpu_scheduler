@@ -1,0 +1,35 @@
+Multicriteria method;Fat Tree Size;Number of containers;Time
+clustered ahp;4;1;0.0913667
+clustered ahp;4;2;0.0.312479
+clustered ahp;4;4;0.01387
+clustered ahp;4;8;0.022372
+clustered ahp;4;16;0.0134429
+clustered ahp;4;32;0.024805
+clustered ahp;4;64;0.0350389
+clustered ahp;4;128;0.069460
+clustered ahp;4;256;0.092409
+clustered ahp;4;512;0.7104369
+clustered ahp;4;1024;0.8714129
+clustered ahp;16;1;0.947798
+clustered ahp;16;2;1.4298549
+clustered ahp;16;4;2.714035
+clustered ahp;16;8;5.903229
+clustered ahp;16;16;10.499763
+clustered ahp;16;32;21.1087459
+clustered ahp;16;64;42.302322
+clustered ahp;16;128;83.117654
+clustered ahp;16;256;167.745275
+clustered ahp;16;512;319.56482603
+clustered ahp;16;1024;626.773921
+clustered ahp;32;1;18.067873
+clustered ahp;32;2;16.787664
+clustered ahp;32;4;17.6540
+clustered ahp;32;8;19.2063209
+clustered ahp;32;16;22.9788529
+clustered ahp;32;32;26.2218609
+clustered ahp;32;64;39.068599
+clustered ahp;40;1;80.5358715
+clustered ahp;40;2;161.3494209
+clustered ahp;40;4;161.611279
+clustered ahp;40;8;161.2210819
+

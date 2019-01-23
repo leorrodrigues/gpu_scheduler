@@ -23,13 +23,10 @@ Builder::~Builder(){
 	}
 	hosts.clear();
 
-
 	for(std::vector<Host*>::iterator it=clusterHosts.begin(); it!=clusterHosts.end(); it++) {
 		delete(*it);
 	}
 	clusterHosts.clear();
-
-	clusteredMulticriteria.clear();
 }
 
 void Builder::generateContentSchema() {
@@ -113,6 +110,10 @@ std::vector<Host*> Builder::getHostsInGroup(unsigned int group_index){
 	return this->clusteringMethod->getHostsInGroup(group_index);
 }
 
+bool Builder::findHostInGroup(unsigned int group_index, unsigned int host_id){
+	return this->clusteringMethod->findHostInGroup(group_index, host_id);
+}
+
 int Builder::getTotalActiveHosts(){
 	int total=0;
 	int i, size = hosts.size();
@@ -163,6 +164,11 @@ void Builder::setAHPG(){
 	this->setMulticriteria(ahpg);
 }
 
+void Builder::setTOPSIS(){
+	TOPSIS *topsis = new TOPSIS();
+	this->setMulticriteria(topsis);
+}
+
 void Builder::setClusteredAHP(){
 	AHP *ahp=new AHP();
 	this->multicriteriaClusteredMethod=ahp;
@@ -171,6 +177,11 @@ void Builder::setClusteredAHP(){
 void Builder::setClusteredAHPG(){
 	AHPG *ahpg=new AHPG();
 	this->multicriteriaClusteredMethod=ahpg;
+}
+
+void Builder::setClusteredTOPSIS(){
+	TOPSIS *topsis= new TOPSIS();
+	this->multicriteriaClusteredMethod=topsis;
 }
 
 void Builder::setClustering(Clustering* method){

@@ -3,7 +3,9 @@
 ####################
 
 $(shell mkdir -p gpuScheduler/build)
-$(shell mkdir -p gpuScheduler/build/hierarchy)
+$(shell mkdir -p gpuScheduler/build/ahp)
+$(shell mkdir -p gpuScheduler/build/ahp/hierarchy)
+$(shell mkdir -p gpuScheduler/build/topsis)
 $(shell mkdir -p simulator/build)
 
 #Programs
@@ -57,16 +59,16 @@ ifeq ($(SO_NAME),ubuntu)
 	RABBIT_LIBS_PATH := /usr/lib
 endif
 
-CXXFLAGS = $(DEBUG_CXX) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -L$(RABBIT_LIBS_PATH) -lrabbitmq -O3
+CXXFLAGS = $(DEBUG_CXX) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -L$(RABBIT_LIBS_PATH) -lrabbitmq -O2
 
 #CXXFLAGS = -std=c++17 -Wall -L$(RABBIT_LIBS_PATH) -lrabbitmq -fconcepts
 
-CXXFLAGS_W/BOOST = $(DEBUG_CXX) $(BOOSTFLAGS) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -L$(RABBIT_LIBS_PATH) -lrabbitmq -O3
+CXXFLAGS_W/BOOST = $(DEBUG_CXX) $(BOOSTFLAGS) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -L$(RABBIT_LIBS_PATH) -lrabbitmq -O2
 
 #CXX_FLAGS_W/BOOST = $(BOOSTFLAGS) -std=c++17 -Wall -fconcepts -L$(RABBIT_LIBS_PATH) -lrabbitmq
 
 #nvcc
-NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas -O3 -use_fast_math -lineinfo
+NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas -O2 -use_fast_math -lineinfo
 
 #NVCCFLAGS = -std=c++14 -Xptxas -lineinfo
 
@@ -99,7 +101,7 @@ LIST_CLUSTERING_OBJ := $(foreach file, $(CLUSTERING_FILES_), $(BUILD_GPUSCHEDULE
 LIST_CLUSTERING_DEP := $(foreach file, $(CLUSTERING_FILES), $(BUILD_GPUSCHEDULER)$(file).d)
 
 #Multicriteria module
-MULTICRITERIA_FILES := ahp ahpg hierarchy/hierarchy hierarchy/hierarchy_resource hierarchy/node hierarchy/edge
+MULTICRITERIA_FILES := ahp/ahp ahp/ahpg ahp/hierarchy/hierarchy ahp/hierarchy/hierarchy_resource ahp/hierarchy/node ahp/hierarchy/edge topsis/topsis
 
 LIST_MULTICRITERIA := $(foreach file,$(MULTICRITERIA_FILES), $(BUILD_GPUSCHEDULER)$(file)$(AUX))
 
@@ -151,7 +153,7 @@ NVCCFLAGS += $(DEFINES)
 all: scheduler simulator;
 
 scheduler: .task .rabbit .clustering .multicriteria .libs .json $(LIST_GPUSCHEDULER)
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) $(BUILD_GPUSCHEDULER)*.o $(BUILD_GPUSCHEDULER)hierarchy/*.o $(NVOUT) $(GPUSCHEDULER_PATH)gpuscheduler.out
+	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) $(BUILD_GPUSCHEDULER)*.o  $(BUILD_GPUSCHEDULER)ahp/*.o $(BUILD_GPUSCHEDULER)ahp/hierarchy/*.o $(BUILD_GPUSCHEDULER)topsis/*.o $(NVOUT) $(GPUSCHEDULER_PATH)gpuscheduler.out
 
 ifeq ($(MAKECMDGOALS),scheduler)
 include $(LIST_RABBIT_DEP)
@@ -227,7 +229,7 @@ $(BUILD_GPUSCHEDULER)%.d : $(RABBIT_PATH)%.cpp
 	$(CXX) $(CXXFLAGS_W/BOOST) -M $< $(COUT) $@;
 
 
-#Compile the rabbit module
+#Compile the tasks module
 $(BUILD_GPUSCHEDULER)%$(OBJ) : $(TASKS_PATH)%.cpp
 	$(CXX) $(CXXFLAGS_W/BOOST) $(CXX_OBJ) $< $(COUT) $@;
 

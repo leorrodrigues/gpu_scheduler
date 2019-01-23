@@ -8,12 +8,6 @@
 
 #include "datacenter/tasks/container.hpp"
 
-namespace Allocation_t {
-enum {
-	NAIVE, DC, ALL, PURE, CLUSTERIZED
-};
-}
-
 struct CompareContainerOnSubmission {
 	bool operator()( Container* lhs, Container* rhs) const {
 		if ((lhs->getSubmission()+lhs->getDelay()) == (rhs->getSubmission()+rhs->getDelay())) {
@@ -31,15 +25,12 @@ struct CompareContainerOnDelete {
 };
 
 typedef struct {
-	int allocation_type=Allocation_t::NAIVE;
 	std::string multicriteria_method;
 	std::string clustering_method;
 	std::string topology_type;
 	int topology_size=0;
 	int current_time=0;
-	int start_time=0;
 	int test_type=0;
-	int end_time=0;
 	int request_size=0;
 } options_t;
 

@@ -67,6 +67,16 @@ std::vector<Host*> MCLInterface::getHostsInGroup(int group_index){
 	return this->host_groups[group_index];
 }
 
+bool MCLInterface::findHostInGroup(unsigned int group_index, unsigned int host_index){
+	int i=0;
+	for(i=0; i< this->host_groups[group_index].size(); i++) {
+		if(this->host_groups[group_index][i]->getId()==host_index) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void MCLInterface::listGroups(Topology* topology){
 	std::cout<<"\n\nMCL Clustering Topology\n";
 	vnegpu::graph<float>* cluster=topology->getGraph();

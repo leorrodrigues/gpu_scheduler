@@ -12,7 +12,6 @@
 namespace Allocator {
 
 bool naive(Builder* builder,  Container* container, std::map<unsigned int, unsigned int> &allocated_task,consumed_resource_t* consumed){
-
 	unsigned int* result = NULL;
 	unsigned int resultSize = 0;
 
