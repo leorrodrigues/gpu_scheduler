@@ -49,7 +49,7 @@ static __device__ void warpMaxReduce(volatile float *sdata, unsigned int tid){
 	if(blockSize >= 2) sdata[tid] = sdata[tid] > sdata[tid+ 1] ? sdata[tid] : sdata[tid+ 1];
 }
 
-template <unsigned int blockSize=33> __global__
+template <unsigned int blockSize=512> __global__
 static void maxKernelReduction(float *data, float *max, unsigned int size){
 	extern __shared__ float sdata[];
 
@@ -58,9 +58,12 @@ static void maxKernelReduction(float *data, float *max, unsigned int size){
 	unsigned int gridSize = blockSize*2*gridDim.x;
 	sdata[tid]=-1;
 
+	if(i>=size) return;
+
 	while(i<size) {
 		sdata[tid] = data[tid] > data[i] ? data[tid] : data[i];
-		sdata[tid] = sdata[tid] > data[i+blockSize] ? sdata[tid] : data[i+blockSize];
+		if(i+blockSize<size)
+			sdata[tid] = sdata[tid] > data[i+blockSize] ? sdata[tid] : data[i+blockSize];
 		i+=gridSize;
 	}
 	__syncthreads();
@@ -97,7 +100,7 @@ static __device__ void warpMinReduce(volatile float *sdata, unsigned int tid){
 	if(blockSize >= 2) sdata[tid] = sdata[tid] > sdata[tid+ 1] ? sdata[tid+ 1] : sdata[tid];
 }
 
-template <unsigned int blockSize=33> __global__
+template <unsigned int blockSize=512> __global__
 static void minKernelReduction(float *data, float *min, unsigned int size){
 	extern __shared__ float sdata[];
 
@@ -105,6 +108,8 @@ static void minKernelReduction(float *data, float *min, unsigned int size){
 	unsigned int i = blockIdx.x*(blockSize*2)+tid;
 	unsigned int gridSize = blockSize*2*gridDim.x;
 	sdata[tid]=FLT_MAX;
+
+	if(i>=size) return;
 
 	while(i<size) {
 		sdata[tid] = data[tid] > data[i] ? data[i] : data[tid];
