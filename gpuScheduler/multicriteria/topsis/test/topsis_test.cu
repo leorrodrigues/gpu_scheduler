@@ -5,6 +5,7 @@
 #include "../../../json.hpp"
 #include "../topsis.cuh"
 
+#include <assert.h>
 #include <vector>
 #include <string>
 #include <map>
@@ -28,11 +29,15 @@ int main(){
 	topsis->run(&hosts[0], 5);
 	unsigned int result_size;
 	unsigned int *result = topsis->getResult(result_size);
-	printf("Resultado\n");
+
+	unsigned int answer[] = {2,3,4,0,1};
+	// printf("Resultado\n");
 	for(int i=0; i<result_size; i++) {
-		printf("%d - ", result[i]);
+		assert(answer[i]==result[i]);
+		// printf("%d - ", result[i]);
 	}
-	printf("\n");
+	// printf("\n");
+	printf("All tests passed!\n");
 	delete(topsis);
 	return 0;
 }

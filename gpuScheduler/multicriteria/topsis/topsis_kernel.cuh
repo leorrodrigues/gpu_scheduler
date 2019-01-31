@@ -149,6 +149,7 @@ static void prepareMinMaxKernel(float* d_matrix, float* d_min, float* d_max, uns
 	cudaGetDevice(&devID);
 	cudaGetDeviceProperties(&props, devID);
 	int block_size = (props.major <2) ? 16 : 32;
+	block_size=512;
 	unsigned int blocks_amount = ceil(alt_size/(float)(block_size*2));
 
 	int i;

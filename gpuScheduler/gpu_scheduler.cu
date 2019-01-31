@@ -267,7 +267,6 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			printf("\tContainer %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
 			current->setAllocatedTime(options->current_time);
 			scheduler->containers_to_delete.push(current);
-
 		}
 	}
 	printf("total_delay,%d,%d\n", options->current_time,total_delay);

@@ -132,7 +132,7 @@
 /* Define ssize_t on Win32/64 platforms
    See: http://lists.cs.uiuc.edu/pipermail/llvmdev/2010-April/030649.html for
    details
-   */
+ */
 #if !defined(_W64)
 #if !defined(__midl) && (defined(_X86_) || defined(_M_IX86)) && _MSC_VER >= 1300
 #define _W64 __w64
@@ -235,7 +235,7 @@ AMQP_BEGIN_DECLS
  * \since v0.6.1
  */
 #define AMQP_VERSION_CODE(major, minor, patch, release) \
-  ((major << 24) | (minor << 16) | (patch << 8) | (release))
+	((major << 24) | (minor << 16) | (patch << 8) | (release))
 
 /**
  * \def AMQP_VERSION
@@ -256,16 +256,16 @@ AMQP_BEGIN_DECLS
  * \since v0.4.0
  */
 #define AMQP_VERSION                                        \
-  AMQP_VERSION_CODE(AMQP_VERSION_MAJOR, AMQP_VERSION_MINOR, \
-                    AMQP_VERSION_PATCH, AMQP_VERSION_IS_RELEASE)
+	AMQP_VERSION_CODE(AMQP_VERSION_MAJOR, AMQP_VERSION_MINOR, \
+	                  AMQP_VERSION_PATCH, AMQP_VERSION_IS_RELEASE)
 
 /** \cond HIDE_FROM_DOXYGEN */
 #define AMQ_STRINGIFY(s) AMQ_STRINGIFY_HELPER(s)
 #define AMQ_STRINGIFY_HELPER(s) #s
 
 #define AMQ_VERSION_STRING          \
-  AMQ_STRINGIFY(AMQP_VERSION_MAJOR) \
-  "." AMQ_STRINGIFY(AMQP_VERSION_MINOR) "." AMQ_STRINGIFY(AMQP_VERSION_PATCH)
+	AMQ_STRINGIFY(AMQP_VERSION_MAJOR) \
+	"." AMQ_STRINGIFY(AMQP_VERSION_MINOR) "." AMQ_STRINGIFY(AMQP_VERSION_PATCH)
 /** \endcond */
 
 /**
@@ -395,8 +395,8 @@ typedef uint16_t amqp_channel_t;
  * \since v0.1
  */
 typedef struct amqp_bytes_t_ {
-  size_t len;  /**< length of the buffer in bytes */
-  void *bytes; /**< pointer to the beginning of the buffer */
+	size_t len; /**< length of the buffer in bytes */
+	void *bytes; /**< pointer to the beginning of the buffer */
 } amqp_bytes_t;
 
 /**
@@ -405,8 +405,8 @@ typedef struct amqp_bytes_t_ {
  * \since v0.1
  */
 typedef struct amqp_decimal_t_ {
-  uint8_t decimals; /**< the location of the decimal point */
-  uint32_t value;   /**< the value before the decimal point is applied */
+	uint8_t decimals; /**< the location of the decimal point */
+	uint32_t value; /**< the value before the decimal point is applied */
 } amqp_decimal_t;
 
 /**
@@ -423,8 +423,8 @@ typedef struct amqp_decimal_t_ {
  * \since v0.1
  */
 typedef struct amqp_table_t_ {
-  int num_entries;                     /**< length of entries array */
-  struct amqp_table_entry_t_ *entries; /**< an array of table entries */
+	int num_entries;               /**< length of entries array */
+	struct amqp_table_entry_t_ *entries; /**< an array of table entries */
 } amqp_table_t;
 
 /**
@@ -435,48 +435,48 @@ typedef struct amqp_table_t_ {
  * \since v0.1
  */
 typedef struct amqp_array_t_ {
-  int num_entries;                     /**< Number of entries in the table */
-  struct amqp_field_value_t_ *entries; /**< linked list of field values */
+	int num_entries;               /**< Number of entries in the table */
+	struct amqp_field_value_t_ *entries; /**< linked list of field values */
 } amqp_array_t;
 
 /*
-  0-9   0-9-1   Qpid/Rabbit  Type               Remarks
----------------------------------------------------------------------------
+   0-9   0-9-1   Qpid/Rabbit  Type               Remarks
+   ---------------------------------------------------------------------------
         t       t            Boolean
         b       b            Signed 8-bit
         B                    Unsigned 8-bit
         U       s            Signed 16-bit      (A1)
         u                    Unsigned 16-bit
-  I     I       I            Signed 32-bit
+   I     I       I            Signed 32-bit
         i                    Unsigned 32-bit
         L       l            Signed 64-bit      (B)
         l                    Unsigned 64-bit
         f       f            32-bit float
         d       d            64-bit float
-  D     D       D            Decimal
+   D     D       D            Decimal
         s                    Short string       (A2)
-  S     S       S            Long string
+   S     S       S            Long string
         A                    Nested Array
-  T     T       T            Timestamp (u64)
-  F     F       F            Nested Table
-  V     V       V            Void
+   T     T       T            Timestamp (u64)
+   F     F       F            Nested Table
+   V     V       V            Void
                 x            Byte array
 
-Remarks:
+   Remarks:
 
- A1, A2: Notice how the types **CONFLICT** here. In Qpid and Rabbit,
+   A1, A2: Notice how the types **CONFLICT** here. In Qpid and Rabbit,
          's' means a signed 16-bit integer; in 0-9-1, it means a
           short string.
 
- B: Notice how the signednesses **CONFLICT** here. In Qpid and Rabbit,
+   B: Notice how the signednesses **CONFLICT** here. In Qpid and Rabbit,
     'l' means a signed 64-bit integer; in 0-9-1, it means an unsigned
     64-bit integer.
 
-I'm going with the Qpid/Rabbit types, where there's a conflict, and
-the 0-9-1 types otherwise. 0-8 is a subset of 0-9, which is a subset
-of the other two, so this will work for both 0-8 and 0-9-1 branches of
-the code.
-*/
+   I'm going with the Qpid/Rabbit types, where there's a conflict, and
+   the 0-9-1 types otherwise. 0-8 is a subset of 0-9, which is a subset
+   of the other two, so this will work for both 0-8 and 0-9-1 branches of
+   the code.
+ */
 
 /**
  * A field table value
@@ -484,26 +484,26 @@ the code.
  * \since v0.1
  */
 typedef struct amqp_field_value_t_ {
-  uint8_t kind; /**< the type of the entry /sa amqp_field_value_kind_t */
-  union {
-    amqp_boolean_t boolean; /**< boolean type AMQP_FIELD_KIND_BOOLEAN */
-    int8_t i8;              /**< int8_t type AMQP_FIELD_KIND_I8 */
-    uint8_t u8;             /**< uint8_t type AMQP_FIELD_KIND_U8 */
-    int16_t i16;            /**< int16_t type AMQP_FIELD_KIND_I16 */
-    uint16_t u16;           /**< uint16_t type AMQP_FIELD_KIND_U16 */
-    int32_t i32;            /**< int32_t type AMQP_FIELD_KIND_I32 */
-    uint32_t u32;           /**< uint32_t type AMQP_FIELD_KIND_U32 */
-    int64_t i64;            /**< int64_t type AMQP_FIELD_KIND_I64 */
-    uint64_t u64;           /**< uint64_t type AMQP_FIELD_KIND_U64,
-                               AMQP_FIELD_KIND_TIMESTAMP */
-    float f32;              /**< float type AMQP_FIELD_KIND_F32 */
-    double f64;             /**< double type AMQP_FIELD_KIND_F64 */
-    amqp_decimal_t decimal; /**< amqp_decimal_t AMQP_FIELD_KIND_DECIMAL */
-    amqp_bytes_t bytes;     /**< amqp_bytes_t type AMQP_FIELD_KIND_UTF8,
-                               AMQP_FIELD_KIND_BYTES */
-    amqp_table_t table;     /**< amqp_table_t type AMQP_FIELD_KIND_TABLE */
-    amqp_array_t array;     /**< amqp_array_t type AMQP_FIELD_KIND_ARRAY */
-  } value;                  /**< a union of the value */
+	uint8_t kind; /**< the type of the entry /sa amqp_field_value_kind_t */
+	union {
+		amqp_boolean_t boolean; /**< boolean type AMQP_FIELD_KIND_BOOLEAN */
+		int8_t i8;  /**< int8_t type AMQP_FIELD_KIND_I8 */
+		uint8_t u8; /**< uint8_t type AMQP_FIELD_KIND_U8 */
+		int16_t i16; /**< int16_t type AMQP_FIELD_KIND_I16 */
+		uint16_t u16; /**< uint16_t type AMQP_FIELD_KIND_U16 */
+		int32_t i32; /**< int32_t type AMQP_FIELD_KIND_I32 */
+		uint32_t u32; /**< uint32_t type AMQP_FIELD_KIND_U32 */
+		int64_t i64; /**< int64_t type AMQP_FIELD_KIND_I64 */
+		uint64_t u64; /**< uint64_t type AMQP_FIELD_KIND_U64,
+		                 AMQP_FIELD_KIND_TIMESTAMP */
+		float f32;  /**< float type AMQP_FIELD_KIND_F32 */
+		double f64; /**< double type AMQP_FIELD_KIND_F64 */
+		amqp_decimal_t decimal; /**< amqp_decimal_t AMQP_FIELD_KIND_DECIMAL */
+		amqp_bytes_t bytes; /**< amqp_bytes_t type AMQP_FIELD_KIND_UTF8,
+		                       AMQP_FIELD_KIND_BYTES */
+		amqp_table_t table; /**< amqp_table_t type AMQP_FIELD_KIND_TABLE */
+		amqp_array_t array; /**< amqp_array_t type AMQP_FIELD_KIND_ARRAY */
+	} value;            /**< a union of the value */
 } amqp_field_value_t;
 
 /**
@@ -514,9 +514,9 @@ typedef struct amqp_field_value_t_ {
  * \since v0.1
  */
 typedef struct amqp_table_entry_t_ {
-  amqp_bytes_t key; /**< the table entry key. Its a null-terminated UTF-8
-                     * string, with a maximum size of 128 bytes */
-  amqp_field_value_t value; /**< the table entry values */
+	amqp_bytes_t key; /**< the table entry key. Its a null-terminated UTF-8
+	                   * string, with a maximum size of 128 bytes */
+	amqp_field_value_t value; /**< the table entry values */
 } amqp_table_entry_t;
 
 /**
@@ -525,32 +525,32 @@ typedef struct amqp_table_entry_t_ {
  * \since v0.1
  */
 typedef enum {
-  AMQP_FIELD_KIND_BOOLEAN =
-      't', /**< boolean type. 0 = false, 1 = true @see amqp_boolean_t */
-  AMQP_FIELD_KIND_I8 = 'b',  /**< 8-bit signed integer, datatype: int8_t */
-  AMQP_FIELD_KIND_U8 = 'B',  /**< 8-bit unsigned integer, datatype: uint8_t */
-  AMQP_FIELD_KIND_I16 = 's', /**< 16-bit signed integer, datatype: int16_t */
-  AMQP_FIELD_KIND_U16 = 'u', /**< 16-bit unsigned integer, datatype: uint16_t */
-  AMQP_FIELD_KIND_I32 = 'I', /**< 32-bit signed integer, datatype: int32_t */
-  AMQP_FIELD_KIND_U32 = 'i', /**< 32-bit unsigned integer, datatype: uint32_t */
-  AMQP_FIELD_KIND_I64 = 'l', /**< 64-bit signed integer, datatype: int64_t */
-  AMQP_FIELD_KIND_U64 = 'L', /**< 64-bit unsigned integer, datatype: uint64_t */
-  AMQP_FIELD_KIND_F32 =
-      'f', /**< single-precision floating point value, datatype: float */
-  AMQP_FIELD_KIND_F64 =
-      'd', /**< double-precision floating point value, datatype: double */
-  AMQP_FIELD_KIND_DECIMAL =
-      'D', /**< amqp-decimal value, datatype: amqp_decimal_t */
-  AMQP_FIELD_KIND_UTF8 = 'S',      /**< UTF-8 null-terminated character string,
-                                      datatype: amqp_bytes_t */
-  AMQP_FIELD_KIND_ARRAY = 'A',     /**< field array (repeated values of another
-                                      datatype. datatype: amqp_array_t */
-  AMQP_FIELD_KIND_TIMESTAMP = 'T', /**< 64-bit timestamp. datatype uint64_t */
-  AMQP_FIELD_KIND_TABLE = 'F', /**< field table. encapsulates a table inside a
-                                  table entry. datatype: amqp_table_t */
-  AMQP_FIELD_KIND_VOID = 'V',  /**< empty entry */
-  AMQP_FIELD_KIND_BYTES =
-      'x' /**< unformatted byte string, datatype: amqp_bytes_t */
+	AMQP_FIELD_KIND_BOOLEAN =
+		't', /**< boolean type. 0 = false, 1 = true @see amqp_boolean_t */
+	AMQP_FIELD_KIND_I8 = 'b', /**< 8-bit signed integer, datatype: int8_t */
+	AMQP_FIELD_KIND_U8 = 'B', /**< 8-bit unsigned integer, datatype: uint8_t */
+	AMQP_FIELD_KIND_I16 = 's', /**< 16-bit signed integer, datatype: int16_t */
+	AMQP_FIELD_KIND_U16 = 'u', /**< 16-bit unsigned integer, datatype: uint16_t */
+	AMQP_FIELD_KIND_I32 = 'I', /**< 32-bit signed integer, datatype: int32_t */
+	AMQP_FIELD_KIND_U32 = 'i', /**< 32-bit unsigned integer, datatype: uint32_t */
+	AMQP_FIELD_KIND_I64 = 'l', /**< 64-bit signed integer, datatype: int64_t */
+	AMQP_FIELD_KIND_U64 = 'L', /**< 64-bit unsigned integer, datatype: uint64_t */
+	AMQP_FIELD_KIND_F32 =
+		'f', /**< single-precision floating point value, datatype: float */
+	AMQP_FIELD_KIND_F64 =
+		'd', /**< double-precision floating point value, datatype: double */
+	AMQP_FIELD_KIND_DECIMAL =
+		'D', /**< amqp-decimal value, datatype: amqp_decimal_t */
+	AMQP_FIELD_KIND_UTF8 = 'S', /**< UTF-8 null-terminated character string,
+	                               datatype: amqp_bytes_t */
+	AMQP_FIELD_KIND_ARRAY = 'A', /**< field array (repeated values of another
+	                                datatype. datatype: amqp_array_t */
+	AMQP_FIELD_KIND_TIMESTAMP = 'T', /**< 64-bit timestamp. datatype uint64_t */
+	AMQP_FIELD_KIND_TABLE = 'F', /**< field table. encapsulates a table inside a
+	                                table entry. datatype: amqp_table_t */
+	AMQP_FIELD_KIND_VOID = 'V', /**< empty entry */
+	AMQP_FIELD_KIND_BYTES =
+		'x' /**< unformatted byte string, datatype: amqp_bytes_t */
 } amqp_field_value_kind_t;
 
 /**
@@ -559,8 +559,8 @@ typedef enum {
  * \since v0.1
  */
 typedef struct amqp_pool_blocklist_t_ {
-  int num_blocks;   /**< Number of blocks in the block list */
-  void **blocklist; /**< Array of memory blocks */
+	int num_blocks; /**< Number of blocks in the block list */
+	void **blocklist; /**< Array of memory blocks */
 } amqp_pool_blocklist_t;
 
 /**
@@ -569,19 +569,19 @@ typedef struct amqp_pool_blocklist_t_ {
  * \since v0.1
  */
 typedef struct amqp_pool_t_ {
-  size_t pagesize; /**< the size of the page in bytes. Allocations less than or
-                    * equal to this size are allocated in the pages block list.
-                    * Allocations greater than this are allocated in their own
-                    * own block in the large_blocks block list */
+	size_t pagesize; /**< the size of the page in bytes. Allocations less than or
+	                  * equal to this size are allocated in the pages block list.
+	                  * Allocations greater than this are allocated in their own
+	                  * own block in the large_blocks block list */
 
-  amqp_pool_blocklist_t pages; /**< blocks that are the size of pagesize */
-  amqp_pool_blocklist_t
-      large_blocks; /**< allocations larger than the pagesize */
+	amqp_pool_blocklist_t pages; /**< blocks that are the size of pagesize */
+	amqp_pool_blocklist_t
+	        large_blocks; /**< allocations larger than the pagesize */
 
-  int next_page;     /**< an index to the next unused page block */
-  char *alloc_block; /**< pointer to the current allocation block */
-  size_t alloc_used; /**< number of bytes in the current allocation block that
-                        has been used */
+	int next_page; /**< an index to the next unused page block */
+	char *alloc_block; /**< pointer to the current allocation block */
+	size_t alloc_used; /**< number of bytes in the current allocation block that
+	                      has been used */
 } amqp_pool_t;
 
 /**
@@ -590,9 +590,9 @@ typedef struct amqp_pool_t_ {
  * \since v0.1
  */
 typedef struct amqp_method_t_ {
-  amqp_method_number_t id; /**< the method id number */
-  void *decoded;           /**< pointer to the decoded method,
-                            *    cast to the appropriate type to use */
+	amqp_method_number_t id; /**< the method id number */
+	void *decoded;     /**< pointer to the decoded method,
+	                    *    cast to the appropriate type to use */
 } amqp_method_t;
 
 /**
@@ -601,32 +601,32 @@ typedef struct amqp_method_t_ {
  * \since v0.1
  */
 typedef struct amqp_frame_t_ {
-  uint8_t frame_type;     /**< frame type. The types:
-                           * - AMQP_FRAME_METHOD - use the method union member
-                           * - AMQP_FRAME_HEADER - use the properties union member
-                           * - AMQP_FRAME_BODY - use the body_fragment union member
-                           */
-  amqp_channel_t channel; /**< the channel the frame was received on */
-  union {
-    amqp_method_t
-        method; /**< a method, use if frame_type == AMQP_FRAME_METHOD */
-    struct {
-      uint16_t class_id;        /**< the class for the properties */
-      uint64_t body_size;       /**< size of the body in bytes */
-      void *decoded;            /**< the decoded properties */
-      amqp_bytes_t raw;         /**< amqp-encoded properties structure */
-    } properties;               /**< message header, a.k.a., properties,
-                                      use if frame_type == AMQP_FRAME_HEADER */
-    amqp_bytes_t body_fragment; /**< a body fragment, use if frame_type ==
-                                   AMQP_FRAME_BODY */
-    struct {
-      uint8_t transport_high;         /**< @internal first byte of handshake */
-      uint8_t transport_low;          /**< @internal second byte of handshake */
-      uint8_t protocol_version_major; /**< @internal third byte of handshake */
-      uint8_t protocol_version_minor; /**< @internal fourth byte of handshake */
-    } protocol_header; /**< Used only when doing the initial handshake with the
-                          broker, don't use otherwise */
-  } payload;           /**< the payload of the frame */
+	uint8_t frame_type; /**< frame type. The types:
+	                     * - AMQP_FRAME_METHOD - use the method union member
+	                     * - AMQP_FRAME_HEADER - use the properties union member
+	                     * - AMQP_FRAME_BODY - use the body_fragment union member
+	                     */
+	amqp_channel_t channel; /**< the channel the frame was received on */
+	union {
+		amqp_method_t
+		        method; /**< a method, use if frame_type == AMQP_FRAME_METHOD */
+		struct {
+			uint16_t class_id; /**< the class for the properties */
+			uint64_t body_size; /**< size of the body in bytes */
+			void *decoded; /**< the decoded properties */
+			amqp_bytes_t raw; /**< amqp-encoded properties structure */
+		} properties;   /**< message header, a.k.a., properties,
+		                      use if frame_type == AMQP_FRAME_HEADER */
+		amqp_bytes_t body_fragment; /**< a body fragment, use if frame_type ==
+		                               AMQP_FRAME_BODY */
+		struct {
+			uint8_t transport_high; /**< @internal first byte of handshake */
+			uint8_t transport_low; /**< @internal second byte of handshake */
+			uint8_t protocol_version_major; /**< @internal third byte of handshake */
+			uint8_t protocol_version_minor; /**< @internal fourth byte of handshake */
+		} protocol_header; /**< Used only when doing the initial handshake with the
+		                      broker, don't use otherwise */
+	} payload;     /**< the payload of the frame */
 } amqp_frame_t;
 
 /**
@@ -635,12 +635,12 @@ typedef struct amqp_frame_t_ {
  * \since v0.1
  */
 typedef enum amqp_response_type_enum_ {
-  AMQP_RESPONSE_NONE = 0, /**< the library got an EOF from the socket */
-  AMQP_RESPONSE_NORMAL, /**< response normal, the RPC completed successfully */
-  AMQP_RESPONSE_LIBRARY_EXCEPTION, /**< library error, an error occurred in the
-                                      library, examine the library_error */
-  AMQP_RESPONSE_SERVER_EXCEPTION   /**< server exception, the broker returned an
-                                      error, check replay */
+	AMQP_RESPONSE_NONE = 0, /**< the library got an EOF from the socket */
+	AMQP_RESPONSE_NORMAL, /**< response normal, the RPC completed successfully */
+	AMQP_RESPONSE_LIBRARY_EXCEPTION, /**< library error, an error occurred in the
+	                                    library, examine the library_error */
+	AMQP_RESPONSE_SERVER_EXCEPTION /**< server exception, the broker returned an
+	                                  error, check replay */
 } amqp_response_type_enum;
 
 /**
@@ -649,23 +649,23 @@ typedef enum amqp_response_type_enum_ {
  * \since v0.1
  */
 typedef struct amqp_rpc_reply_t_ {
-  amqp_response_type_enum reply_type; /**< the reply type:
-                                       * - AMQP_RESPONSE_NORMAL - the RPC
-                                       * completed successfully
-                                       * - AMQP_RESPONSE_SERVER_EXCEPTION - the
-                                       * broker returned
-                                       *     an exception, check the reply field
-                                       * - AMQP_RESPONSE_LIBRARY_EXCEPTION - the
-                                       * library
-                                       *    encountered an error, check the
-                                       * library_error field
-                                       */
-  amqp_method_t reply; /**< in case of AMQP_RESPONSE_SERVER_EXCEPTION this
-                        * field will be set to the method returned from the
-                        * broker */
-  int library_error;   /**< in case of AMQP_RESPONSE_LIBRARY_EXCEPTION this
-                        *    field will be set to an error code. An error
-                        *     string can be retrieved using amqp_error_string */
+	amqp_response_type_enum reply_type; /**< the reply type:
+	                                     * - AMQP_RESPONSE_NORMAL - the RPC
+	                                     * completed successfully
+	                                     * - AMQP_RESPONSE_SERVER_EXCEPTION - the
+	                                     * broker returned
+	                                     *     an exception, check the reply field
+	                                     * - AMQP_RESPONSE_LIBRARY_EXCEPTION - the
+	                                     * library
+	                                     *    encountered an error, check the
+	                                     * library_error field
+	                                     */
+	amqp_method_t reply; /**< in case of AMQP_RESPONSE_SERVER_EXCEPTION this
+	                      * field will be set to the method returned from the
+	                      * broker */
+	int library_error; /**< in case of AMQP_RESPONSE_LIBRARY_EXCEPTION this
+	                    *    field will be set to an error code. An error
+	                    *     string can be retrieved using amqp_error_string */
 } amqp_rpc_reply_t;
 
 /**
@@ -674,11 +674,11 @@ typedef struct amqp_rpc_reply_t_ {
  * \since v0.1
  */
 typedef enum amqp_sasl_method_enum_ {
-  AMQP_SASL_METHOD_UNDEFINED = -1, /**< Invalid SASL method */
-  AMQP_SASL_METHOD_PLAIN =
-      0, /**< the PLAIN SASL method for authentication to the broker */
-  AMQP_SASL_METHOD_EXTERNAL =
-      1 /**< the EXTERNAL SASL method for authentication to the broker */
+	AMQP_SASL_METHOD_UNDEFINED = -1, /**< Invalid SASL method */
+	AMQP_SASL_METHOD_PLAIN =
+		0, /**< the PLAIN SASL method for authentication to the broker */
+	AMQP_SASL_METHOD_EXTERNAL =
+		1 /**< the EXTERNAL SASL method for authentication to the broker */
 } amqp_sasl_method_enum;
 
 /**
@@ -703,74 +703,74 @@ typedef struct amqp_socket_t_ amqp_socket_t;
 /* NOTE: When updating this enum, update the strings in librabbitmq/amqp_api.c
  */
 typedef enum amqp_status_enum_ {
-  AMQP_STATUS_OK = 0x0,                             /**< Operation successful */
-  AMQP_STATUS_NO_MEMORY = -0x0001,                  /**< Memory allocation
-                                                         failed */
-  AMQP_STATUS_BAD_AMQP_DATA = -0x0002,              /**< Incorrect or corrupt
-                                                         data was received from
-                                                         the broker. This is a
-                                                         protocol error. */
-  AMQP_STATUS_UNKNOWN_CLASS = -0x0003,              /**< An unknown AMQP class
-                                                         was received. This is
-                                                         a protocol error. */
-  AMQP_STATUS_UNKNOWN_METHOD = -0x0004,             /**< An unknown AMQP method
-                                                         was received. This is
-                                                         a protocol error. */
-  AMQP_STATUS_HOSTNAME_RESOLUTION_FAILED = -0x0005, /**< Unable to resolve the
-                                                     * hostname */
-  AMQP_STATUS_INCOMPATIBLE_AMQP_VERSION = -0x0006,  /**< The broker advertised
-                                                         an incompaible AMQP
-                                                         version */
-  AMQP_STATUS_CONNECTION_CLOSED = -0x0007,          /**< The connection to the
-                                                         broker has been closed
-                                                         */
-  AMQP_STATUS_BAD_URL = -0x0008,                    /**< malformed AMQP URL */
-  AMQP_STATUS_SOCKET_ERROR = -0x0009,               /**< A socket error
-                                                         occurred */
-  AMQP_STATUS_INVALID_PARAMETER = -0x000A,          /**< An invalid parameter
-                                                         was passed into the
-                                                         function */
-  AMQP_STATUS_TABLE_TOO_BIG = -0x000B,              /**< The amqp_table_t object
-                                                         cannot be serialized
-                                                         because the output
-                                                         buffer is too small */
-  AMQP_STATUS_WRONG_METHOD = -0x000C,               /**< The wrong method was
-                                                         received */
-  AMQP_STATUS_TIMEOUT = -0x000D,                    /**< Operation timed out */
-  AMQP_STATUS_TIMER_FAILURE = -0x000E,              /**< The underlying system
-                                                         timer facility failed */
-  AMQP_STATUS_HEARTBEAT_TIMEOUT = -0x000F,          /**< Timed out waiting for
-                                                         heartbeat */
-  AMQP_STATUS_UNEXPECTED_STATE = -0x0010,           /**< Unexpected protocol
-                                                         state */
-  AMQP_STATUS_SOCKET_CLOSED = -0x0011,              /**< Underlying socket is
-                                                         closed */
-  AMQP_STATUS_SOCKET_INUSE = -0x0012,               /**< Underlying socket is
-                                                         already open */
-  AMQP_STATUS_BROKER_UNSUPPORTED_SASL_METHOD = -0x0013, /**< Broker does not
-                                                          support the requested
-                                                          SASL mechanism */
-  AMQP_STATUS_UNSUPPORTED = -0x0014, /**< Parameter is unsupported
-                                       in this version */
-  _AMQP_STATUS_NEXT_VALUE = -0x0015, /**< Internal value */
+	AMQP_STATUS_OK = 0x0,                       /**< Operation successful */
+	AMQP_STATUS_NO_MEMORY = -0x0001,            /**< Memory allocation
+	                                                 failed */
+	AMQP_STATUS_BAD_AMQP_DATA = -0x0002,        /**< Incorrect or corrupt
+	                                                 data was received from
+	                                                 the broker. This is a
+	                                                 protocol error. */
+	AMQP_STATUS_UNKNOWN_CLASS = -0x0003,        /**< An unknown AMQP class
+	                                                 was received. This is
+	                                                 a protocol error. */
+	AMQP_STATUS_UNKNOWN_METHOD = -0x0004,       /**< An unknown AMQP method
+	                                                 was received. This is
+	                                                 a protocol error. */
+	AMQP_STATUS_HOSTNAME_RESOLUTION_FAILED = -0x0005, /**< Unable to resolve the
+	                                                   * hostname */
+	AMQP_STATUS_INCOMPATIBLE_AMQP_VERSION = -0x0006, /**< The broker advertised
+	                                                      an incompaible AMQP
+	                                                      version */
+	AMQP_STATUS_CONNECTION_CLOSED = -0x0007,    /**< The connection to the
+	                                                 broker has been closed
+	                                             */
+	AMQP_STATUS_BAD_URL = -0x0008,              /**< malformed AMQP URL */
+	AMQP_STATUS_SOCKET_ERROR = -0x0009,         /**< A socket error
+	                                                 occurred */
+	AMQP_STATUS_INVALID_PARAMETER = -0x000A,    /**< An invalid parameter
+	                                                 was passed into the
+	                                                 function */
+	AMQP_STATUS_TABLE_TOO_BIG = -0x000B,        /**< The amqp_table_t object
+	                                                 cannot be serialized
+	                                                 because the output
+	                                                 buffer is too small */
+	AMQP_STATUS_WRONG_METHOD = -0x000C,         /**< The wrong method was
+	                                                 received */
+	AMQP_STATUS_TIMEOUT = -0x000D,              /**< Operation timed out */
+	AMQP_STATUS_TIMER_FAILURE = -0x000E,        /**< The underlying system
+	                                                 timer facility failed */
+	AMQP_STATUS_HEARTBEAT_TIMEOUT = -0x000F,    /**< Timed out waiting for
+	                                                 heartbeat */
+	AMQP_STATUS_UNEXPECTED_STATE = -0x0010,     /**< Unexpected protocol
+	                                                 state */
+	AMQP_STATUS_SOCKET_CLOSED = -0x0011,        /**< Underlying socket is
+	                                                 closed */
+	AMQP_STATUS_SOCKET_INUSE = -0x0012,         /**< Underlying socket is
+	                                                 already open */
+	AMQP_STATUS_BROKER_UNSUPPORTED_SASL_METHOD = -0x0013, /**< Broker does not
+	                                                         support the requested
+	                                                         SASL mechanism */
+	AMQP_STATUS_UNSUPPORTED = -0x0014, /**< Parameter is unsupported
+	                                      in this version */
+	_AMQP_STATUS_NEXT_VALUE = -0x0015, /**< Internal value */
 
-  AMQP_STATUS_TCP_ERROR = -0x0100,                /**< A generic TCP error
-                                                       occurred */
-  AMQP_STATUS_TCP_SOCKETLIB_INIT_ERROR = -0x0101, /**< An error occurred trying
-                                                       to initialize the
-                                                       socket library*/
-  _AMQP_STATUS_TCP_NEXT_VALUE = -0x0102,          /**< Internal value */
+	AMQP_STATUS_TCP_ERROR = -0x0100,          /**< A generic TCP error
+	                                               occurred */
+	AMQP_STATUS_TCP_SOCKETLIB_INIT_ERROR = -0x0101, /**< An error occurred trying
+	                                                     to initialize the
+	                                                     socket library*/
+	_AMQP_STATUS_TCP_NEXT_VALUE = -0x0102,    /**< Internal value */
 
-  AMQP_STATUS_SSL_ERROR = -0x0200,                  /**< A generic SSL error
-                                                         occurred. */
-  AMQP_STATUS_SSL_HOSTNAME_VERIFY_FAILED = -0x0201, /**< SSL validation of
-                                                         hostname against
-                                                         peer certificate
-                                                         failed */
-  AMQP_STATUS_SSL_PEER_VERIFY_FAILED = -0x0202,     /**< SSL validation of peer
-                                                         certificate failed. */
-  AMQP_STATUS_SSL_CONNECTION_FAILED = -0x0203, /**< SSL handshake failed. */
-  _AMQP_STATUS_SSL_NEXT_VALUE = -0x0204        /**< Internal value */
+	AMQP_STATUS_SSL_ERROR = -0x0200,            /**< A generic SSL error
+	                                                 occurred. */
+	AMQP_STATUS_SSL_HOSTNAME_VERIFY_FAILED = -0x0201, /**< SSL validation of
+	                                                       hostname against
+	                                                       peer certificate
+	                                                       failed */
+	AMQP_STATUS_SSL_PEER_VERIFY_FAILED = -0x0202, /**< SSL validation of peer
+	                                                   certificate failed. */
+	AMQP_STATUS_SSL_CONNECTION_FAILED = -0x0203, /**< SSL handshake failed. */
+	_AMQP_STATUS_SSL_NEXT_VALUE = -0x0204  /**< Internal value */
 } amqp_status_enum;
 
 /**
@@ -780,13 +780,13 @@ typedef enum amqp_status_enum_ {
  * \since v0.5
  */
 typedef enum {
-  AMQP_DELIVERY_NONPERSISTENT = 1, /**< Non-persistent message */
-  AMQP_DELIVERY_PERSISTENT = 2     /**< Persistent message */
+	AMQP_DELIVERY_NONPERSISTENT = 1, /**< Non-persistent message */
+	AMQP_DELIVERY_PERSISTENT = 2 /**< Persistent message */
 } amqp_delivery_mode_enum;
 
 AMQP_END_DECLS
 
-#include <amqp_framing.h>
+#include "amqp_framing.h"
 
 AMQP_BEGIN_DECLS
 
@@ -1075,7 +1075,7 @@ int AMQP_CALL amqp_get_sockfd(amqp_connection_state_t state);
  * \since v0.1
  */
 AMQP_DEPRECATED(AMQP_PUBLIC_FUNCTION void AMQP_CALL
-                    amqp_set_sockfd(amqp_connection_state_t state, int sockfd));
+                amqp_set_sockfd(amqp_connection_state_t state, int sockfd));
 
 /**
  * Tune client side parameters
@@ -1312,7 +1312,7 @@ void AMQP_CALL amqp_maybe_release_buffers(amqp_connection_state_t state);
  */
 AMQP_PUBLIC_FUNCTION
 void AMQP_CALL amqp_maybe_release_buffers_on_channel(
-    amqp_connection_state_t state, amqp_channel_t channel);
+	amqp_connection_state_t state, amqp_channel_t channel);
 
 /**
  * Send a frame to the broker
@@ -1662,9 +1662,9 @@ int AMQP_CALL amqp_send_method(amqp_connection_state_t state,
  */
 AMQP_PUBLIC_FUNCTION
 amqp_rpc_reply_t AMQP_CALL amqp_simple_rpc(
-    amqp_connection_state_t state, amqp_channel_t channel,
-    amqp_method_number_t request_id, amqp_method_number_t *expected_reply_ids,
-    void *decoded_request_method);
+	amqp_connection_state_t state, amqp_channel_t channel,
+	amqp_method_number_t request_id, amqp_method_number_t *expected_reply_ids,
+	void *decoded_request_method);
 
 /**
  * Sends a method to the broker and waits for a method response
@@ -1854,9 +1854,9 @@ amqp_rpc_reply_t AMQP_CALL amqp_login(amqp_connection_state_t state,
  */
 AMQP_PUBLIC_FUNCTION
 amqp_rpc_reply_t AMQP_CALL amqp_login_with_properties(
-    amqp_connection_state_t state, char const *vhost, int channel_max,
-    int frame_max, int heartbeat, const amqp_table_t *properties,
-    amqp_sasl_method_enum sasl_method, ...);
+	amqp_connection_state_t state, char const *vhost, int channel_max,
+	int frame_max, int heartbeat, const amqp_table_t *properties,
+	amqp_sasl_method_enum sasl_method, ...);
 
 struct amqp_basic_properties_t_;
 
@@ -1907,10 +1907,10 @@ struct amqp_basic_properties_t_;
  */
 AMQP_PUBLIC_FUNCTION
 int AMQP_CALL amqp_basic_publish(
-    amqp_connection_state_t state, amqp_channel_t channel,
-    amqp_bytes_t exchange, amqp_bytes_t routing_key, amqp_boolean_t mandatory,
-    amqp_boolean_t immediate, struct amqp_basic_properties_t_ const *properties,
-    amqp_bytes_t body);
+	amqp_connection_state_t state, amqp_channel_t channel,
+	amqp_bytes_t exchange, amqp_bytes_t routing_key, amqp_boolean_t mandatory,
+	amqp_boolean_t immediate, struct amqp_basic_properties_t_ const *properties,
+	amqp_bytes_t body);
 
 /**
  * Closes an channel
@@ -2063,7 +2063,7 @@ amqp_boolean_t AMQP_CALL amqp_data_in_buffer(amqp_connection_state_t state);
  * \since v0.1
  */
 AMQP_DEPRECATED(
-    AMQP_PUBLIC_FUNCTION char *AMQP_CALL amqp_error_string(int err));
+	AMQP_PUBLIC_FUNCTION char *AMQP_CALL amqp_error_string(int err));
 
 /**
  * Get the error string for the given error code.
@@ -2154,9 +2154,9 @@ int AMQP_CALL amqp_table_clone(const amqp_table_t *original,
  * \since v0.4.0
  */
 typedef struct amqp_message_t_ {
-  amqp_basic_properties_t properties; /**< message properties */
-  amqp_bytes_t body;                  /**< message body */
-  amqp_pool_t pool;                   /**< pool used to allocate properties */
+	amqp_basic_properties_t properties; /**< message properties */
+	amqp_bytes_t body;            /**< message body */
+	amqp_pool_t pool;             /**< pool used to allocate properties */
 } amqp_message_t;
 
 /**
@@ -2200,16 +2200,16 @@ void AMQP_CALL amqp_destroy_message(amqp_message_t *message);
  * \since v0.4.0
  */
 typedef struct amqp_envelope_t_ {
-  amqp_channel_t channel; /**< channel message was delivered on */
-  amqp_bytes_t
-      consumer_tag;      /**< the consumer tag the message was delivered to */
-  uint64_t delivery_tag; /**< the messages delivery tag */
-  amqp_boolean_t redelivered; /**< flag indicating whether this message is being
-                                 redelivered */
-  amqp_bytes_t exchange;      /**< exchange this message was published to */
-  amqp_bytes_t
-      routing_key; /**< the routing key this message was published with */
-  amqp_message_t message; /**< the message */
+	amqp_channel_t channel; /**< channel message was delivered on */
+	amqp_bytes_t
+	        consumer_tag; /**< the consumer tag the message was delivered to */
+	uint64_t delivery_tag; /**< the messages delivery tag */
+	amqp_boolean_t redelivered; /**< flag indicating whether this message is being
+	                               redelivered */
+	amqp_bytes_t exchange; /**< exchange this message was published to */
+	amqp_bytes_t
+	        routing_key; /**< the routing key this message was published with */
+	amqp_message_t message; /**< the message */
 } amqp_envelope_t;
 
 /**
@@ -2265,16 +2265,16 @@ void AMQP_CALL amqp_destroy_envelope(amqp_envelope_t *envelope);
  * \since v0.2
  */
 struct amqp_connection_info {
-  char *user; /**< the username to authenticate with the broker, default on most
-                 broker is 'guest' */
-  char *password; /**< the password to authenticate with the broker, default on
-                     most brokers is 'guest' */
-  char *host;     /**< the hostname of the broker */
-  char *vhost; /**< the virtual host on the broker to connect to, a good default
-                  is "/" */
-  int port;    /**< the port that the broker is listening on, default on most
-                  brokers is 5672 */
-  amqp_boolean_t ssl;
+	char *user; /**< the username to authenticate with the broker, default on most
+	               broker is 'guest' */
+	char *password; /**< the password to authenticate with the broker, default on
+	                   most brokers is 'guest' */
+	char *host; /**< the hostname of the broker */
+	char *vhost; /**< the virtual host on the broker to connect to, a good default
+	                is "/" */
+	int port; /**< the port that the broker is listening on, default on most
+	             brokers is 5672 */
+	amqp_boolean_t ssl;
 };
 
 /**
@@ -2293,7 +2293,7 @@ struct amqp_connection_info {
  */
 AMQP_PUBLIC_FUNCTION
 void AMQP_CALL
-    amqp_default_connection_info(struct amqp_connection_info *parsed);
+amqp_default_connection_info(struct amqp_connection_info *parsed);
 
 /**
  * Parse a connection URL
@@ -2407,7 +2407,7 @@ amqp_socket_t *AMQP_CALL amqp_get_socket(amqp_connection_state_t state);
  */
 AMQP_PUBLIC_FUNCTION
 amqp_table_t *AMQP_CALL
-    amqp_get_server_properties(amqp_connection_state_t state);
+amqp_get_server_properties(amqp_connection_state_t state);
 
 /**
  * Get the client properties table
@@ -2423,7 +2423,7 @@ amqp_table_t *AMQP_CALL
  */
 AMQP_PUBLIC_FUNCTION
 amqp_table_t *AMQP_CALL
-    amqp_get_client_properties(amqp_connection_state_t state);
+amqp_get_client_properties(amqp_connection_state_t state);
 
 /**
  * Get the login handshake timeout.
@@ -2446,7 +2446,7 @@ amqp_table_t *AMQP_CALL
  */
 AMQP_PUBLIC_FUNCTION
 struct timeval *AMQP_CALL
-    amqp_get_handshake_timeout(amqp_connection_state_t state);
+amqp_get_handshake_timeout(amqp_connection_state_t state);
 
 /**
  * Set the login handshake timeout.

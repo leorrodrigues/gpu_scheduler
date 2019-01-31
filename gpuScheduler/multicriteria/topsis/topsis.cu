@@ -133,21 +133,18 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 		int i=0,j=0;
 		for( i=0; i<alt_size; i++) {
 			j=0;
-			for( auto it: alternatives[i]->getResource()) {
-				matrix[j*alt_size+i]= it.second;
-				j++;
-			}
-
+			for( auto it: alternatives[i]->getResource())
+			{matrix[j*alt_size+i]= it.second; j++; }
 		}
+		// }
+		// printf("Matrix\n");
+		// for(j=0; j<resources_size; j++) {
+		// for(i=0; i<alt_size; i++) {
+		// printf("%f\t",matrix[j*alt_size+i]);
+		// }
+		// printf("\n");
+		// }
 	}
-	// printf("Matrix\n");
-	//      for(j=0; j<resources_size; j++) {
-	//              for(i=0; i<alt_size; i++) {
-	//                      printf("%f\t",matrix[j*alt_size+i]);
-	//              }
-	//              printf("\n");
-	//      }
-	// }
 	// printf("Getting the weights\n");
 	getWeights(weights, types, alternatives[0]->getResource());
 
@@ -262,11 +259,12 @@ unsigned int* TOPSIS::getResult(unsigned int& size){
 	// printf("VALUES\n");
 	for (i = 0; i < size; i++) {
 		alternativesPair.push(std::make_pair(this->hosts_value[i], i));
-		//      printf("%f - ",this->hosts_value[i]);
+		// printf("%f - ",this->hosts_value[i]);
 	}
 	// printf("\n");
 	i=0;
 	while(!alternativesPair.empty()) {
+		// printf("\t%f\t%d\n",alternativesPair.top().first,alternativesPair.top().second);
 		result[i] = alternativesPair.top().second;
 		alternativesPair.pop();
 		i++;

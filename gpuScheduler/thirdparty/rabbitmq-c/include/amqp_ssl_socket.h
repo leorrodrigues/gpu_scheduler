@@ -28,7 +28,7 @@
 #ifndef AMQP_SSL_H
 #define AMQP_SSL_H
 
-#include <amqp.h>
+#include "amqp.h"
 
 AMQP_BEGIN_DECLS
 
@@ -122,7 +122,7 @@ int AMQP_CALL amqp_ssl_socket_set_key_buffer(amqp_socket_t *self,
  * \since v0.4.0
  */
 AMQP_DEPRECATED(AMQP_PUBLIC_FUNCTION void AMQP_CALL amqp_ssl_socket_set_verify(
-    amqp_socket_t *self, amqp_boolean_t verify));
+			amqp_socket_t *self, amqp_boolean_t verify));
 
 /**
  * Enable or disable peer verification.
@@ -153,10 +153,10 @@ void AMQP_CALL amqp_ssl_socket_set_verify_hostname(amqp_socket_t *self,
                                                    amqp_boolean_t verify);
 
 typedef enum {
-  AMQP_TLSv1 = 1,
-  AMQP_TLSv1_1 = 2,
-  AMQP_TLSv1_2 = 3,
-  AMQP_TLSvLATEST = 0xFFFF
+	AMQP_TLSv1 = 1,
+	AMQP_TLSv1_1 = 2,
+	AMQP_TLSv1_2 = 3,
+	AMQP_TLSvLATEST = 0xFFFF
 } amqp_tls_version_t;
 
 /**
