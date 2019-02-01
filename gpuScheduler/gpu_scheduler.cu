@@ -373,6 +373,7 @@ int main(int argc, char **argv){
 
 	}else{
 		// parse all json
+		printf("parsing\n");
 		Reader* reader = new Reader();
 		std::string path = "../simulator/json/";
 		if(options.test_type==1) {
@@ -389,6 +390,7 @@ int main(int argc, char **argv){
 		reader->openDocument(path.c_str());
 		std::string message;
 
+		printf("Creating the contianers\n");
 		while((message=reader->getNextTask())!="eof") {
 			// Create new container
 			Container *current = new Container();
@@ -399,6 +401,7 @@ int main(int argc, char **argv){
 		}
 		message.clear();
 		delete(reader);
+		printf("done\n");
 		if(options.clustering_method!="none") {
 			builder->runClustering(builder->getHosts());
 
@@ -420,6 +423,7 @@ int main(int argc, char **argv){
 	}
 
 	// Free the allocated pointers
+	printf("Deleting the builder\n");
 	delete(builder);
 	return 0;
 }

@@ -18,16 +18,17 @@ TOPSIS::TOPSIS(){
 	char* result;
 	result = getcwd(cwd, sizeof(cwd));
 	if(result == NULL) {
-		printf("AHP Error get directory path\n");
+		printf("TOPSIS Error get directory path\n");
 	}
 	char* sub_path = (strstr(cwd, "topsis"));
 	if(sub_path!=NULL) {
 		int position = sub_path - cwd;
 		strncpy(this->path, cwd, position);
-		this->path[position-1] = '\0';
+		strcat(this->path,"/");
+		this->path[position] = '\0';
 	}else{
 		strcpy(this->path, cwd);
-		strcat(this->path,"/");
+		strcat(this->path,"/multicriteria/\0");
 	}
 	this->hosts_value = NULL;
 	this->hosts_size = 0;
@@ -44,8 +45,8 @@ void TOPSIS::getWeights(float* weights, unsigned int* types, std::map<std::strin
 	strcpy(weights_schema_path, path);
 	strcpy(weights_data_path, path);
 
-	strcat(weights_schema_path, "/topsis/json/weightsSchema.json");
-	strcat(weights_data_path, "/topsis/json/weightsDataTest.json");
+	strcat(weights_schema_path, "topsis/json/weightsSchema.json");
+	strcat(weights_data_path, "topsis/json/weightsDataFrag.json");
 
 	rapidjson::SchemaDocument weightsSchema = JSON::generateSchema(weights_schema_path);
 	rapidjson::Document weightsData = JSON::generateDocument(weights_data_path);
@@ -55,9 +56,9 @@ void TOPSIS::getWeights(float* weights, unsigned int* types, std::map<std::strin
 
 	int i=0;
 
-	float value;
-	bool type;
-	int index;
+	float value=0;
+	bool type=false;
+	int index=0;
 
 	for(auto &dataObject: weightsData.GetObject()) {
 		for(auto &arrayObject: dataObject.value.GetArray()) {
@@ -74,6 +75,7 @@ void TOPSIS::getWeights(float* weights, unsigned int* types, std::map<std::strin
 			}
 			weights[index] = value;
 			types[index] = (type == true) ? 1 : 0;
+			printf("Index = %d\n",index);
 		}
 	}
 	// for(int i=0; i<resource.size(); i++) {
@@ -83,22 +85,32 @@ void TOPSIS::getWeights(float* weights, unsigned int* types, std::map<std::strin
 }
 
 void TOPSIS::run(Host** alternatives, int alt_size){
+	printf("Running topsis\n");
 	int devID;
 	cudaDeviceProp props;
 	cudaGetDevice(&devID);
 	cudaGetDeviceProperties(&props, devID);
 	int block_size = (props.major <2) ? 16 : 32;
 
-	int resources_size = alternatives[0]->getResource().size();
+	std::map<std::string,float> allResources = alternatives[0]->getResource();
+	allResources["allocated_resources"]=0;
+	allResources.erase("id");
+
+	int resources_size = allResources;
 
 	size_t matrix_bytes  = sizeof(float)*resources_size*alt_size;
-	size_t weights_bytes = sizeof(float)*resources_size;
+	size_t weights_bytes = sizeof(float)*(resources_size+1);
 	size_t result_bytes  = sizeof(float)*alt_size;
 
 	/*Create the host variables*/
 	float *matrix = (float*) malloc (matrix_bytes);
 	float *weights= (float*) malloc (weights_bytes);
-	unsigned int * types = (unsigned int*) malloc (sizeof(unsigned int)*alt_size);
+	unsigned int * types = (unsigned int*) malloc (sizeof(unsigned int)*resources_size);
+	printf("Allocating %d spaces for weights\n", resources_size);
+	std::map<std::string, float> a =allResources;
+	for(std::map<std::string, float>::iterator it=a.begin(); it!=a.end(); it++) {
+		printf("%s %f\n",it->first.c_str(),it->second);
+	}
 
 	/*Create the pinned variables*/
 	float *pinned_matrix, *pinned_weights;
@@ -129,6 +141,7 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	 */
 
 	/*Step 1 - Build the matrix*/
+	printf("Step One\n");
 	{
 		int i=0,j=0;
 		for( i=0; i<alt_size; i++) {
@@ -139,31 +152,38 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 		// }
 		// printf("Matrix\n");
 		// for(j=0; j<resources_size; j++) {
-		// for(i=0; i<alt_size; i++) {
-		// printf("%f\t",matrix[j*alt_size+i]);
-		// }
-		// printf("\n");
+		//      for(i=0; i<alt_size; i++) {
+		//              printf("%f\t",matrix[j*alt_size+i]);
+		//      }
+		//      printf("\n");
 		// }
 	}
 	// printf("Getting the weights\n");
-	getWeights(weights, types, alternatives[0]->getResource());
+	getWeights(weights, types, allResources);
 
 	/*copy the values to the pinned memory*/
 	memcpy(pinned_matrix, matrix, matrix_bytes);
 	memcpy(pinned_weights, weights, weights_bytes);
 
-	/*Need to free the host variables*/
+	printf("Free matrix\n");
 	free(matrix);
+	printf("Free Weights\n");
 	free(weights);
+	printf(" OK\n");
 	matrix =NULL;
 	weights=NULL;
+	printf("NULL OK\n");
 
+	/*Need to free the host variables*/
 	/*Copy the pinned values to the device memory*/
 	checkCuda( cudaMemcpy(d_matrix, pinned_matrix, matrix_bytes, cudaMemcpyHostToDevice));
 	checkCuda( cudaMemcpy(d_weights, pinned_weights, weights_bytes, cudaMemcpyHostToDevice));
 
+	printf("Cuda Free host\n");
 	cudaFreeHost(pinned_matrix);
+	printf("PWeights\n");
 	cudaFreeHost(pinned_weights);
+	printf(" OK\n");
 	/*Prepare the blod and grid for kernel*/
 	dim3 block_1d(block_size,1,1);
 	dim3 grid_1d(ceil(alt_size/(float)block_1d.x),1,1);
@@ -172,6 +192,7 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	dim3 grid_2d(ceil(alt_size/(float)block_2d.x), ceil(resources_size/(float)block_2d.y),1);
 
 	/*Step 2 - Calculate the normalized Matrix*/
+	printf("Step Two\n");
 	powKernel<<< grid_2d, block_2d>>> (d_matrix, d_aux_matrix, alt_size, resources_size);
 	cudaDeviceSynchronize();
 

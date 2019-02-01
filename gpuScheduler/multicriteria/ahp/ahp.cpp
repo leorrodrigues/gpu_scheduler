@@ -62,8 +62,8 @@ void AHP::updateAlternatives() {
 	strcpy(alt_schema_path, path);
 	strcpy(alt_data_path, path);
 
-	strcat(alt_schema_path, "multicriteria/json/alternativesSchema.json");
-	strcat(alt_data_path, "multicriteria/json/alternativesDataDefault.json");
+	strcat(alt_schema_path, "multicriteria/ahp/json/alternativesSchema.json");
+	strcat(alt_data_path, "multicriteria/ahp/json/alternativesDataDefault.json");
 
 	this->hierarchy->clearAlternatives();
 	rapidjson::SchemaDocument alternativesSchema =
@@ -102,8 +102,8 @@ void AHP::buildMatrix(Node* node) {
 
 	for (i = 0; i < size; i++) {
 		matrix[i*size+i] = 1;
-		weights = (node->getEdges())[i]->getWeights();
-		for (j = i + 1; j < size; j++) {
+		weights = (node->getEdges())[i] -> getWeights();
+		for (j = i + 1; j < size; j ++) {
 			if(weights == NULL ) {
 				printf("AHP(107): WEIGHT NULL\n");
 				exit(0);

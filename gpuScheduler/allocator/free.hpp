@@ -19,19 +19,18 @@ bool freeHostResource(Host* host, Container* container, consumed_resource_t* con
 
 	//Need to find the group that has this host and update their resource
 	std::vector<Host*> groups = builder->getClusterHosts();
-	int index=-1;
+	// int index=-1;
 	for(int i=0; i<groups.size(); i++) {
 		if(builder->findHostInGroup(groups[i]->getId(),host->getId())) {
-			index=i;
+			// index=i;
 			groups[i]->removeContainer(container);
 			break;
 		}
 	}
-	if(index==-1) {
-		printf("free.hpp(30) Erro host isn't in any group!\n");
-		exit(0);
-	}
-
+	// if(index==-1) {
+	//      printf("free.hpp(30) Erro host isn't in any group!\n");
+	//      exit(0);
+	// }
 
 	int fit = container->getFit();
 	if(fit==7) { // allocate MAX VCPU AND RAM
@@ -47,7 +46,6 @@ bool freeHostResource(Host* host, Container* container, consumed_resource_t* con
 		consumed->ram -= container->containerResources->ram_min;
 		consumed->vcpu -= container->containerResources->vcpu_min;
 	}
-
 	return true;
 }
 }

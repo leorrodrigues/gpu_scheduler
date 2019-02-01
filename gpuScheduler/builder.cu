@@ -8,25 +8,44 @@ Builder::Builder(){
 }
 
 Builder::~Builder(){
-	delete(this->multicriteriaMethod);
-	delete(this->multicriteriaClusteredMethod);
-	delete(this->clusteringMethod);
-	delete(this->topology);
+	// printf("1\n");
+	if(this->multicriteriaMethod)
+		delete(this->multicriteriaMethod);
+	// printf("2\n");
+	if(this->multicriteriaClusteredMethod!=NULL)
+		delete(this->multicriteriaClusteredMethod);
+	// printf("3\n");
+	if(this->clusteringMethod!=NULL)
+		delete(this->clusteringMethod);
+	// printf("4\n");
+	if(this->topology!=NULL)
+		delete(this->topology);
+	// printf("5\n");
 	this->multicriteriaMethod=NULL;
+	// printf("6\n");
 	this->multicriteriaClusteredMethod=NULL;
+	// printf("7\n");
 	this->clusteringMethod=NULL;
+	// printf("8\n");
 	this->topology=NULL;
+	// printf("9\n");
 	this->resource.clear();
-
 	for(std::vector<Host*>::iterator it=hosts.begin(); it!=hosts.end(); it++) {
 		delete(*it);
+		*it=NULL;
 	}
+	// printf("11\n");
 	hosts.clear();
+	// printf("12\n");
 
 	for(std::vector<Host*>::iterator it=clusterHosts.begin(); it!=clusterHosts.end(); it++) {
 		delete(*it);
 	}
+	// printf("13\n");
+
 	clusterHosts.clear();
+	// printf("14\n");
+
 }
 
 void Builder::generateContentSchema() {
