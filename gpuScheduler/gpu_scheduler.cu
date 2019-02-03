@@ -64,6 +64,18 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 		options->topology_size=topology_size;
 	}
 
+	if( multicriteria_method == "ahpg") {
+		builder->setAHPG();
+	}else if(multicriteria_method == "ahp" ) {
+		builder->setAHP();
+	}else if(multicriteria_method=="topsis") {
+		builder->setTOPSIS();
+	} else{
+		std::cerr << "(gpu_scheduler 92) Invalid multicriteria method\n";
+		exit(0);
+	}
+	options->multicriteria_method=multicriteria_method;
+
 	bool cluster = false;
 	if( clustering_method == "mcl" ) {
 		builder->setMCL();
@@ -79,19 +91,7 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	}
 	options->clustering_method=clustering_method;
 
-	if(!cluster) {
-		if( multicriteria_method == "ahpg") {
-			builder->setAHPG();
-		}else if(multicriteria_method == "ahp" ) {
-			builder->setAHP();
-		}else if(multicriteria_method=="topsis") {
-			builder->setTOPSIS();
-		} else{
-			std::cerr << "(gpu_scheduler 92) Invalid multicriteria method\n";
-			exit(0);
-		}
-		options->multicriteria_method=multicriteria_method;
-	}else{
+	if(cluster) {
 		if(multicriteria_method=="ahp") {
 			builder->setClusteredAHP();
 		}else if(multicriteria_method=="ahpg") {
