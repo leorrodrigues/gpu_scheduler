@@ -8,6 +8,11 @@
 #include "builder.cuh"
 #include "thirdparty/clara.hpp"
 
+
+#include "allocator/standard/bestFit.hpp"
+#include "allocator/standard/firstFit.hpp"
+#include "allocator/standard/worstFit.hpp"
+
 #include "allocator/multicriteria_clusterized.cuh"
 #include "allocator/pure_mcl.hpp"
 #include "allocator/naive.hpp"
@@ -20,8 +25,9 @@
 
 void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, options_t* options){
 	std::string topology = "fat_tree";
-	std::string multicriteria_method = "ahpg_clusterized";
+	std::string multicriteria_method = "ahpg";
 	std::string clustering_method = "mcl";
+	std::string standard = "none";
 	int topology_size=10;
 	// dont show the help by default. Use `-h or `--help` to enable it.
 	bool showHelp = false;
@@ -36,12 +42,13 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	           // 1 For Container Test
 	           // 2 For Consolidation Test
 	           | clara::detail::Opt( test_type, "Type Test")["--test"]("Which type of test you want?")
-	           | clara::detail::Opt( request_size, "Request Size")["--request-size"]("Which is the request size?");
+	           | clara::detail::Opt( request_size, "Request Size")["--request-size"]("Which is the request size?")
+	           | clara::detail::Opt( standard, "Standard Allocation")["--standard-allocation"]("What is the standard allocation method? [best_fit (bf) | worst_fit (wf) | first_fit (ff) ]");
 
 	auto result = cli.parse( clara::detail::Args( argc, argv ) );
 
 	if( !result ) {
-		std::cerr << "(gpu_scheduler 45) Error in command line: " << result.errorMessage() <<std::endl;
+		std::cerr << "(gpu_scheduler) Error in command line: " << result.errorMessage() <<std::endl;
 		exit(1);
 	}
 
@@ -51,14 +58,14 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	}
 
 	if( topology != "fat_tree" && topology != "dcell" && topology != "bcube" ) {
-		std::cerr << "(gpu_scheduler 53) Invalid entered topology\n";
+		std::cerr << "(gpu_scheduler) Invalid entered topology\n";
 		exit(0);
 	}else{
 		options->topology_type=topology;
 	}
 
 	if( (topology_size<2 || topology_size>48) && topology_size!=0) {
-		std::cerr << "(gpu_scheduler 59) Invalid topology size ( must be between 4 and 48 )\n";
+		std::cerr << "(gpu_scheduler) Invalid topology size ( must be between 4 and 48 )\n";
 		exit(0);
 	}else{
 		options->topology_size=topology_size;
@@ -71,7 +78,7 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	}else if(multicriteria_method=="topsis") {
 		builder->setTOPSIS();
 	} else{
-		std::cerr << "(gpu_scheduler 92) Invalid multicriteria method\n";
+		std::cerr << "(gpu_scheduler) Invalid multicriteria method\n";
 		exit(0);
 	}
 	options->multicriteria_method=multicriteria_method;
@@ -86,7 +93,7 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	}else if( clustering_method == "none") {
 		cluster = false;
 	}else{
-		std::cerr << "(gpu_scheduler 80) Invalid clustering method\n";
+		std::cerr << "(gpu_scheduler) Invalid clustering method\n";
 		exit(0);
 	}
 	options->clustering_method=clustering_method;
@@ -99,7 +106,7 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 		}else if(multicriteria_method=="topsis") {
 			builder->setClusteredTOPSIS();
 		}else{
-			std::cerr << "(gpu_scheduler 93) Invalid multicriteria method\n";
+			std::cerr << "(gpu_scheduler) Invalid multicriteria method\n";
 			exit(0);
 		}
 	}
@@ -107,15 +114,27 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	if(test_type >=0 && test_type<=3) {
 		options->test_type=test_type;
 	}else{
-		std::cerr << "(gpu_scheduler 136) Invalid Type of test: " << test_type << "\n";
+		std::cerr << "(gpu_scheduler) Invalid Type of test: " << test_type << "\n";
 		exit(0);
 	}
 
 	if(request_size<=0 && request_size>=22) {
-		std::cerr << "(gpu_scheduler 140) Invalid Size of Request\n";
+		std::cerr << "(gpu_scheduler) Invalid Size of Request\n";
 		exit(0);
 	}else{
 		options->request_size=request_size;
+	}
+
+	if(standard=="ff" || standard=="first_fit") {
+		options->standard=1;
+	}else if(standard=="bf" || standard=="best_fit") {
+		options->standard=2;
+	}else if(standard=="wf" || standard=="worst_fit") {
+		options->standard=3;
+	}else if(standard=="none") {
+	}else{
+		std::cerr << "(gpu_scheduler) Invalid Type of standard allocation\n";
+		exit(0);
 	}
 
 	options->current_time=0;
@@ -229,18 +248,30 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
 		if(Allocator::checkFit(total_dc, consumed,current)!=0) {
 			// allocate the new task in the data center.
-			if( options->clustering_method=="pure_mcl") {
-				allocation_success=Allocator::mcl_pure(builder,current,scheduler->allocated_task);
-			} else if( options->clustering_method == "none") {
-				printf("Call naive type\n");
-				allocation_success=Allocator::naive(builder,current, scheduler->allocated_task,consumed);
-			} else if ( options->clustering_method == "mcl") {
-				allocation_success=Allocator::multicriteria_clusterized(builder, current, scheduler->allocated_task,consumed);
-			} else if ( options->clustering_method == "all") {
-				allocation_success=Allocator::all();
-			} else {
-				std::cerr << "(gpu_scheduler 266) Invalid type\n";
-				exit(1);
+			if(options->standard==0) {
+				if( options->clustering_method=="pure_mcl") {
+					allocation_success=Allocator::mcl_pure(builder,current,scheduler->allocated_task);
+				} else if( options->clustering_method == "none") {
+					allocation_success=Allocator::naive(builder,current, scheduler->allocated_task,consumed);
+				} else if ( options->clustering_method == "mcl") {
+					allocation_success=Allocator::multicriteria_clusterized(builder, current, scheduler->allocated_task,consumed);
+				} else if ( options->clustering_method == "all") {
+					allocation_success=Allocator::all();
+				} else {
+					std::cerr << "(gpu_scheduler) Invalid type of allocation method\n";
+					exit(1);
+				}
+			}else{
+				if(options->standard==1) {
+					allocation_success=Allocator::firstFit(builder, current, scheduler->allocated_task,consumed);
+				}else if(options->standard==2) {
+					allocation_success=Allocator::bestFit(builder, current, scheduler->allocated_task,consumed);
+				}else if(options->standard==3) {
+					allocation_success=Allocator::worstFit(builder, current, scheduler->allocated_task,consumed);
+				}else{
+					std::cerr << "(gpu_scheduler) Invalid type of standard allocation method\n";
+					exit(1);
+				}
 			}
 		}else{
 			allocation_success=false;
@@ -261,7 +292,6 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			total_delay+=current->getDelay();
 
 			printf("\tContainer %d Added Delay in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
-
 		}else{
 
 			printf("\tContainer %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );

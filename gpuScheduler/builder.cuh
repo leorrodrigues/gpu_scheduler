@@ -7,11 +7,6 @@
 #include "multicriteria/ahp/ahpg.cuh"
 #include "multicriteria/topsis/topsis.cuh"
 
-#include "standard_methods/bestFit.hpp"
-#include "standard_methods/firstFit.hpp"
-#include "standard_methods/worstFit.hpp"
-
-
 #include "clustering/mclInterface.cuh"
 
 #include "rabbit/comunicator.hpp"

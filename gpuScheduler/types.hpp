@@ -28,10 +28,11 @@ typedef struct {
 	std::string multicriteria_method;
 	std::string clustering_method;
 	std::string topology_type;
-	int topology_size=0;
-	int current_time=0;
-	int test_type=0;
-	int request_size=0;
+	unsigned int topology_size=0;
+	unsigned int current_time=0;
+	unsigned int test_type=0;
+	unsigned int request_size=0;
+	unsigned int standard=0;
 } options_t;
 
 typedef struct {
