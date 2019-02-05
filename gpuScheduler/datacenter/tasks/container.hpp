@@ -7,17 +7,10 @@
 
 class Container : public Task {
 private:
-int duration;
-double* links;
-int id;
-int submission;
-int allocated_time;
-int delay;
-int fit;
 
 typedef struct container_resources_t : public task_resource_t {
-	int pod;
-	int name;
+	unsigned int pod;
+	unsigned int name;
 	double epc_min;
 	double epc_max;
 	double ram_min;
@@ -48,9 +41,7 @@ int getAllocatedTime();
 int getFit();
 int getDelay();
 
-void decreaseDuration(int);
-
-friend std::ostream& operator<<(std::ostream&, Container const&);
+friend std ::ostream& operator<<(std::ostream&, Container const&);
 
 };
 

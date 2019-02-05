@@ -1,6 +1,5 @@
-
-#ifndef _Host_NOT_INCLUDED_
-#define _Host_NOT_INCLUDED_
+#ifndef  _HOST_NOT_INCLUDED_
+#define _HOST_NOT_INCLUDED_
 
 #include <string>
 #include <map>
