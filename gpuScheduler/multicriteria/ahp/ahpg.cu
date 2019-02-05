@@ -116,8 +116,8 @@ void AHPG::buildMatrixG(Node* node) {
 
 	for (i = 0; i < size; i++) {
 		matrix[i*size+i] = 1;
-		weights = (node->getEdges())[i] -> getWeights();
-		for (j = i + 1; j < size; j ++) {
+		weights = (node->getEdges())[i]->getWeights();
+		for (j = i + 1; j < size; j++) {
 			if(weights == NULL ) {
 				printf("ahpg.cu(120) Error build matrix weight=NULL\n");
 				exit(0);
@@ -799,7 +799,6 @@ unsigned int* AHPG::getResult(unsigned int& size) {
 		i++;
 	}
 	size = i;
-	printf("size %d\n",size);
 	return result;
 }
 

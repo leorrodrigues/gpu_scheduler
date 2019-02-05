@@ -5,53 +5,63 @@
 
 #include "container.hpp"
 
-class Pod : public Task {
+class Pod {
 private:
+//Pod variables
 Container** containers;
-unsigned int containers_size;
-
-double* links;
-unsigned int links_size;
-
+float* links;
 unsigned int duration;
 unsigned int id;
 unsigned int submission;
+
+//Management variables
+unsigned int containers_size;
+unsigned int links_size;
 unsigned int allocated_time;
 unsigned int delay;
 unsigned int fit;
 
-typedef struct pod_resources_t : public task_resource_t {
-	double epc_min;
-	double ram_min;
-	double vcpu_min;
-	double epc_max;
-	double ram_max;
-	double vcpu_max;
-} pod_resources_t;
+//Acumulative resources of the containers
+float epc_min;
+float ram_min;
+float vcpu_min;
+float epc_max;
+float ram_max;
+float vcpu_max;
 
 public:
-
-pod_resources_t* podResources;
 
 Pod();
 ~Pod();
 
-void setSubmission(unsigned int);
-void setAllocatedTime(unsigned int);
-void setFit(unsigned int);
+void setTask(const char*);
+
 void addDelay();
 void addDelay(unsigned int);
+void setFit(unsigned int);
+void setAllocatedTime(unsigned int);
+void setSubmission(unsigned int);
 
-pod_resources_t* getResource();
+Container** getContainers();
+float* getLinks();
 unsigned int getDuration();
 unsigned int getId();
+unsigned int getSubmission();
+unsigned int getContainersSize();
+unsigned int getLinksSize();
 unsigned int getAllocatedTime();
-unsigned int getFit();
 unsigned int getDelay();
+unsigned int getFit();
+float getEpcMin();
+float getEpcMax();
+float getRamMin();
+float getRamMax();
+float getVcpuMin();
+float getVcpuMax();
 
 void addContainer(Container*);
 
-
+friend std ::ostream& operator<<(std::ostream&, Pod const&);
 
 };
 

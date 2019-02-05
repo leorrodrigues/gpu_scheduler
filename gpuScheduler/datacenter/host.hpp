@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 
-#include "tasks/container.hpp"
+#include "tasks/pod.hpp"
 
 class Host {
 public:
@@ -81,50 +81,50 @@ Host& operator-= (Host& rhs){
 	return *this;
 }
 
-void  addContainer(Container* rhs){
+void  addPod(Pod* rhs){
 	int fit = rhs->getFit();
 	if(fit==7) { // allocate MAX VCPU AND RAM
-		this->resource["memory"]-=rhs->containerResources->ram_max;
-		this->resource["vcpu"]-=rhs->containerResources->vcpu_max;
+		this->resource["memory"]-=rhs->getRamMax();
+		this->resource["vcpu"]-=rhs->getVcpuMax();
 	}else if(fit==8) { // ALLOCATE MAX VCPU AND RAM MIN
-		this->resource["memory"]-=rhs->containerResources->ram_min;
-		this->resource["vcpu"]-=rhs->containerResources->vcpu_max;
+		this->resource["memory"]-=rhs->getRamMin();
+		this->resource["vcpu"]-=rhs->getVcpuMax();
 	}else if(fit==10) { // ALLOCATE VCPU MIN AND RAM MAX
-		this->resource["memory"]-=rhs->containerResources->ram_max;
-		this->resource["vcpu"]-=rhs->containerResources->vcpu_min;
+		this->resource["memory"]-=rhs->getRamMax();
+		this->resource["vcpu"]-=rhs->getVcpuMin();
 	}else if(fit==11) { // ALLOCATE VCPU AND RAM MIN
-		this->resource["memory"]-=rhs->containerResources->ram_min;
-		this->resource["vcpu"]-=rhs->containerResources->vcpu_min;
+		this->resource["memory"]-=rhs->getRamMin();
+		this->resource["vcpu"]-=rhs->getVcpuMin();
 	}
 }
 
-void removeContainer(Container* rhs){
+void removePod(Pod* rhs){
 	int fit = rhs->getFit();
 	if(fit==7) { // allocate MAX VCPU AND RAM
-		this->resource["memory"]+=rhs->containerResources->ram_max;
-		this->resource["vcpu"]+=rhs->containerResources->vcpu_max;
+		this->resource["memory"]+=rhs->getRamMax();
+		this->resource["vcpu"]+=rhs->getVcpuMax();
 	}else if(fit==8) { // ALLOCATE MAX VCPU AND RAM MIN
-		this->resource["memory"]+=rhs->containerResources->ram_min;
-		this->resource["vcpu"]+=rhs->containerResources->vcpu_max;
+		this->resource["memory"]+=rhs->getRamMin();
+		this->resource["vcpu"]+=rhs->getVcpuMax();
 	}else if(fit==10) { // ALLOCATE VCPU MIN AND RAM MAX
-		this->resource["memory"]+=rhs->containerResources->ram_max;
-		this->resource["vcpu"]+=rhs->containerResources->vcpu_min;
+		this->resource["memory"]+=rhs->getRamMax();
+		this->resource["vcpu"]+=rhs->getVcpuMin();
 	}else if(fit==11) { // ALLOCATE VCPU AND RAM MIN
-		this->resource["memory"]+=rhs->containerResources->ram_min;
-		this->resource["vcpu"]+=rhs->containerResources->vcpu_min;
+		this->resource["memory"]+=rhs->getRamMin();
+		this->resource["vcpu"]+=rhs->getVcpuMin();
 	}
 }
 
 
 // Host& operator+= (Container& rhs){
-//      this->resource["memory"]+=rhs.containerResources->ram_max;
-//      this->resource["vcpu"]+=rhs.containerResources->vcpu_max;
+//      this->resource["memory"]+=rhs.ram_max;
+//      this->resource["vcpu"]+=rhs.vcpu_max;
 //      return *this;
 // }
 //
 // Host& operator-= (Container& rhs){
-//      this->resource["memory"]-=rhs.containerResources->ram_max;
-//      this->resource["vcpu"]-=rhs.containerResources->vcpu_max;
+//      this->resource["memory"]-=rhs.ram_max;
+//      this->resource["vcpu"]-=rhs.vcpu_max;
 //      return *this;
 // }
 

@@ -3,43 +3,42 @@
 
 #include <iostream>
 
-#include "task.hpp"
 
-class Container : public Task {
+class Container {
 private:
 
-typedef struct container_resources_t : public task_resource_t {
-	unsigned int pod;
-	unsigned int name;
-	double epc_min;
-	double epc_max;
-	double ram_min;
-	double ram_max;
-	double vcpu_max;
-	double vcpu_min;
-} container_resources_t;
+unsigned int pod;
+unsigned int name;
+float epc_min;
+float epc_max;
+float ram_min;
+float ram_max;
+float vcpu_max;
+float vcpu_min;
+
 protected:
 public:
-
-container_resources_t *containerResources;
 
 Container();
 ~Container();
 
-void setTask(const char*);
-void setSubmission(int);
-void setAllocatedTime(int);
-void setFit(int);
-void addDelay();
-void addDelay(int);
+unsigned int getPod();
+unsigned int getName();
+float getEpcMin();
+float getEpcMax();
+float getRamMin();
+float getRamMax();
+float getVcpuMax();
+float getVcpuMin();
 
-container_resources_t* getResource();
-int getDuration();
-int getId();
-int getSubmission();
-int getAllocatedTime();
-int getFit();
-int getDelay();
+void setPod(unsigned int);
+void setName(unsigned int);
+void setEpcMin(float);
+void setEpcMax(float);
+void setRamMin(float);
+void setRamMax(float);
+void setVcpuMax(float);
+void setVcpuMin(float);
 
 friend std ::ostream& operator<<(std::ostream&, Container const&);
 

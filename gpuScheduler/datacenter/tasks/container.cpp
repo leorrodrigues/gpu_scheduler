@@ -1,162 +1,90 @@
 #include "container.hpp"
 
 Container::Container(){
-	this->fit=0;
-
-	this->duration=0;
-	this->links=NULL;
-
-	this->containerResources = new container_resources_t;
-
-	this->containerResources->name=0;
-	this->containerResources->pod=0;
-	this->containerResources->epc_min=0;
-	this->containerResources->epc_max=0;
-	this->containerResources->ram_min=0;
-	this->containerResources->ram_max=0;
-	this->containerResources->vcpu_min=0;
-	this->containerResources->vcpu_max=0;
-
-	this->id=0;
-	this->submission=0;
-	this->allocated_time=0;
-	this->delay=0;
+	this->name=0;
+	this->pod=0;
+	this->epc_min=0;
+	this->epc_max=0;
+	this->ram_min=0;
+	this->ram_max=0;
+	this->vcpu_min=0;
+	this->vcpu_max=0;
 }
 
 Container::~Container(){
-	delete(this->containerResources);
 }
 
-void Container::setTask(const char* taskMessage){
-	std::string::size_type sz;
-	std::string taskStr (taskMessage);
-	std::regex durationRegex ("duration\":(\\s*)(.*),");
-	std::regex linkRegex ("links\":(\\s*)[(.*)],");
-	std::regex epc_minRegex ("epc_min\":(\\s*)(.*),");
-	std::regex epc_maxRegex ("epc_max\":(\\s*)(.*)\n");
-	std::regex ram_minRegex ("ram_min\":(\\s*)(.*),");
-	std::regex ram_maxRegex ("ram_max\":(\\s*)(.*),");
-	std::regex vcpu_minRegex ("vcpu_min\":(\\s*)(.*),");
-	std::regex vcpu_maxRegex ("vcpu_max\":(\\s*)(.*),");
-	std::regex podRegex ("pod\":(\\s*)(.*),");
-	std::regex nameRegex ("name\":(\\s*)(.*),");
-	std::regex idRegex ("id\":(\\s*)(.*),");
-	std::regex submissionRegex ("submission\":(\\s*)(.*)\n");
-	std::smatch sm;
-	//Duration
-	std::regex_search (taskStr, sm,durationRegex);
-	this->duration = std::stoi(sm[2].str(),&sz);
-	//Links
-	std::regex_search (taskStr, sm,linkRegex);
-	//TODO links constuctor
-
-	//EPC_MIN
-	std::regex_search (taskStr, sm, epc_minRegex);
-	this->containerResources->epc_min = std::stod(sm[2].str(),&sz);
-
-	//EPC_MAX
-	std::regex_search (taskStr, sm, epc_maxRegex);
-	this->containerResources->epc_max = std::stod(sm[2].str(),&sz);
-
-	//RAM_MIN
-	std::regex_search (taskStr, sm, ram_minRegex);
-	this->containerResources->ram_min = std::stod(sm[2].str(),&sz);
-
-	//RAM_MAX
-	std::regex_search (taskStr, sm, ram_maxRegex);
-	this->containerResources->ram_max = std::stod(sm[2].str(),&sz);
-
-	//VCPU_MIN
-	std::regex_search (taskStr, sm, vcpu_minRegex);
-	this->containerResources->vcpu_min = std::stod(sm[2].str(),&sz);
-
-	//VCPU_MAX
-	std::regex_search (taskStr, sm, vcpu_maxRegex);
-	this->containerResources->vcpu_max = std::stod(sm[2].str(),&sz);
-
-	//POD
-	std::regex_search (taskStr, sm, podRegex);
-	this->containerResources->pod = std::stoi(sm[2].str(),&sz);
-
-	//NAME
-	std::regex_search (taskStr, sm, nameRegex);
-	this->containerResources->name = std::stoi(sm[2].str(),&sz);
-
-	//ID
-	std::regex_search (taskStr, sm, idRegex);
-	this->id = std::stoi(sm[2].str(),&sz);
-
-	//SUBMISSION
-	std::regex_search (taskStr, sm, submissionRegex);
-	this->submission = std::stoi(sm[2].str(),&sz);
+unsigned int Container::getPod(){
+	return this->pod;
 }
 
-void Container::setSubmission(int submission){
-	this->submission = submission;
+unsigned int Container::getName(){
+	return this->name;
 }
 
-void Container::setAllocatedTime(int allocatedTime){
-	this->allocated_time = allocatedTime;
+float Container::getEpcMin(){
+	return this->epc_min;
 }
 
-void Container::setFit(int fit){
-	this->fit=fit;
+float Container::getEpcMax(){
+	return this->epc_max;
 }
 
-void Container::addDelay(){
-	this->delay++;
+float Container::getRamMin(){
+	return this->ram_min;
 }
 
-void Container::addDelay(int delay){
-	this->delay+=delay;
+float Container::getRamMax(){
+	return this->ram_max;
 }
 
-Container::container_resources_t* Container::getResource(){
-	return this->containerResources;
+float Container::getVcpuMin(){
+	return this->vcpu_min;
 }
 
-int Container::getDuration(){
-	return this->duration;
+float Container::getVcpuMax(){
+	return this->vcpu_max;
 }
 
-int Container::getId(){
-	return this->id;
+void Container::setPod(unsigned int pod){
+	this->pod=pod;
 }
 
-int Container::getSubmission(){
-	return this->submission;
+void Container::setName(unsigned int name){
+	this->name=name;
 }
 
-int Container::getAllocatedTime(){
-	return this->allocated_time;
+void Container::setEpcMin(float epcMin){
+	this->epc_min=epcMin;
 }
 
-int Container::getFit(){
-	return this->fit;
+void Container::setEpcMax(float epcMax){
+	this->epc_max=epcMax;
 }
 
-int Container::getDelay(){
-	return this->delay;
+void Container::setRamMin(float ramMin){
+	this->ram_min=ramMin;
+}
+
+void Container::setRamMax(float ramMax){
+	this->ram_max=ramMax;
+}
+
+void Container::setVcpuMin(float vcpuMin){
+	this->vcpu_min = vcpuMin;
+}
+
+void Container::setVcpuMax(float vcpuMax){
+	this->vcpu_max = vcpuMax;
 }
 
 std::ostream& operator<<(std::ostream& os, const Container& c)  {
-	os<<"Container:{\n";
-	os<<"\tID: "<<c.id<<"\n";
-	os<<"\tSubmission: "<<c.submission<<"\n";
-
-	os<<"\tDuration: "<<c.duration<<"\n";
-	os<<"\tLinks: ";
-	c.links==NULL ? os<<"None\n" : os<<"Some\n";
-
-	os<<"\tresources list:{\n";
-
-	os<<"\t\tpod: "<<c.containerResources->pod<<"\n";
-	os<<"\t\tname: "<<c.containerResources->name<<"\n";
-	os<<"\t\tepc min: "<<c.containerResources->epc_min<<"; epc_max: "<<c.containerResources->epc_max<<"\n";
-	os<<"\t\tram min: "<<c.containerResources->ram_min<<"; ram_max: "<<c.containerResources->ram_max<<"\n";
-	os<<"\t\tvcpu min: "<<c.containerResources->vcpu_min<<"; vcpu_max: "<<c.containerResources->vcpu_max<<"\n";
-
+	os<<"\t{\n";
+	os<<"\t\tName: "<<c.name<<"\n";
+	os<<"\t\tpod: " <<c.pod<<"\n";
+	os<<"\t\tepc min: "<<c.epc_min<<"; epc_max: "<<c.epc_max<<"\n";
+	os<<"\t\tram min: "<<c.ram_min<<"; ram_max: "<<c.ram_max<<"\n";
+	os<<"\t\tvcpu min: "<<c.vcpu_min<<"; vcpu_max: "<<c.vcpu_max<<"\n";
 	os<<"\t}\n";
-	os<<"}\n";
 	return os;
 }
