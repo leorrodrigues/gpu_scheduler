@@ -24,6 +24,7 @@ private:
 char path[1024];
 float* hosts_value;
 int hosts_size;
+unsigned int* hosts_index;
 
 public:
 TOPSIS();

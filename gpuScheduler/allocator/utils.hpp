@@ -11,23 +11,13 @@ inline int checkFit(Host* host, Pod* pod){
 	// 10 VCPU MIN RAM MAX
 	// 11 VCPU MIN RAM MIN
 	// 0 NOT FIT
-	printf("Start Fit\n");
 	int total=0;
-	printf("Will get the vcpu\n");
-	if(host==NULL) printf("CARALHO\n");
-	if(host->getResource().empty()) {
-		printf("MAP NULL\n");
-	}else{
-		printf("WTF");
-	}
+
 	std::map<std::string, float> a = host->getResource();
-	printf("ALOHA\n");
-	printf("%f\n", a["vcpu"]);
-	printf("IHA\n");
+
 	float h_vcpu = host->getResource()["vcpu"];
-	printf("r vcpu get\n");
 	float h_mem = host->getResource()["memory"];
-	printf("r mem get\n");
+
 	if(h_vcpu>=pod->getVcpuMax()) {
 		total+=1;
 	}else if(h_vcpu>=pod->getVcpuMin()) {
@@ -42,7 +32,6 @@ inline int checkFit(Host* host, Pod* pod){
 	}else{
 		return 0;
 	}
-	printf("End Fit\n");
 	return total;
 }
 

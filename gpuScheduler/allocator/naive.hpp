@@ -21,15 +21,11 @@ bool naive(Builder* builder,  Pod* pod, std::map<unsigned int, unsigned int> &al
 	Host* host=NULL;
 
 	int i=0;
-	printf("Start check hosts\n");
 	for( i=0; i<resultSize; i++ ) {
-		printf("\t%d of %d\n",i, resultSize);
 		host=builder->getHost(result[i]);
 
-		printf("Host get\n");
 		int fit=checkFit(host,pod);
 
-		printf("Check Fit made\n");
 		if(fit==0) {
 			// If can't ignore the rest of the loop
 			continue;
@@ -66,13 +62,11 @@ bool naive(Builder* builder,  Pod* pod, std::map<unsigned int, unsigned int> &al
 		free(result);
 		result=NULL;
 
-		printf("Found\n");
 		return true;
 	}
 	free(result);
 	result=NULL;
 
-	printf("returning null\n");
 	return false;
 }
 
