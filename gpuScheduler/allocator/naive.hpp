@@ -5,13 +5,12 @@
 #include <string>
 #include <map>
 
-#include "../datacenter/tasks/container.hpp"
-#include "../builder.cuh"
 #include "utils.hpp"
 
 namespace Allocator {
 
-bool naive(Builder* builder,  Container* container, std::map<unsigned int, unsigned int> &allocated_task,consumed_resource_t* consumed){
+bool naive(Builder* builder,  Pod* pod, std::map<unsigned int, unsigned int> &allocated_task,consumed_resource_t* consumed){
+
 	unsigned int* result = NULL;
 	unsigned int resultSize = 0;
 
@@ -25,38 +24,40 @@ bool naive(Builder* builder,  Container* container, std::map<unsigned int, unsig
 	for( i=0; i<resultSize; i++ ) {
 		host=builder->getHost(result[i]);
 
-		int fit=checkFit(host,container);
+		int fit=checkFit(host,pod);
+
 		if(fit==0) {
 			// If can't ignore the rest of the loop
 			continue;
 		}
 
-		container->setFit(fit);
-		host->addContainer(container);
+		pod->setFit(fit);
+		host->addPod(pod);
 
 		if(host->getActive()==false) {
 			host->setActive(true);
 			consumed->active_servers++;
 		}
 
-		// The container was allocated, so the consumed variable has to be updated
+		// The pod was allocated, so the consumed variable has to be updated
 		if(fit==7) { // allocate MAX VCPU AND RAM
-			consumed->ram += container->containerResources->ram_max;
-			consumed->vcpu +=container->containerResources->vcpu_max;
+			consumed->ram  += pod->getRamMax();
+			consumed->vcpu += pod->getVcpuMax();
 		}else if(fit==8) { // ALLOCATE MAX VCPU AND RAM MIN
-			consumed->ram += container->containerResources->ram_min;
-			consumed->vcpu += container->containerResources->vcpu_max;
+			consumed->ram  += pod->getRamMin();
+			consumed->vcpu += pod->getVcpuMax();
 		}else if(fit==10) { // ALLOCATE VCPU MIN AND RAM MAX
-			consumed->ram += container->containerResources->ram_max;
-			consumed->vcpu +=container->containerResources->vcpu_min;
+			consumed->ram  += pod->getRamMax();
+			consumed->vcpu += pod->getVcpuMin();
 		}else if(fit==11) { // ALLOCATE VCPU AND RAM MIN
-			consumed->ram += container->containerResources->ram_min;
-			consumed->vcpu += container->containerResources->vcpu_min;
+			consumed->ram  += pod->getRamMin();
+			consumed->vcpu += pod->getVcpuMin();
 		}
+
 
 		host->addAllocatedResources();
 
-		allocated_task[container->getId()]= host->getId();
+		allocated_task[pod->getId()]= host->getId();
 
 		free(result);
 		result=NULL;

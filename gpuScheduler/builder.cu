@@ -1,4 +1,5 @@
 #include  "builder.cuh"
+#include <assert.h>
 
 Builder::Builder(){
 	this->multicriteriaMethod=NULL;
@@ -152,6 +153,7 @@ Host* Builder::addHost() {
 	Host* host = new Host(this->resource);
 	//Add the host pointer in the hierarchy (i.e., the hosts vector).
 	this->hosts.push_back(host);
+	assert(host!=NULL);
 	return host;
 }
 
@@ -349,7 +351,7 @@ void Builder::parserTopology(JSON::jsonGenericType* dataTopology){
 
 void Builder::parserHosts(JSON::jsonGenericType* dataHost) {
 	for (auto &arrayHost : dataHost->value.GetArray()) {
-		auto host = this->addHost();
+		Host* host = this->addHost();
 		for (auto &alt : arrayHost.GetObject()) {
 			std::string name(alt.name.GetString());
 			if (alt.value.IsNumber()) {

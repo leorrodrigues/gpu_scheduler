@@ -39,7 +39,7 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 	           | clara::detail::Opt( multicriteria_method, "multicriteria method") ["-m"]["--multicriteria"] ("What is the multicriteria method? [ ahp | (default) ahpg | topsis]")
 	           | clara::detail::Opt( clustering_method,"clustering method") ["-c"]["--clustering"] ("What is the clustering method? [ (default) mcl | pure_mcl | none ]")
 	           // 0 For no Test
-	           // 1 For Container Test
+	           // 1 For Pod Test
 	           // 2 For Consolidation Test
 	           | clara::detail::Opt( test_type, "Type Test")["--test"]("Which type of test you want?")
 	           | clara::detail::Opt( request_size, "Request Size")["--request-size"]("Which is the request size?")
@@ -166,22 +166,22 @@ inline objective_function_t calculateObjectiveFunction(consumed_resource_t consu
 inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed){
 
 	bool free_success = false;
-	Container* current = NULL;
+	Pod* current = NULL;
 	Host* temp = NULL;
 
 	while(true) {
 
-		if(scheduler->containers_to_delete.empty()) {
+		if(scheduler->pods_to_delete.empty()) {
 			break;
 		}
 
-		current=scheduler->containers_to_delete.top();
+		current=scheduler->pods_to_delete.top();
 
 		if( current->getDuration() + current->getAllocatedTime() != options->current_time) {
 			break;
 		}
 
-		scheduler->containers_to_delete.pop();
+		scheduler->pods_to_delete.pop();
 
 		// if( scheduler->allocated_task [ current->getId() ]!=NULL ) {
 		temp =  builder->getHost ( scheduler->allocated_task [ current->getId() ] );
@@ -229,28 +229,28 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed, total_resources_t* total_dc){
 
 	bool allocation_success = false;
-	Container* current = NULL;
+	Pod* current = NULL;
 	int total_delay = 0;
 	int delay=1;
 
 	while(true) {
-		if(scheduler->containers_to_allocate.empty()) {
+		if(scheduler->pods_to_allocate.empty()) {
 			break;
 		}
 
-		current = scheduler->containers_to_allocate.top();
+		current = scheduler->pods_to_allocate.top();
 
 		if( current->getSubmission()+current->getDelay() != options->current_time) {
 			break;
 		}
 
-		scheduler->containers_to_allocate.pop();
+		scheduler->pods_to_allocate.pop();
 
 		if(Allocator::checkFit(total_dc, consumed,current)!=0) {
 			// allocate the new task in the data center.
 			if(options->standard==0) {
 				if( options->clustering_method=="pure_mcl") {
-					allocation_success=Allocator::mcl_pure(builder,current,scheduler->allocated_task);
+					allocation_success=Allocator::mcl_pure(builder,scheduler->allocated_task);
 				} else if( options->clustering_method == "none") {
 					allocation_success=Allocator::naive(builder,current, scheduler->allocated_task,consumed);
 				} else if ( options->clustering_method == "mcl") {
@@ -279,31 +279,31 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
 		if(!allocation_success) {
 
-			if(!scheduler->containers_to_delete.empty()) {
-				Container* first_to_delete = scheduler->containers_to_delete.top();
+			if(!scheduler->pods_to_delete.empty()) {
+				Pod* first_to_delete = scheduler->pods_to_delete.top();
 
 				delay = (first_to_delete->getDuration() + first_to_delete->getAllocatedTime()) - ( current->getSubmission() + current->getDelay() );
 			}
 
 			current->addDelay(delay);
 
-			scheduler->containers_to_allocate.push(current);
+			scheduler->pods_to_allocate.push(current);
 
 			total_delay+=current->getDelay();
 
-			printf("\tContainer %d Added Delay in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
+			printf("\tPod %d Added Delay in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
 		}else{
 
-			printf("\tContainer %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
+			printf("\tPod %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
 			current->setAllocatedTime(options->current_time);
-			scheduler->containers_to_delete.push(current);
+			scheduler->pods_to_delete.push(current);
 		}
 	}
 	printf("total_delay,%d,%d\n", options->current_time,total_delay);
 }
 
 void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, options_t* options, int message_count){
-	const int total_containers = scheduler->containers_to_allocate.size();
+	const int total_containers = scheduler->pods_to_allocate.size();
 	//Create the variable to store all the data center resource
 	total_resources_t total_resources;
 
@@ -313,8 +313,8 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 	objective_function_t objective;
 
 	while(
-		!scheduler->containers_to_allocate.empty() ||
-		!scheduler->containers_to_delete.empty()
+		!scheduler->pods_to_allocate.empty() ||
+		!scheduler->pods_to_delete.empty()
 		) {
 
 		consumed_resources.time = options->current_time;
@@ -325,15 +325,15 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 		//************************************************//
 		//     READ CONTAINER REQUEST THROUGH RABBITMQ    //
 		//************************************************//
-		// while(message_count>0 || options->current_time <= options->end_time || !scheduler->containers_to_allocate.empty() || !scheduler->containers_to_delete.empty()) {
+		// while(message_count>0 || options->current_time <= options->end_time || !scheduler->pods_to_allocate.empty() || !scheduler->pods_to_delete.empty()) {
 		// if(message_count>0) {
 		//      while(true) {
 		//              // Create new container
-		//              Container *current = new Container();
+		//              Pod *current = new Pod();
 		//              // Set the resources to the container
 		//              current->setTask(conn->getNextTask());
 		//              // Put the container in the vector
-		//              scheduler->containers_to_allocate.push(current);
+		//              scheduler->pods_to_allocate.push(current);
 		//              // getchar();
 		//              message_count--;
 		//              // printf("Receiving new container %d\n in time %d", current->getId(), options->current_time);
@@ -367,7 +367,7 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 			       objective.ram_footprint,
 			       (100 - (
 					100.0*(
-						scheduler->containers_to_allocate.size()/(float)total_containers)
+						scheduler->pods_to_allocate.size()/(float)total_containers)
 					)
 			       )
 			       );
@@ -391,6 +391,8 @@ int main(int argc, char **argv){
 	// Parse the command line arguments
 	setup(argc,argv,builder,&scheduler,&options);
 
+	std::map<unsigned int, Pod> pods;
+
 	if (options.test_type==0) {     // no test is set
 		// Creating the communicatior
 		Comunicator *conn = new Comunicator();
@@ -410,7 +412,7 @@ int main(int argc, char **argv){
 			path+="container/data-";
 		}
 		else if(options.test_type==2) {
-			path+="datacenter/google-";
+			path+="googleBorg/google-";
 		}
 		else if(options.test_type==3) {
 			path+="datacenter/data-";
@@ -423,11 +425,12 @@ int main(int argc, char **argv){
 		printf("Creating the contianers\n");
 		while((message=reader->getNextTask())!="eof") {
 			// Create new container
-			Container *current = new Container();
+			Pod * current = new Pod();
 			// Set the resources to the container
 			current->setTask(message.c_str());
 			// Put the container in the vector
-			scheduler.containers_to_allocate.push(current);
+			scheduler.pods_to_allocate.push(current);
+			// std::cout<<*scheduler.pods_to_allocate.top()<<"\n";
 		}
 		message.clear();
 		delete(reader);

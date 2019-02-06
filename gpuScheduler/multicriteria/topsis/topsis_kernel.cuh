@@ -2,6 +2,7 @@
 #ifndef _TOPSIS_KERNEL_NOT_INCLUDED_
 #define _TOPSIS_KERNEL_NOT_INCLUDED_
 
+#include <algorithm>
 #include <stdlib.h>
 #include <float.h>
 #include <time.h>
