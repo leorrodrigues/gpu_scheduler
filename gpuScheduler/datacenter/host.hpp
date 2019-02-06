@@ -10,7 +10,6 @@ class Host {
 public:
 Host(){
 	active = false;
-	allocated_resources = 0;
 	id=0;
 }
 
@@ -19,7 +18,6 @@ Host(std::map<std::string, float> resource) {
 		this->resource[it.first]+=it.second;
 	}
 	active = false;
-	allocated_resources = 0;
 }
 
 ~Host(){
@@ -35,16 +33,16 @@ void setActive(bool active){
 }
 
 void setAllocatedResources(unsigned int allocated){
-	this->allocated_resources = allocated;
+	this->resource["allocated_resources"] = allocated;
 }
 
 void addAllocatedResources(){
-	this->allocated_resources++;
+	this->resource["allocated_resources"]++;
 }
 
 void removeAllocaredResource(){
-	if(this->allocated_resources>=1)
-		this->allocated_resources--;
+	if(this->resource["allocated_resources"]>=1)
+		this->resource["allocated_resources"]--;
 }
 
 std::map<std::string,float> getResource(){
@@ -64,7 +62,7 @@ bool getActive(){
 }
 
 unsigned int getAllocatedResources(){
-	return this->allocated_resources;
+	return this->resource["allocated_resources"];
 }
 
 Host& operator+= (Host& rhs){
@@ -131,7 +129,6 @@ void removePod(Pod* rhs){
 private:
 std::map<std::string, float> resource;
 bool active;
-unsigned int allocated_resources;     ///< allocated_resources Variable to store the information of how many virtual resources are allocated in this specific host.
 unsigned int id;
 };
 

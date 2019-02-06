@@ -99,8 +99,6 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	this->hosts_index = (unsigned int*) malloc (sizeof(unsigned int)* alt_size);
 
 	std::map<std::string,float> allResources = alternatives[0]->getResource();
-	allResources["allocated_resources"]=0;
-	allResources.erase("id");
 
 	int resources_size = allResources.size();
 
@@ -154,8 +152,10 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 			//Take advantage of this loop to populate the host index
 			this->hosts_index[i]=alternatives[i]->getId();
 			j=0;
-			for( auto it: alternatives[i]->getResource())
-			{matrix[j*alt_size+i]= it.second; j++; }
+			for( auto it: alternatives[i]->getResource()) {
+				matrix[j*alt_size+i]= it.second;
+				j++;
+			}
 		}
 		// }
 		// printf("Matrix\n");
