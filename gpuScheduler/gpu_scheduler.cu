@@ -412,7 +412,7 @@ int main(int argc, char **argv){
 			path+="container/data-";
 		}
 		else if(options.test_type==2) {
-			path+="datacenter/google-";
+			path+="googleBorg/google-";
 		}
 		else if(options.test_type==3) {
 			path+="datacenter/data-";
