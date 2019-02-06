@@ -3,18 +3,18 @@
 
 #include <iostream>
 
-#include "../datacenter/tasks/container.hpp"
+#include "../datacenter/tasks/pod.hpp"
 #include "../datacenter/host.hpp"
 
 namespace Allocator {
-bool freeHostResource(Host* host, Container* container, consumed_resource_t* consumed, Builder* builder){
+bool freeHostResource(Host* host, Pod* pod, consumed_resource_t* consumed, Builder* builder){
 	if(host==NULL) {
 		std::cerr << " Free Host Resource received NULL host\n";
 		exit(2);
 	}
 
 	//Update the host resources
-	host->removeContainer(container);
+	host->removePod(pod);
 	host->removeAllocaredResource();
 
 	//Need to find the group that has this host and update their resource
@@ -23,7 +23,7 @@ bool freeHostResource(Host* host, Container* container, consumed_resource_t* con
 	for(int i=0; i<groups.size(); i++) {
 		if(builder->findHostInGroup(groups[i]->getId(),host->getId())) {
 			// index=i;
-			groups[i]->removeContainer(container);
+			groups[i]->removePod(pod);
 			break;
 		}
 	}
@@ -32,19 +32,20 @@ bool freeHostResource(Host* host, Container* container, consumed_resource_t* con
 	//      exit(0);
 	// }
 
-	int fit = container->getFit();
+	int fit = pod->getFit();
+	// The pod was allocated, so the consumed variable has to be updated
 	if(fit==7) { // allocate MAX VCPU AND RAM
-		consumed->ram -= container->containerResources->ram_max;
-		consumed->vcpu -=container->containerResources->vcpu_max;
+		consumed->ram  -= pod->getRamMax();
+		consumed->vcpu -= pod->getVcpuMax();
 	}else if(fit==8) { // ALLOCATE MAX VCPU AND RAM MIN
-		consumed->ram -= container->containerResources->ram_min;
-		consumed->vcpu -= container->containerResources->vcpu_max;
+		consumed->ram  -= pod->getRamMin();
+		consumed->vcpu -= pod->getVcpuMax();
 	}else if(fit==10) { // ALLOCATE VCPU MIN AND RAM MAX
-		consumed->ram -= container->containerResources->ram_max;
-		consumed->vcpu -=container->containerResources->vcpu_min;
+		consumed->ram  -= pod->getRamMax();
+		consumed->vcpu -= pod->getVcpuMin();
 	}else if(fit==11) { // ALLOCATE VCPU AND RAM MIN
-		consumed->ram -= container->containerResources->ram_min;
-		consumed->vcpu -= container->containerResources->vcpu_min;
+		consumed->ram  -= pod->getRamMin();
+		consumed->vcpu -= pod->getVcpuMin();
 	}
 	return true;
 }
