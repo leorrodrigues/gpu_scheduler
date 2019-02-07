@@ -1,4 +1,5 @@
 #include  "builder.cuh"
+#include <assert.h>
 
 Builder::Builder(){
 	this->multicriteriaMethod=NULL;
@@ -144,7 +145,8 @@ int Builder::getTotalActiveHosts(){
 }
 
 void Builder::addResource(std::string name){
-	this->resource[name] = 0;
+	if(name!="id" && name!="name")
+		this->resource[name] = 0;
 }
 
 Host* Builder::addHost() {
@@ -152,6 +154,7 @@ Host* Builder::addHost() {
 	Host* host = new Host(this->resource);
 	//Add the host pointer in the hierarchy (i.e., the hosts vector).
 	this->hosts.push_back(host);
+	assert(host!=NULL);
 	return host;
 }
 
@@ -318,6 +321,7 @@ void Builder::parserResources(JSON::jsonGenericType* dataResource) {
 			}
 		}
 		this->addResource(variableName);
+		this->addResource("allocated_resources");
 	}
 }
 
@@ -349,14 +353,15 @@ void Builder::parserTopology(JSON::jsonGenericType* dataTopology){
 
 void Builder::parserHosts(JSON::jsonGenericType* dataHost) {
 	for (auto &arrayHost : dataHost->value.GetArray()) {
-		auto host = this->addHost();
+		Host* host = this->addHost();
 		for (auto &alt : arrayHost.GetObject()) {
 			std::string name(alt.name.GetString());
 			if (alt.value.IsNumber()) {
-				if(name=="id" || name=="name") {
+				if(name!="id" && name!="name") {
+					host->setResource(name, alt.value.GetFloat());
+				}else{
 					host->setId(alt.value.GetInt());
 				}
-				host->setResource(name, alt.value.GetFloat());
 			} else if (alt.value.IsBool()) {
 				host->setResource(name, alt.value.GetBool());
 			} else {

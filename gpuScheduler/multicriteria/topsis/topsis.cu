@@ -32,10 +32,14 @@ TOPSIS::TOPSIS(){
 	}
 	this->hosts_value = NULL;
 	this->hosts_size = 0;
+	this->hosts_index = NULL;
 }
 
 TOPSIS::~TOPSIS(){
 	free(this->hosts_value);
+	free(this->hosts_index);
+	this->hosts_value=NULL;
+	this->hosts_index=NULL;
 }
 
 void TOPSIS::getWeights(float* weights, unsigned int* types, std::map<std::string, float> resource){
@@ -92,9 +96,9 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	cudaGetDeviceProperties(&props, devID);
 	int block_size = (props.major <2) ? 16 : 32;
 
+	this->hosts_index = (unsigned int*) malloc (sizeof(unsigned int)* alt_size);
+
 	std::map<std::string,float> allResources = alternatives[0]->getResource();
-	allResources["allocated_resources"]=0;
-	allResources.erase("id");
 
 	int resources_size = allResources.size();
 
@@ -145,9 +149,13 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	{
 		int i=0,j=0;
 		for( i=0; i<alt_size; i++) {
+			//Take advantage of this loop to populate the host index
+			this->hosts_index[i]=alternatives[i]->getId();
 			j=0;
-			for( auto it: alternatives[i]->getResource())
-			{matrix[j*alt_size+i]= it.second; j++; }
+			for( auto it: alternatives[i]->getResource()) {
+				matrix[j*alt_size+i]= it.second;
+				j++;
+			}
 		}
 		// }
 		// printf("Matrix\n");
@@ -287,7 +295,7 @@ unsigned int* TOPSIS::getResult(unsigned int& size){
 
 	while(!alternativesPair.empty()) {
 		// printf("\t%f\t%d\n",alternativesPair.top().first,alternativesPair.top().second);
-		result[i] = alternativesPair.top().second;
+		result[i] = this->hosts_index[alternativesPair.top().second];
 		alternativesPair.pop();
 		i++;
 	}
