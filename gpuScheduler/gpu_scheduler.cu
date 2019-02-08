@@ -166,57 +166,64 @@ inline objective_function_t calculateObjectiveFunction(consumed_resource_t consu
 inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed){
 
 	bool free_success = false;
-	Pod* current = NULL;
+	Task* current = NULL;
 	Host* temp = NULL;
 
 	while(true) {
 
-		if(scheduler->pods_to_delete.empty()) {
+		if(scheduler->tasks_to_delete.empty()) {
 			break;
 		}
 
-		current=scheduler->pods_to_delete.top();
+		current=scheduler->tasks_to_delete.top();
 
 		if( current->getDuration() + current->getAllocatedTime() != options->current_time) {
 			break;
 		}
 
-		scheduler->pods_to_delete.pop();
+		scheduler->tasks_to_delete.pop();
 
 		// if( scheduler->allocated_task [ current->getId() ]!=NULL ) {
-		temp =  builder->getHost ( scheduler->allocated_task [ current->getId() ] );
-		// } else {
-		// continue;
-		// }
+		//Iterate through the PODs of the TASK, and erase each of one.
+		unsigned int pods_size = current->getPodsSize();
+		if(pods_size>1) {
+			Pod **pods= current->getPods();
+			for(size_t i=0; i< pods_size; i++) {
+				temp =  builder->getHost ( scheduler->allocated_task [ pods[i]->getId() ] );
 
-		printf("Scheduler Time %d Deleting container %d\n", options->current_time, current->getId());
 
-		const bool active_status=temp->getActive();
+				printf("Scheduler Time %d Deleting container %d\n", options->current_time, current->getId());
 
-		free_success=Allocator::freeHostResource(
-			/* the specific host that have the container*/
-			temp,
-			/* The container to be removed*/
-			current,
-			/* The consumed DC status*/
-			consumed,
-			builder
-			);
+				const bool active_status=temp->getActive();
 
-		if(!free_success) {
-			std::cerr << "(gpu_scheduler 200) gpu_scheduler(170) - Error in free the task " << current->getId() << " from the data center\n";
-			exit(1);
-		}
+				free_success=Allocator::freeHostResource(
+					/* the specific host that have the container*/
+					temp,
+					/* The container to be removed*/
+					current,
+					/* The consumed DC status*/
+					consumed,
+					builder
+					);
 
-		if(temp->getAllocatedResources()==0) {
-			temp->setActive(false);
-			//Check if the server was on and now is off
-			if(active_status==true) {
-				consumed->active_servers--;
+				if(!free_success) {
+					std::cerr << "(gpu_scheduler 200) gpu_scheduler(170) - Error in free the task " << current->getId() << " from the data center\n";
+					exit(1);
+				}
+
+				if(temp->getAllocatedResources()==0) {
+					temp->setActive(false);
+					//Check if the server was on and now is off
+					if(active_status==true) {
+						consumed->active_servers--;
+					}
+				}
 			}
+		}else{
+			std::cerr << "(gpu_scheduler) ERROR Task withouth pod!\n";
 		}
 
-		// Search the container in the vector and removes it
+		// Search the task in the vector and removes it
 		scheduler->allocated_task.erase(current->getId());
 
 		delete(current);
@@ -229,22 +236,22 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed, total_resources_t* total_dc){
 
 	bool allocation_success = false;
-	Pod* current = NULL;
+	Task* current = NULL;
 	int total_delay = 0;
 	int delay=1;
 
 	while(true) {
-		if(scheduler->pods_to_allocate.empty()) {
+		if(scheduler->tasks_to_allocate.empty()) {
 			break;
 		}
 
-		current = scheduler->pods_to_allocate.top();
+		current = scheduler->tasks_to_allocate.top();
 
 		if( current->getSubmission()+current->getDelay() != options->current_time) {
 			break;
 		}
 
-		scheduler->pods_to_allocate.pop();
+		scheduler->tasks_to_allocate.pop();
 
 		if(Allocator::checkFit(total_dc, consumed,current)!=0) {
 			// allocate the new task in the data center.
@@ -279,31 +286,31 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
 		if(!allocation_success) {
 
-			if(!scheduler->pods_to_delete.empty()) {
-				Pod* first_to_delete = scheduler->pods_to_delete.top();
+			if(!scheduler->tasks_to_delete.empty()) {
+				Task* first_to_delete = scheduler->tasks_to_delete.top();
 
 				delay = (first_to_delete->getDuration() + first_to_delete->getAllocatedTime()) - ( current->getSubmission() + current->getDelay() );
 			}
 
 			current->addDelay(delay);
 
-			scheduler->pods_to_allocate.push(current);
+			scheduler->tasks_to_allocate.push(current);
 
 			total_delay+=current->getDelay();
 
-			printf("\tPod %d Added Delay in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
+			printf("\tTask %d Added Delay in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
 		}else{
 
-			printf("\tPod %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
+			printf("\tTask %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
 			current->setAllocatedTime(options->current_time);
-			scheduler->pods_to_delete.push(current);
+			scheduler->tasks_to_delete.push(current);
 		}
 	}
 	printf("total_delay,%d,%d\n", options->current_time,total_delay);
 }
 
 void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, options_t* options, int message_count){
-	const int total_containers = scheduler->pods_to_allocate.size();
+	const int total_tasks = scheduler->tasks_to_allocate.size();
 	//Create the variable to store all the data center resource
 	total_resources_t total_resources;
 
@@ -313,8 +320,8 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 	objective_function_t objective;
 
 	while(
-		!scheduler->pods_to_allocate.empty() ||
-		!scheduler->pods_to_delete.empty()
+		!scheduler->tasks_to_allocate.empty() ||
+		!scheduler->tasks_to_delete.empty()
 		) {
 
 		consumed_resources.time = options->current_time;
@@ -367,7 +374,7 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 			       objective.ram_footprint,
 			       (100 - (
 					100.0*(
-						scheduler->pods_to_allocate.size()/(float)total_containers)
+						scheduler->tasks_to_allocate.size()/(float)total_tasks)
 					)
 			       )
 			       );
@@ -423,13 +430,14 @@ int main(int argc, char **argv){
 		std::string message;
 
 		printf("Creating the contianers\n");
+		Task * current = NULL;
 		while((message=reader->getNextTask())!="eof") {
 			// Create new container
-			Pod * current = new Pod();
+			current = new Task();
 			// Set the resources to the container
 			current->setTask(message.c_str());
 			// Put the container in the vector
-			scheduler.pods_to_allocate.push(current);
+			scheduler.tasks_to_allocate.push(current);
 			// std::cout<<*scheduler.pods_to_allocate.top()<<"\n";
 		}
 		message.clear();

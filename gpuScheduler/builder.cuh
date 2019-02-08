@@ -11,8 +11,10 @@
 
 #include "rabbit/comunicator.hpp"
 
-#include "datacenter/tasks/container.hpp"
+#include "datacenter/tasks/task.hpp"
 #include "datacenter/tasks/pod.hpp"
+#include "datacenter/tasks/link.hpp"
+#include "datacenter/tasks/container.hpp"
 
 #include <cmath>
 

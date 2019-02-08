@@ -1,8 +1,11 @@
 #include "container.hpp"
 
 Container::Container(){
+	this->links=NULL;
+	this->links_size=0;
+
 	this->name=0;
-	this->pod=0;
+	this->host=-1;
 	this->epc_min=0;
 	this->epc_max=0;
 	this->ram_min=0;
@@ -12,10 +15,15 @@ Container::Container(){
 }
 
 Container::~Container(){
+	for(size_t i=0; i<this->links_size; i++) {
+		delete(this->links[i]);
+	}
+	free(this->links);
+	this->links=NULL;
 }
 
-unsigned int Container::getPod(){
-	return this->pod;
+unsigned int Container::getHost(){
+	return this->host;
 }
 
 unsigned int Container::getName(){
@@ -79,12 +87,17 @@ void Container::setVcpuMax(float vcpuMax){
 }
 
 std::ostream& operator<<(std::ostream& os, const Container& c)  {
-	os<<"\t{\n";
-	os<<"\t\tName: "<<c.name<<"\n";
-	os<<"\t\tpod: " <<c.pod<<"\n";
-	os<<"\t\tepc min: "<<c.epc_min<<"; epc_max: "<<c.epc_max<<"\n";
-	os<<"\t\tram min: "<<c.ram_min<<"; ram_max: "<<c.ram_max<<"\n";
-	os<<"\t\tvcpu min: "<<c.vcpu_min<<"; vcpu_max: "<<c.vcpu_max<<"\n";
-	os<<"\t}\n";
+	os<<"\t\t{\n";
+	os<<"\t\t\tName: "<<c.name<<"\n";
+	os<<"\t\t\tHost: " <<c.host<<"\n";
+	os<<"\t\t\tLinks:[\n";
+	for(size_t i=0; i<this->links_size; i++) {
+		os<<(*this->links[i])<<"\n";
+	}
+	os<<"\t\t\t]\n";
+	os<<"\t\t\tepc min: "<<c.epc_min<<"; epc_max: "<<c.epc_max<<"\n";
+	os<<"\t\t\tram min: "<<c.ram_min<<"; ram_max: "<<c.ram_max<<"\n";
+	os<<"\t\t\tvcpu min: "<<c.vcpu_min<<"; vcpu_max: "<<c.vcpu_max<<"\n";
+	os<<"\t\t}\n";
 	return os;
 }

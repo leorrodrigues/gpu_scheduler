@@ -3,11 +3,15 @@
 
 #include <iostream>
 
+#include "link.hpp"
 
 class Container {
 private:
 
-unsigned int pod;
+Link **links;
+unsigned int links_size;
+
+int host;
 unsigned int name;
 float epc_min;
 float epc_max;
@@ -16,13 +20,14 @@ float ram_max;
 float vcpu_max;
 float vcpu_min;
 
+
 protected:
 public:
 
 Container();
 ~Container();
 
-unsigned int getPod();
+unsigned int getHost();
 unsigned int getName();
 float getEpcMin();
 float getEpcMax();
@@ -39,6 +44,7 @@ void setRamMin(float);
 void setRamMax(float);
 void setVcpuMax(float);
 void setVcpuMin(float);
+void setLink(Link*);
 
 friend std ::ostream& operator<<(std::ostream&, Container const&);
 

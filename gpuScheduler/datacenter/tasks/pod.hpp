@@ -4,21 +4,17 @@
 #include "../../thirdparty/rapidjson/document.h"
 
 #include "container.hpp"
+#include "link.hpp"
 
 class Pod {
 private:
 //Pod variables
 Container** containers;
-float* links;
-unsigned int duration;
 unsigned int id;
-unsigned int submission;
+int host;
 
 //Management variables
 unsigned int containers_size;
-unsigned int links_size;
-unsigned int allocated_time;
-unsigned int delay;
 unsigned int fit;
 
 //Acumulative resources of the containers
@@ -32,26 +28,16 @@ float vcpu_max;
 public:
 
 Pod();
+Pod(unsigned int);
 ~Pod();
 
-void setTask(const char*);
-
-void addDelay();
-void addDelay(unsigned int);
-void setFit(unsigned int);
-void setAllocatedTime(unsigned int);
-void setSubmission(unsigned int);
-
 Container** getContainers();
-float* getLinks();
-unsigned int getDuration();
-unsigned int getId();
-unsigned int getSubmission();
 unsigned int getContainersSize();
-unsigned int getLinksSize();
-unsigned int getAllocatedTime();
-unsigned int getDelay();
+
+unsigned int getId();
+int getHost();
 unsigned int getFit();
+
 float getEpcMin();
 float getEpcMax();
 float getRamMin();
@@ -60,6 +46,9 @@ float getVcpuMin();
 float getVcpuMax();
 
 void addContainer(Container*);
+void setId(unsigned int);
+void setHost(int);
+void setFit(unsigned int);
 
 friend std ::ostream& operator<<(std::ostream&, Pod const&);
 

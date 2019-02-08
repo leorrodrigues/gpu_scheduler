@@ -28,7 +28,7 @@ def parse_args():
                         help='size of each request')
     parser.add_argument('-p','--pod',type=float,action='store',dest='pod',
                         default='0.5',
-                        help='% of conteiners in pod')
+                        help='%% of conteiners in pod')
     parser.add_argument('-b','--bandwidth',type=float,action='store',dest='bandwidth',
                         default='0.25',
                         help='max bandwidth of between containers')
@@ -44,7 +44,7 @@ def parse_args():
     parser.add_argument('-m','--memory',type=float,action='store',dest='RAM',
                         default=4,
                         help='max RAM size container')
-    
+
     return parser.parse_args()
 
 def get_uniform_int(min_value, max_value):
@@ -70,7 +70,7 @@ if __name__ == '__main__':
             break
         duration = get_uniform_int(1, args.duration)
         t = Task(task_id, submission, duration)
-        
+
         cont_id = 1
         cpods = math.ceil(args.size * args.pod)
         for c in range(1, args.size + 1):

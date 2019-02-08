@@ -6,10 +6,10 @@
 #include <queue>
 #include <map>
 
-#include "datacenter/tasks/pod.hpp"
+#include "datacenter/tasks/task.hpp"
 
-struct ComparePodOnSubmission {
-	bool operator()( Pod* lhs, Pod* rhs) const {
+struct CompareTaskOnSubmission {
+	bool operator()( Task* lhs, Task* rhs) const {
 		if ((lhs->getSubmission()+lhs->getDelay()) == (rhs->getSubmission()+rhs->getDelay())) {
 			return (lhs->getId()>rhs->getId());
 		}else{
@@ -18,8 +18,8 @@ struct ComparePodOnSubmission {
 	}
 };
 
-struct ComparePodOnDelete {
-	bool operator()( Pod* lhs, Pod* rhs) const {
+struct CompareTaskOnDelete {
+	bool operator()( Task* lhs, Task* rhs) const {
 		return (lhs->getAllocatedTime()+lhs->getDuration()) > (rhs->getAllocatedTime()+rhs->getDuration());
 	}
 };
@@ -37,11 +37,8 @@ typedef struct {
 
 typedef struct {
 	std::map<unsigned int, unsigned int> allocated_task;
-	std::priority_queue<Pod*, std::vector<Pod*>, ComparePodOnSubmission> pods_to_allocate;
-	std::priority_queue<Pod*, std::vector<Pod*>, ComparePodOnDelete> pods_to_delete;
-	int total_containers=0;
-	int total_accepted=0;
-	int total_refused=0;
+	std::priority_queue<Pod*, std::vector<Pod*>, CompareTaskOnSubmission> tasks_to_allocate;
+	std::priority_queue<Pod*, std::vector<Pod*>, CompareTaskOnDelete> tasks_to_delete;
 } scheduler_t;
 
 typedef struct {

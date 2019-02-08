@@ -7,11 +7,13 @@
 #include "../datacenter/host.hpp"
 
 namespace Allocator {
-bool freeHostResource(Host* host, Pod* pod, consumed_resource_t* consumed, Builder* builder){
+bool freeHostResource(Host* host, Task* task, consumed_resource_t* consumed, Builder* builder){
 	if(host==NULL) {
 		std::cerr << " Free Host Resource received NULL host\n";
 		exit(2);
 	}
+
+	//Need to iterate through ALL the pods and get the hosts that they are allocated.
 
 	//Update the host resources
 	host->removePod(pod);
