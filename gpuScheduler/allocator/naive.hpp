@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 
+#include "free.hpp"
 #include "utils.hpp"
 
 namespace Allocator {
@@ -24,8 +25,8 @@ bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed){
 	unsigned int pods_size = task->getPodsSize();
 	bool pod_allocated;
 
-	for(size_t pod_index; pod_index < pods_size; pod_index++) {
-		pod_success = false;
+	for(size_t pod_index=0; pod_index < pods_size; pod_index++) {
+		pod_allocated = false;
 		host=NULL;
 		for(size_t host_index=0; host_index<resultSize; host_index++ ) {
 			host=builder->getHost(result[host_index]);
@@ -37,40 +38,26 @@ bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed){
 				continue;
 			}
 
-			pod->setFit(fit);
-			host->addPod(pod);
+			pods[pod_index]->setFit(fit);
+			std::map<std::string,float> p_r = pods[pod_index]->getResources();
+			host->addPod(p_r, fit);
 
 			if(host->getActive()==false) {
 				host->setActive(true);
 				consumed->active_servers++;
 			}
 
-			// The pod was allocated, so the consumed variable has to be updated
-			if(fit==7) { // allocate MAX VCPU AND RAM
-				consumed->ram  += pod->getRamMax();
-				consumed->vcpu += pod->getVcpuMax();
-			}else if(fit==8) { // ALLOCATE MAX VCPU AND RAM MIN
-				consumed->ram  += pod->getRamMin();
-				consumed->vcpu += pod->getVcpuMax();
-			}else if(fit==10) { // ALLOCATE VCPU MIN AND RAM MAX
-				consumed->ram  += pod->getRamMax();
-				consumed->vcpu += pod->getVcpuMin();
-			}else if(fit==11) { // ALLOCATE VCPU AND RAM MIN
-				consumed->ram  += pod->getRamMin();
-				consumed->vcpu += pod->getVcpuMin();
-			}
-
+			addToConsumed(consumed,p_r,fit);
 
 			host->addAllocatedResources();
 
-
-			pod_sucess=true;
+			pod_allocated=true;
 		}
 
-		if(pod_sucess==false) {
+		if(pod_allocated==false) {
 			//need to desalocate all the allocated pods.
 			for(size_t i=0; i< pod_index; i++)
-				freeHostResource(pods[i]->getHost(),consumed,builder);
+				freeHostResource(pods[i],consumed,builder);
 
 			free(result);
 			result=NULL;

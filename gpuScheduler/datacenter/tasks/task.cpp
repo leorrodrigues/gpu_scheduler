@@ -192,8 +192,8 @@ std::ostream& operator<<(std::ostream& os, const Task& t)  {
 	os<<"\tSubmission: "<<t.submission<<"\n";
 	os<<"\tTotal Resources\n";
 	os<<"\t\tepc min: " <<t.resources.at("epc_min")<< "; epc_max: " <<t.resources.at("epc_max")<<"\n";
-	os<<"\t\tvcpu min: "<<t.resources.at("vcpu_min")<<"; vcpu_max: "<<t.resources.at("vcpu_max")<<"\n";
 	os<<"\t\tram min: " <<t.resources.at("ram_min")<< "; ram_max: " <<t.resources.at("ram_max")<<"\n";
+	os<<"\t\tvcpu min: "<<t.resources.at("vcpu_min")<<"; vcpu_max: "<<t.resources.at("vcpu_max")<<"\n";
 	os<<"}\n";
 	return os;
 }

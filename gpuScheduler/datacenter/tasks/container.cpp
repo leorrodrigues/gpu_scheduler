@@ -14,24 +14,16 @@ Link* Container::getLinks(){
 	return this->links;
 }
 
-void Container::setLink(Link link){
-	this->links_size++;
-	this->links = (Link*) realloc (this->links,sizeof(Link)*this->links_size);
-	this->links[this->links_size].destination=link.destination;
-	this->links[this->links_size].bandwidth_min=link.bandwidth_min;
-	this->links[this->links_size].bandwidth_max=link.bandwidth_max;
-}
-
 void Container::setLink(unsigned int dest, float bandwidth_min, float bandwidth_max){
 	this->links_size++;
 	this->links = (Link*) realloc (this->links,sizeof(Link)*this->links_size);
-	this->links[this->links_size].destination=dest;
-	this->links[this->links_size].bandwidth_min=bandwidth_min;
-	this->links[this->links_size].bandwidth_max=bandwidth_max;
+	this->links[this->links_size-1].destination=dest;
+	this->links[this->links_size-1].bandwidth_min=bandwidth_min;
+	this->links[this->links_size-1].bandwidth_max=bandwidth_max;
 }
 
 std::ostream& operator<<(std::ostream& os, const Container& c)  {
-	os<<"\t\t{\n";
+	os<<"\t\t\t{\n";
 	os<<"\t\t\tName: "<<c.id<<"\n";
 	os<<"\t\t\tLinks:[\n";
 	for(size_t i=0; i<c.links_size; i++) {
@@ -42,6 +34,6 @@ std::ostream& operator<<(std::ostream& os, const Container& c)  {
 	os<<"\t\t\tepc min: "<<c.resources.at("epc_min")<<"; epc_max: "<<c.resources.at("epc_max")<<"\n";
 	os<<"\t\t\tram mi: "<<c.resources.at("ram_min")<<"; ram_max: "<<c.resources.at("ram_max")<<"\n";
 	os<<"\t\t\tvcpu min: "<<c.resources.at("vcpu_min")<<"; vcpu_max: "<<c.resources.at("vcpu_max")<<"\n";
-	os<<"\t\t}\n";
+	os<<"\t\t\t}\n";
 	return os;
 }

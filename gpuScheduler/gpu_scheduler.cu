@@ -14,11 +14,11 @@
 // #include "allocator/standard/worstFit.hpp"
 
 // #include "allocator/multicriteria_clusterized.cuh"
-#include "allocator/pure_mcl.hpp"
+// #include "allocator/pure_mcl.hpp"
 #include "allocator/naive.hpp"
 #include "allocator/utils.hpp"
 #include "allocator/free.hpp"
-#include "allocator/all.cuh"
+// #include "allocator/all.cuh"
 
 #include "objective_functions/fragmentation.hpp"
 #include "objective_functions/footprint.hpp"
@@ -111,7 +111,7 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 		}
 	}
 
-	if(test_type >=0 && test_type<=3) {
+	if(test_type >=0 && test_type<=4) {
 		options->test_type=test_type;
 	}else{
 		std::cerr << "(gpu_scheduler) Invalid Type of test: " << test_type << "\n";
@@ -183,28 +183,27 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 
 		scheduler->tasks_to_delete.pop();
 
-		// if( scheduler->allocated_task [ current->getId() ]!=NULL ) {
+		// if(  [ current->getId() ]!=NULL ) {
 		//Iterate through the PODs of the TASK, and erase each of one.
 		unsigned int pods_size = current->getPodsSize();
 		if(pods_size>1) {
 			Pod **pods= current->getPods();
 			for(size_t i=0; i< pods_size; i++) {
-				temp =  builder->getHost ( scheduler->allocated_task [ pods[i]->getId() ] );
-
+				temp =  pods[i]->getHost();
 
 				printf("Scheduler Time %d Deleting container %d\n", options->current_time, current->getId());
 
 				const bool active_status=temp->getActive();
 
-				free_success=Allocator::freeHostResource(
-					/* the specific host that have the container*/
-					temp,
-					/* The container to be removed*/
-					current,
-					/* The consumed DC status*/
-					consumed,
-					builder
-					);
+				// free_success=Allocator::freeHostResource(
+				//      /* the specific host that have the container*/
+				//      temp,
+				//      /* The container to be removed*/
+				//      current,
+				//      /* The consumed DC status*/
+				//      consumed,
+				//      builder
+				//      );
 
 				if(!free_success) {
 					std::cerr << "(gpu_scheduler 200) gpu_scheduler(170) - Error in free the task " << current->getId() << " from the data center\n";
@@ -222,9 +221,6 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 		}else{
 			std::cerr << "(gpu_scheduler) ERROR Task withouth pod!\n";
 		}
-
-		// Search the task in the vector and removes it
-		scheduler->allocated_task.erase(current->getId());
 
 		delete(current);
 	}
@@ -257,24 +253,24 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			// allocate the new task in the data center.
 			if(options->standard==0) {
 				if( options->clustering_method=="pure_mcl") {
-					allocation_success=Allocator::mcl_pure(builder,scheduler->allocated_task);
+					// allocation_success=Allocator::mcl_pure(builder,);
 				} else if( options->clustering_method == "none") {
-					allocation_success=Allocator::naive(builder,current, scheduler->allocated_task,consumed);
+					allocation_success=Allocator::naive(builder,current, consumed);
 				} else if ( options->clustering_method == "mcl") {
-					// allocation_success=Allocator::multicriteria_clusterized(builder, current, scheduler->allocated_task,consumed);
+					// allocation_success=Allocator::multicriteria_clusterized(builder, current, ,consumed);
 				} else if ( options->clustering_method == "all") {
-					allocation_success=Allocator::all();
+					// allocation_success=Allocator::all();
 				} else {
 					std::cerr << "(gpu_scheduler) Invalid type of allocation method\n";
 					exit(1);
 				}
 			}else{
 				if(options->standard==1) {
-					// allocation_success=Allocator::firstFit(builder, current, scheduler->allocated_task,consumed);
+					// allocation_success=Allocator::firstFit(builder, current, ,consumed);
 				}else if(options->standard==2) {
-					// allocation_success=Allocator::bestFit(builder, current, scheduler->allocated_task,consumed);
+					// allocation_success=Allocator::bestFit(builder, current, ,consumed);
 				}else if(options->standard==3) {
-					// allocation_success=Allocator::worstFit(builder, current, scheduler->allocated_task,consumed);
+					// allocation_success=Allocator::worstFit(builder, current, ,consumed);
 				}else{
 					std::cerr << "(gpu_scheduler) Invalid type of standard allocation method\n";
 					exit(1);
@@ -417,18 +413,17 @@ int main(int argc, char **argv){
 		std::string path = "../simulator/json/";
 		if(options.test_type==1) {
 			path+="container/data-";
-		}
-		else if(options.test_type==2) {
+		} else if(options.test_type==2) {
 			path+="googleBorg/google-";
-		}
-		else if(options.test_type==3) {
+		} else if(options.test_type==3) {
 			path+="datacenter/data-";
+		} else if(options.test_type==4) {
+			path+="container_link/requests-";
 		}
 		path+= std::to_string(options.request_size);
 		path+=".json";
 		reader->openDocument(path.c_str());
 		std::string message;
-
 		printf("Creating the contianers\n");
 		Task * current = NULL;
 		while((message=reader->getNextTask())!="eof") {
@@ -438,7 +433,7 @@ int main(int argc, char **argv){
 			current->setTask(message.c_str());
 			// Put the container in the vector
 			scheduler.tasks_to_allocate.push(current);
-			// std::cout<<*scheduler.pods_to_allocate.top()<<"\n";
+			// std::cout<<*current<<"\n";
 		}
 		message.clear();
 		delete(reader);

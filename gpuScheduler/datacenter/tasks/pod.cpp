@@ -64,7 +64,7 @@ void Pod::setFit(unsigned int fit){
 }
 
 std::ostream& operator<<(std::ostream& os, const Pod& p)  {
-	os<<"\tPod:{\n";
+	os<<"\t\t{\n";
 	os<<"\t\tId: "<< p.id<<"\n";
 	os<<"\t\tContainers:[\n";
 	for(size_t i=0; i<p.containers_size; i++) {
@@ -75,6 +75,6 @@ std::ostream& operator<<(std::ostream& os, const Pod& p)  {
 	os<<"\t\t\tepc min: " <<p.resources.at("epc_min")<< "; epc_max: " <<p.resources.at("epc_max")<<"\n";
 	os<<"\t\t\tram min: " <<p.resources.at("ram_min")<< "; ram_max: " <<p.resources.at("ram_max")<<"\n";
 	os<<"\t\t\tvcpu min: "<<p.resources.at("vcpu_min")<<"; vcpu_max: "<<p.resources.at("vcpu_max")<<"\n";
-	os<<"\t}\n";
+	os<<"\t\t}\n";
 	return os;
 }

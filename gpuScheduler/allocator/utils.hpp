@@ -18,16 +18,18 @@ inline int checkFit(Host* host, Pod* pod){
 	float h_vcpu = host->getResource()["vcpu"];
 	float h_mem = host->getResource()["memory"];
 
-	if(h_vcpu>=pod->getVcpuMax()) {
+	std::map<std::string,float> p_r = pod->getResources();
+
+	if(h_vcpu>=p_r["vcpu_max"]) {
 		total+=1;
-	}else if(h_vcpu>=pod->getVcpuMin()) {
+	}else if(h_vcpu>=p_r["vcpu_min"]) {
 		total+=4;
 	}else{
 		return 0;
 	}
-	if(h_mem >=pod->getRamMax()) {
+	if(h_mem >=p_r["ram_max"]) {
 		total+=6;
-	} else if(h_mem >=pod->getRamMin()) {
+	} else if(h_mem >=p_r["ram_min"]) {
 		total+=7;
 	}else{
 		return 0;
@@ -42,22 +44,57 @@ inline int checkFit(total_resources_t* dc, consumed_resource_t* consumed, Task* 
 	// 11 VCPU MIN RAM MIN
 	// 0 NOT FIT
 	int total=0;
-	if(dc->vcpu - consumed->vcpu >=task->getVcpuMax()) {
+	std::map<std::string,float> t_r = task->getResources();
+	if(dc->vcpu - consumed->vcpu >=t_r["vcpu_max"]) {
 		total+=1;
-	}else if(dc->vcpu - consumed->vcpu >=task->getVcpuMin()) {
+	}else if(dc->vcpu - consumed->vcpu >=t_r["vcpu_min"]) {
 		total+=4;
 	}else{
 		return 0;
 	}
-	if(dc->ram - consumed->ram >=task->getRamMax()) {
+	if(dc->ram - consumed->ram >=t_r["ram_max"]) {
 		// std::cout<<"Memory "<<host->getResource()->mFloat["memory"]<<" AND "<<task->ram_max<<"\n";
 		total+=6;
-	} else if(dc->ram - consumed->ram >=task->getRamMin()) {
+	} else if(dc->ram - consumed->ram >=t_r["ram_min"]) {
 		total+=7;
 	}else{
 		return 0;
 	}
 	return total;
+}
+
+inline void addToConsumed(consumed_resource_t* consumed, std::map<std::string,float> resource, unsigned int fit){
+	// The pod was allocated, so the consumed variable has to be updated
+	if(fit==7) { // allocate MAX VCPU AND RAM
+		consumed->ram  += resource["ram_max"];
+		consumed->vcpu += resource["vcpu_max"];
+	}else if(fit==8) { // ALLOCATE MAX VCPU AND RAM MIN
+		consumed->ram  += resource["ram_min"];
+		consumed->vcpu += resource["vcpu_max"];
+	}else if(fit==10) { // ALLOCATE VCPU MIN AND RAM MAX
+		consumed->ram  += resource["ram_max"];
+		consumed->vcpu += resource["vcpu_min"];
+	}else if(fit==11) { // ALLOCATE VCPU AND RAM MIN
+		consumed->ram  += resource["ram_min"];
+		consumed->vcpu += resource["vcpu_min"];
+	}
+}
+
+inline void subToConsumed(consumed_resource_t* consumed, std::map<std::string,float> resource, unsigned int fit){
+	// The pod was allocated, so the consumed variable has to be updated
+	if(fit==7) { // allocate MAX VCPU AND RAM
+		consumed->ram  -= resource["ram_max"];
+		consumed->vcpu -= resource["vcpu_max"];
+	}else if(fit==8) { // ALLOCATE MAX VCPU AND RAM MIN
+		consumed->ram  -= resource["ram_min"];
+		consumed->vcpu -= resource["vcpu_max"];
+	}else if(fit==10) { // ALLOCATE VCPU MIN AND RAM MAX
+		consumed->ram  -= resource["ram_max"];
+		consumed->vcpu -= resource["vcpu_min"];
+	}else if(fit==11) { // ALLOCATE VCPU AND RAM MIN
+		consumed->ram  -= resource["ram_min"];
+		consumed->vcpu -= resource["vcpu_min"];
+	}
 }
 
 }

@@ -15,8 +15,8 @@ explicit Task_Resources(){
 	resources["ram_min"]=0;
 	resources["vcpu_min"]=0;
 	resources["epc_max"]=0;
-	resources["ram_min"]=0;
-	resources["vcpu_min"]=0;
+	resources["ram_max"]=0;
+	resources["vcpu_max"]=0;
 	id=0;
 }
 
