@@ -3,20 +3,12 @@
 Task::Task(){
 	this->pods=NULL;
 	this->duration=0;
-	this->id=0;
 	this->submission=0;
 
 	this->pods_size = 0;
 	this->allocated_time=0;
 	this->delay=0;
 	this->fit=0;
-
-	this->epc_min=0;
-	this->ram_min=0;
-	this->vcpu_min=0;
-	this->epc_max=0;
-	this->ram_max=0;
-	this->vcpu_max=0;
 }
 
 Task::~Task(){
@@ -44,60 +36,36 @@ void Task::setTask(const char* taskMessage){
 	this->submission = task["submission"].GetDouble();
 
 	/**********************************************************/
-	/********                   Link variables                *********/
-	/*********************************************************/
-
-	//Links
-	const rapidjson::Value &linksArray = task["links"];
-	unsigned int links_size = linksArray.Size();
-	Link** links=NULL;
-	if(links_size!=0) {
-		links = (Link *) malloc (sizeof(Link) * links_size);
-		Link* link = NULL;
-		for(size_t i=0; i < links_size; i++) {
-			link = new Link();
-			links[i] = link->setTask(linksArray[i]);
-		}
-	}
-
-	/**********************************************************/
 	/********              Pod   variables                    ********/
 	/*********************************************************/
 	const rapidjson::Value &containersArray = task["containers"];
-	unsigned int containers_size = containersArray.Size();
+	this->containers_size = containersArray.Size();
 	Container **containers = NULL;
-	if(containers_size!=0) {
+	if(this->containers_size!=0) {
+
 		std::map<unsigned int, Pod*> temp_pods;
 		Pod* pod = NULL;
-		containers=(Container**) malloc (sizeof(container*)*containers_size);
+		containers=(Container**) malloc (sizeof(Container*)*this->containers_size);
 		Container *c=NULL;
-		for(size_t i=0; i < containers_size; i++) {
+
+		const char *resources[]={
+			"epc_min","epc_max",
+			"ram_min","ram_max",
+			"vcpu_min","vcpu_max"
+		};
+		unsigned int resources_size=6;
+
+		for(size_t i=0; i < this->containers_size; i++) {
 			c = new Container();
 			//CRIA UM CONTAINER E COLOCA OS VALORES DENTRO DELE, APOS ISSO ADICIONA ELE DENTRO DO ARRAY DE CONTAINERS =).
 
-			//EPC_MIN
-			c->setEpcMin(containersArray[i]["epc_min"].GetDouble());
-			this->epc_min+=c->getEpcMin();
-
-			//EPC_MAX
-			c->setEpcMax(containersArray[i]["epc_max"].GetDouble());
-			this->epc_max+=c->getEpcMax();
-
-			//RAM_MIN
-			c->setRamMin(containersArray[i]["ram_min"].GetDouble());
-			this->ram_min+=c->getRamMin();
-
-			//RAM_MAX
-			c->setRamMax(containersArray[i]["ram_max"].GetDouble());
-			this->ram_max+=c->getRamMax();
-
-			//VCPU_MIN
-			c->setVcpuMin(containersArray[i]["vcpu_min"].GetDouble());
-			this->vcpu_min+=c->getVcpuMin();
-
-			//VCPU_MAX
-			c->setVcpuMax(containersArray[i]["vcpu_max"].GetDouble());
-			this->vcpu_max+=c->getVcpuMax();
+			for(size_t r_s=0; r_s < resources_size; r_s++) {
+				c->setValue(
+					resources[r_s],
+					containersArray[i][resources[r_s]].GetDouble()
+					);
+				this->resources[resources[r_s]]+=c->getResource(resources[r_s]);
+			}
 
 			//POD
 			int pod_index = containersArray[i]["pod"].GetInt();
@@ -109,7 +77,7 @@ void Task::setTask(const char* taskMessage){
 			}
 
 			//NAME
-			c->setName(containersArray[i]["name"].GetInt());
+			c->setId(containersArray[i]["name"].GetInt());
 
 			temp_pods[pod_index]->addContainer(c);
 			containers[i]=c;
@@ -121,7 +89,7 @@ void Task::setTask(const char* taskMessage){
 
 		//Populate the pods array
 		for(
-			std::map<int,Pod*>::iterator it=temp_pods.begin();
+			std::map<unsigned int,Pod*>::iterator it=temp_pods.begin();
 			it!=temp_pods.end();
 			it++
 			) {
@@ -129,16 +97,34 @@ void Task::setTask(const char* taskMessage){
 		}
 	}
 
-	for(size_t i=0; i<links_size; i++) {
-		unsigned int source = links[i]->getSource();
-		for(size_t j=0; j< containers_size; j++) {
-			if(source = containers[i].getId()) {
-				containers[i]->setLink(links[i]);
+	//Now we have all te pods constructed and their respectives containers inside it.
+	//To construct the links between two containers, use the containers array to easy do this job. As the elements in the pods and in this vector are the pointers to the same memory address.
+
+	/**********************************************************/
+	/********                   Link variables                *********/
+	/*********************************************************/
+
+	//Links
+	const rapidjson::Value &linksArray = task["links"];
+	this->links_size = linksArray.Size();
+	unsigned int source=0;
+	if(this->links_size!=0) {
+		//Iterating through all the links in the request
+		for(size_t i=0; i < this->links_size; i++) {
+			source = linksArray[i]["source"].GetInt();
+			//Finding the respective container
+			for(size_t j=0; j< this->containers_size; j++) {
+				if(containers[j]->getId()==source) {
+					containers[j]->setLink(
+						linksArray[i]["destination"].GetInt(),
+						linksArray[i]["bandwidth_min"].GetDouble(),
+						linksArray[i]["bandwidth_max"].GetDouble()
+						);
+				}
 			}
 		}
 	}
 
-	free(links);
 	free(containers);
 }
 
@@ -174,10 +160,6 @@ unsigned int Task::getDuration(){
 	return this->duration;
 }
 
-unsigned int Task::getId(){
-	return this->id;
-}
-
 unsigned int Task::getSubmission(){
 	return this->submission;
 }
@@ -198,48 +180,20 @@ unsigned int Task::getFit(){
 	return this->fit;
 }
 
-float Task::getEpcMin(){
-	return this->epc_min;
-}
-
-float Task::getEpcMax(){
-	return this->epc_max;
-}
-
-float Task::getRamMin(){
-	return this->ram_min;
-}
-
-float Task::getRamMax(){
-	return this->ram_max;
-}
-
-float Task::getVcpuMin(){
-	return this->vcpu_min;
-}
-
-float Task::getVcpuMax(){
-	return this->vcpu_max;
-}
-
 std::ostream& operator<<(std::ostream& os, const Task& t)  {
 	os<<"Task:{\n";
-	os<<"\tDuration: "<<p.duration<<"\n";
-	os<<"\tLinks:[";
-	for(size_t i=0; i<p.links_size; i++) {
-		os<<(*p.links[i])<<",";
-	}
-	os<<"]\n\tContainers:[\n";
-	for(size_t i=0; i<p.containers_size; i++) {
-		os<<(*p.containers[i]);
+	os<<"\tDuration: "<<t.duration<<"\n";
+	os<<"\tPods:[\n";
+	for(size_t i=0; i<t.pods_size; i++) {
+		os<<(*t.pods[i]);
 	}
 	os<<"\t]\n";
-	os<<"\tId: "<< p.id<<"\n";
-	os<<"\tSubmission: "<<p.submission<<"\n";
+	os<<"\tId: "<< t.id<<"\n";
+	os<<"\tSubmission: "<<t.submission<<"\n";
 	os<<"\tTotal Resources\n";
-	os<<"\t\tepc min: " <<p.epc_min<< "; epc_max: " <<p.epc_max<<"\n";
-	os<<"\t\tram min: " <<p.ram_min<< "; ram_max: " <<p.ram_max<<"\n";
-	os<<"\t\tvcpu min: "<<p.vcpu_min<<"; vcpu_max: "<<p.vcpu_max<<"\n";
+	os<<"\t\tepc min: " <<t.resources.at("epc_min")<< "; epc_max: " <<t.resources.at("epc_max")<<"\n";
+	os<<"\t\tvcpu min: "<<t.resources.at("vcpu_min")<<"; vcpu_max: "<<t.resources.at("vcpu_max")<<"\n";
+	os<<"\t\tram min: " <<t.resources.at("ram_min")<< "; ram_max: " <<t.resources.at("ram_max")<<"\n";
 	os<<"}\n";
 	return os;
 }

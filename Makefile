@@ -119,7 +119,7 @@ LIST_RABBIT_OBJ := $(foreach file,$(RABBIT_FILES), $(BUILD_GPUSCHEDULER)$(file)$
 LIST_RABBIT_DEP := $(foreach file, $(RABBIT_FILES), $(BUILD_GPUSCHEDULER)$(file).d)
 
 #Tasks module
-TASKS_FILES := container pod
+TASKS_FILES := container pod task
 
 LIST_TASK := $(foreach file,$(TASKS_FILES), $(BUILD_GPUSCHEDULER)$(file)$(AUX))
 

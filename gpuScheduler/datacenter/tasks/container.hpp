@@ -3,48 +3,24 @@
 
 #include <iostream>
 
+#include "task_resources.hpp"
 #include "link.hpp"
 
-class Container {
+class Container : public Task_Resources {
 private:
 
-Link **links;
+Link *links;
 unsigned int links_size;
 
-int host;
-unsigned int name;
-float epc_min;
-float epc_max;
-float ram_min;
-float ram_max;
-float vcpu_max;
-float vcpu_min;
-
-
-protected:
 public:
 
 Container();
 ~Container();
 
-unsigned int getHost();
-unsigned int getName();
-float getEpcMin();
-float getEpcMax();
-float getRamMin();
-float getRamMax();
-float getVcpuMax();
-float getVcpuMin();
+Link* getLinks();
 
-void setPod(unsigned int);
-void setName(unsigned int);
-void setEpcMin(float);
-void setEpcMax(float);
-void setRamMin(float);
-void setRamMax(float);
-void setVcpuMax(float);
-void setVcpuMin(float);
-void setLink(Link*);
+void setLink(Link);
+void setLink(unsigned int, float, float);
 
 friend std ::ostream& operator<<(std::ostream&, Container const&);
 

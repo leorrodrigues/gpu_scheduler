@@ -10,7 +10,7 @@
 
 namespace Allocator {
 
-bool firstFit (Builder* builder,  Pod* pod, std::map<unsigned int, unsigned int> &allocated_task,consumed_resource_t* consumed){
+bool firstFit (Builder* builder,  Task* task, std::map<unsigned int, unsigned int> &allocated_task,consumed_resource_t* consumed){
 	std::vector<Host*> hosts = builder->getHosts();
 	int i=0;
 

@@ -21,7 +21,7 @@ struct CompareBF {
 };
 
 namespace Allocator {
-bool bestFit(Builder* builder,  Pod* pod, std::map<unsigned int, unsigned int> &allocated_task,consumed_resource_t* consumed){
+bool bestFit(Builder* builder,  Task* task, std::map<unsigned int, unsigned int> &allocated_task,consumed_resource_t* consumed){
 	std::vector<Host*> aux = builder->getHosts();
 	std::priority_queue<Host*, std::vector<Host*>, CompareBF> hosts (aux.begin(), aux.end());
 	Host* host = NULL;

@@ -8,7 +8,7 @@
 namespace Allocator {
 
 // Run the group one time and all the others executions are only with the MULTICRITERIA
-bool multicriteria_clusterized(Builder* builder,  Pod* pod, std::map<unsigned int, unsigned int> &allocated_task, consumed_resource_t* consumed){
+bool multicriteria_clusterized(Builder* builder,  Task* task, std::map<unsigned int, unsigned int> &allocated_task, consumed_resource_t* consumed){
 
 	// Create the result variables
 	unsigned int* result = NULL;

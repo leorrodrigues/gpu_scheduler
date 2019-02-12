@@ -3,30 +3,23 @@
 
 #include "../../thirdparty/rapidjson/document.h"
 
-#include "container.hpp"
+#include "task_resources.hpp"
 #include "pod.hpp"
 
-class Task {
+class Task : public Task_Resources {
 private:
 //Pod variables
 Pod** pods;
 unsigned int duration;
-unsigned int id;
 unsigned int submission;
 
 //Management variables
 unsigned int pods_size;
+unsigned int containers_size;
+unsigned int links_size;
 unsigned int allocated_time;
 unsigned int delay;
 unsigned int fit;
-
-//Acumulative resources of the containers
-float epc_min;
-float ram_min;
-float vcpu_min;
-float epc_max;
-float ram_max;
-float vcpu_max;
 
 public:
 
@@ -44,18 +37,11 @@ void setSubmission(unsigned int);
 Pod** getPods();
 unsigned int getPodsSize();
 unsigned int getDuration();
-unsigned int getId();
 unsigned int getSubmission();
 unsigned int getContainersSize();
 unsigned int getAllocatedTime();
 unsigned int getDelay();
 unsigned int getFit();
-float getEpcMin();
-float getEpcMax();
-float getRamMin();
-float getRamMax();
-float getVcpuMin();
-float getVcpuMax();
 
 friend std ::ostream& operator<<(std::ostream&, Task const&);
 

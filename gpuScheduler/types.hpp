@@ -37,8 +37,8 @@ typedef struct {
 
 typedef struct {
 	std::map<unsigned int, unsigned int> allocated_task;
-	std::priority_queue<Pod*, std::vector<Pod*>, CompareTaskOnSubmission> tasks_to_allocate;
-	std::priority_queue<Pod*, std::vector<Pod*>, CompareTaskOnDelete> tasks_to_delete;
+	std::priority_queue<Task*, std::vector<Task*>, CompareTaskOnSubmission> tasks_to_allocate;
+	std::priority_queue<Task*, std::vector<Task*>, CompareTaskOnDelete> tasks_to_delete;
 } scheduler_t;
 
 typedef struct {

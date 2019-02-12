@@ -3,101 +3,45 @@
 Container::Container(){
 	this->links=NULL;
 	this->links_size=0;
-
-	this->name=0;
-	this->host=-1;
-	this->epc_min=0;
-	this->epc_max=0;
-	this->ram_min=0;
-	this->ram_max=0;
-	this->vcpu_min=0;
-	this->vcpu_max=0;
 }
 
 Container::~Container(){
-	for(size_t i=0; i<this->links_size; i++) {
-		delete(this->links[i]);
-	}
 	free(this->links);
 	this->links=NULL;
 }
 
-unsigned int Container::getHost(){
-	return this->host;
+Link* Container::getLinks(){
+	return this->links;
 }
 
-unsigned int Container::getName(){
-	return this->name;
+void Container::setLink(Link link){
+	this->links_size++;
+	this->links = (Link*) realloc (this->links,sizeof(Link)*this->links_size);
+	this->links[this->links_size].destination=link.destination;
+	this->links[this->links_size].bandwidth_min=link.bandwidth_min;
+	this->links[this->links_size].bandwidth_max=link.bandwidth_max;
 }
 
-float Container::getEpcMin(){
-	return this->epc_min;
-}
-
-float Container::getEpcMax(){
-	return this->epc_max;
-}
-
-float Container::getRamMin(){
-	return this->ram_min;
-}
-
-float Container::getRamMax(){
-	return this->ram_max;
-}
-
-float Container::getVcpuMin(){
-	return this->vcpu_min;
-}
-
-float Container::getVcpuMax(){
-	return this->vcpu_max;
-}
-
-void Container::setPod(unsigned int pod){
-	this->pod=pod;
-}
-
-void Container::setName(unsigned int name){
-	this->name=name;
-}
-
-void Container::setEpcMin(float epcMin){
-	this->epc_min=epcMin;
-}
-
-void Container::setEpcMax(float epcMax){
-	this->epc_max=epcMax;
-}
-
-void Container::setRamMin(float ramMin){
-	this->ram_min=ramMin;
-}
-
-void Container::setRamMax(float ramMax){
-	this->ram_max=ramMax;
-}
-
-void Container::setVcpuMin(float vcpuMin){
-	this->vcpu_min = vcpuMin;
-}
-
-void Container::setVcpuMax(float vcpuMax){
-	this->vcpu_max = vcpuMax;
+void Container::setLink(unsigned int dest, float bandwidth_min, float bandwidth_max){
+	this->links_size++;
+	this->links = (Link*) realloc (this->links,sizeof(Link)*this->links_size);
+	this->links[this->links_size].destination=dest;
+	this->links[this->links_size].bandwidth_min=bandwidth_min;
+	this->links[this->links_size].bandwidth_max=bandwidth_max;
 }
 
 std::ostream& operator<<(std::ostream& os, const Container& c)  {
 	os<<"\t\t{\n";
-	os<<"\t\t\tName: "<<c.name<<"\n";
-	os<<"\t\t\tHost: " <<c.host<<"\n";
+	os<<"\t\t\tName: "<<c.id<<"\n";
 	os<<"\t\t\tLinks:[\n";
-	for(size_t i=0; i<this->links_size; i++) {
-		os<<(*this->links[i])<<"\n";
+	for(size_t i=0; i<c.links_size; i++) {
+		os<<"\t\t\t\tDestination: "<<c.links[i].destination<<"\n";
+		os<<"\t\t\t\tBandwidth: "<<c.links[i].bandwidth_min<<" | "<<c.links[i].bandwidth_max<<"\n";
 	}
 	os<<"\t\t\t]\n";
-	os<<"\t\t\tepc min: "<<c.epc_min<<"; epc_max: "<<c.epc_max<<"\n";
-	os<<"\t\t\tram min: "<<c.ram_min<<"; ram_max: "<<c.ram_max<<"\n";
-	os<<"\t\t\tvcpu min: "<<c.vcpu_min<<"; vcpu_max: "<<c.vcpu_max<<"\n";
+	os<<"\t\t\tepc min: "<<c.resources.at("epc_min")<<"; epc_max: "<<c.resources.at("epc_max")<<"\n";
+	os<<"\t\t\tram mi: "<<c.resources.at("ram_min")<<"; ram_max: "<<c.resources.at("ram_max")<<"\n";
+	os<<"\t\t\tvcpu min: "<<c.resources.at("vcpu_min")<<"; vcpu_max: "<<c.resources.at("vcpu_max")<<"\n";
 	os<<"\t\t}\n";
 	return os;
 }

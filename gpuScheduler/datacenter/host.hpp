@@ -1,10 +1,8 @@
-#ifndef  _HOST_NOT_INCLUDED_
+#ifndef _HOST_NOT_INCLUDED_
 #define _HOST_NOT_INCLUDED_
 
 #include <string>
 #include <map>
-
-#include "tasks/pod.hpp"
 
 class Host {
 public:
@@ -79,37 +77,35 @@ Host& operator-= (Host& rhs){
 	return *this;
 }
 
-void  addPod(Pod* rhs){
-	int fit = rhs->getFit();
+void  addPod(std::map<std::string,float> rhs, unsigned int fit){
 	if(fit==7) { // allocate MAX VCPU AND RAM
-		this->resource["memory"]-=rhs->getRamMax();
-		this->resource["vcpu"]-=rhs->getVcpuMax();
+		this->resource["memory"]-=rhs["ram_max"];
+		this->resource["vcpu"]-=rhs["ram_max"];
 	}else if(fit==8) { // ALLOCATE MAX VCPU AND RAM MIN
-		this->resource["memory"]-=rhs->getRamMin();
-		this->resource["vcpu"]-=rhs->getVcpuMax();
+		this->resource["memory "]-=rhs["ram_min"];
+		this->resource["vcpu "]-=rhs["vcpu_max"];
 	}else if(fit==10) { // ALLOCATE VCPU MIN AND RAM MAX
-		this->resource["memory"]-=rhs->getRamMax();
-		this->resource["vcpu"]-=rhs->getVcpuMin();
+		this->resource["memory "]-=rhs["ram_max"];
+		this->resource["vcpu "]-=rhs["vcpu_min"];
 	}else if(fit==11) { // ALLOCATE VCPU AND RAM MIN
-		this->resource["memory"]-=rhs->getRamMin();
-		this->resource["vcpu"]-=rhs->getVcpuMin();
+		this->resource["memory "]-=rhs["ram_min"];
+		this->resource["vcpu "]-=rhs["vcpu_min"];
 	}
 }
 
-void removePod(Pod* rhs){
-	int fit = rhs->getFit();
+void removePod(std::map<std::string,float> rhs, unsigned int fit){
 	if(fit==7) { // allocate MAX VCPU AND RAM
-		this->resource["memory"]+=rhs->getRamMax();
-		this->resource["vcpu"]+=rhs->getVcpuMax();
+		this->resource["memory "]+=rhs["ram_max"];
+		this->resource["vcpu "]+=rhs["ram_max"];
 	}else if(fit==8) { // ALLOCATE MAX VCPU AND RAM MIN
-		this->resource["memory"]+=rhs->getRamMin();
-		this->resource["vcpu"]+=rhs->getVcpuMax();
+		this->resource["memory"]+=rhs["ram_min"];
+		this->resource["vcpu"]+=rhs["vcpu_max"];
 	}else if(fit==10) { // ALLOCATE VCPU MIN AND RAM MAX
-		this->resource["memory"]+=rhs->getRamMax();
-		this->resource["vcpu"]+=rhs->getVcpuMin();
+		this->resource["memory"]+=rhs["ram_max"];
+		this->resource["vcpu"]+=rhs["vcpu_min"];
 	}else if(fit==11) { // ALLOCATE VCPU AND RAM MIN
-		this->resource["memory"]+=rhs->getRamMin();
-		this->resource["vcpu"]+=rhs->getVcpuMin();
+		this->resource["memory"]+=rhs["ram_min"];
+		this->resource["vcpu"]+=rhs["vcpu_min"];
 	}
 }
 

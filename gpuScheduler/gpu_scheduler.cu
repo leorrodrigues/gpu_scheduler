@@ -9,11 +9,11 @@
 #include "thirdparty/clara.hpp"
 
 
-#include "allocator/standard/bestFit.hpp"
-#include "allocator/standard/firstFit.hpp"
-#include "allocator/standard/worstFit.hpp"
+// #include "allocator/standard/bestFit.hpp"
+// #include "allocator/standard/firstFit.hpp"
+// #include "allocator/standard/worstFit.hpp"
 
-#include "allocator/multicriteria_clusterized.cuh"
+// #include "allocator/multicriteria_clusterized.cuh"
 #include "allocator/pure_mcl.hpp"
 #include "allocator/naive.hpp"
 #include "allocator/utils.hpp"
@@ -261,7 +261,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				} else if( options->clustering_method == "none") {
 					allocation_success=Allocator::naive(builder,current, scheduler->allocated_task,consumed);
 				} else if ( options->clustering_method == "mcl") {
-					allocation_success=Allocator::multicriteria_clusterized(builder, current, scheduler->allocated_task,consumed);
+					// allocation_success=Allocator::multicriteria_clusterized(builder, current, scheduler->allocated_task,consumed);
 				} else if ( options->clustering_method == "all") {
 					allocation_success=Allocator::all();
 				} else {
@@ -270,11 +270,11 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				}
 			}else{
 				if(options->standard==1) {
-					allocation_success=Allocator::firstFit(builder, current, scheduler->allocated_task,consumed);
+					// allocation_success=Allocator::firstFit(builder, current, scheduler->allocated_task,consumed);
 				}else if(options->standard==2) {
-					allocation_success=Allocator::bestFit(builder, current, scheduler->allocated_task,consumed);
+					// allocation_success=Allocator::bestFit(builder, current, scheduler->allocated_task,consumed);
 				}else if(options->standard==3) {
-					allocation_success=Allocator::worstFit(builder, current, scheduler->allocated_task,consumed);
+					// allocation_success=Allocator::worstFit(builder, current, scheduler->allocated_task,consumed);
 				}else{
 					std::cerr << "(gpu_scheduler) Invalid type of standard allocation method\n";
 					exit(1);
