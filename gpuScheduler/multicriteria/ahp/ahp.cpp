@@ -30,6 +30,8 @@ AHP::AHP() {
 		strcpy(this->path, cwd);
 		strcat(this->path,"/");
 	}
+	this->setHierarchy();
+	this->conception(false);
 }
 
 AHP::~AHP(){
@@ -388,7 +390,7 @@ void AHP::criteriasParser(genericValue* dataCriteria, Node* parent) {
 				// at this point, all the criteria variables were read, now the document
 				// has the child's of the criteria. To put the childs corretly inside
 				// the hierarchy, the criteria node has to be created.
-				auto criteria = this->hierarchy->addCriteria(name);
+				Node* criteria = this->hierarchy->addCriteria(name);
 				criteria->setLeaf(leaf);
 				this->hierarchy->addEdge(parent, criteria, weight, index);
 				// with the criteria node added, the call recursively the
@@ -398,7 +400,7 @@ void AHP::criteriasParser(genericValue* dataCriteria, Node* parent) {
 			}
 		}
 		if (leaf) {
-			auto criteria = this->hierarchy->addSheets(name);
+			Node* criteria = this->hierarchy->addSheets(name);
 			criteria->setLeaf(leaf);
 			this->hierarchy->addEdge(parent, criteria, weight, index);
 		}
@@ -473,8 +475,8 @@ void AHP::conception(bool alternativeParser) {
 	strcpy(hierarchy_schema, path);
 	strcpy(hierarchy_data, path);
 
-	strcat(hierarchy_schema, "/multicriteria/ahp/json/hierarchySchema.json");
-	strcat(hierarchy_data, "/multicriteria/ahp/json/hierarchyData.json");
+	strcat(hierarchy_schema, "multicriteria/ahp/json/hierarchySchema.json");
+	strcat(hierarchy_data, "multicriteria/ahp/json/hierarchyData.json");
 
 	rapidjson::SchemaDocument hierarchySchema =
 		JSON::generateSchema(hierarchy_schema);
@@ -615,8 +617,6 @@ void AHP::consistency() {
 }
 
 void AHP::run(Host** alternatives, int size) {
-	this->setHierarchy();
-	// printf("Initializing AHP\n");
 	if (size == 0) {
 		this->conception(true);
 	} else {
@@ -624,17 +624,19 @@ void AHP::run(Host** alternatives, int size) {
 		// printf("Clear Resource\n");
 		this->hierarchy->clearResource();
 
-		// printf("Update the hierarchy resource\n");
-		for (auto it : alternatives[0]->getResource()) {
+		std::map<std::string, float> resource = alternatives[0]->getResource();
+		for (auto it : resource) {
 			this->hierarchy->addResource((char*)it.first.c_str());
 		}
 
-		// printf("Conception\n");
-		this->conception(false);
 		// Add the resource of how many virtual resources are allocated in the host
 		this->hierarchy->addResource((char*)"allocated_resources");
+
 		this->setAlternatives(alternatives, size);
-		if(this->hierarchy->getSheetsSize()==0) exit(0);
+		if(this->hierarchy->getSheetsSize()==0) {
+			std::cerr<<"AHP Hierarchy with no sheets";
+			exit(0);
+		}
 	}
 	// printf("Aquisition\n");
 	this->acquisition();
@@ -673,13 +675,9 @@ unsigned int* AHP::getResult(unsigned int& size) {
 }
 
 void AHP::setAlternatives(Host** alternatives, int size) {
-	int i;
-
-	// this->hierarchy->clearAlternatives();
-
 	std::map<std::string, float> resource;
 	Node* a = NULL;
-	for ( i=0; i<size; i++) {
+	for ( size_t i=0; i < (size_t)size; i++) {
 		resource = alternatives[i]->getResource(); // Host resource
 
 		a = new Node(); // create the new node

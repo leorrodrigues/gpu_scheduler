@@ -186,27 +186,25 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 		// if(  [ current->getId() ]!=NULL ) {
 		//Iterate through the PODs of the TASK, and erase each of one.
 		unsigned int pods_size = current->getPodsSize();
-		if(pods_size>1) {
+		printf("Scheduler Time %d\n\tDeleting task %d\n", options->current_time, current->getId());
+		if(pods_size>0) {
 			Pod **pods= current->getPods();
 			for(size_t i=0; i< pods_size; i++) {
+				printf("\t\tDeleting pod %d\n",pods[i]->getId());
 				temp =  pods[i]->getHost();
-
-				printf("Scheduler Time %d Deleting container %d\n", options->current_time, current->getId());
 
 				const bool active_status=temp->getActive();
 
-				// free_success=Allocator::freeHostResource(
-				//      /* the specific host that have the container*/
-				//      temp,
-				//      /* The container to be removed*/
-				//      current,
-				//      /* The consumed DC status*/
-				//      consumed,
-				//      builder
-				//      );
+				free_success=Allocator::freeHostResource(
+					/* The pod to be removed*/
+					current,
+					/* The consumed DC status*/
+					consumed,
+					builder
+					);
 
 				if(!free_success) {
-					std::cerr << "(gpu_scheduler 200) gpu_scheduler(170) - Error in free the task " << current->getId() << " from the data center\n";
+					std::cerr << "(gpu_scheduler) - Error in free the task " << current->getId() << " from the data center\n";
 					exit(1);
 				}
 
@@ -302,7 +300,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			scheduler->tasks_to_delete.push(current);
 		}
 	}
-	printf("total_delay,%d,%d\n", options->current_time,total_delay);
+	// printf("total_delay,%d,%d\n", options->current_time,total_delay);
 }
 
 void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, options_t* options, int message_count){

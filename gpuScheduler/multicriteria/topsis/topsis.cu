@@ -168,7 +168,6 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	}
 	// printf("Getting the weights\n");
 	getWeights(weights, types, allResources);
-
 	/*copy the values to the pinned memory*/
 	memcpy(pinned_matrix, matrix, matrix_bytes);
 	memcpy(pinned_weights, weights, weights_bytes);
@@ -181,17 +180,13 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	matrix =NULL;
 	weights=NULL;
 	// printf("NULL OK\n");
-
 	/*Need to free the host variables*/
 	/*Copy the pinned values to the device memory*/
 	checkCuda( cudaMemcpy(d_matrix, pinned_matrix, matrix_bytes, cudaMemcpyHostToDevice));
 	checkCuda( cudaMemcpy(d_weights, pinned_weights, weights_bytes, cudaMemcpyHostToDevice));
 
-	// printf("Cuda Free host\n");
-	cudaFreeHost(pinned_matrix);
-	// printf("PWeights\n");
-	cudaFreeHost(pinned_weights);
-	// printf(" OK\n");
+	checkCuda(cudaFreeHost(pinned_matrix));
+	checkCuda(cudaFreeHost(pinned_weights));
 	/*Prepare the blod and grid for kernel*/
 	dim3 block_1d(block_size,1,1);
 	dim3 grid_1d(ceil(alt_size/(float)block_1d.x),1,1);
@@ -207,14 +202,14 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	sumLinesSqrtKernel<<< grid_1d, block_1d>>> (d_aux_matrix, d_aux_vec, alt_size, resources_size);
 	cudaDeviceSynchronize();
 
-	cudaFree(d_aux_matrix);
+	checkCuda(cudaFree(d_aux_matrix));
 
 	/*Step 2 and 3 - Calculate the Weighted Normalized Matrix*/
 	normalizeKernel<<< grid_2d, block_2d >>> (d_matrix, d_weights, d_aux_vec, alt_size, resources_size);
 	cudaDeviceSynchronize();
 
-	cudaFree(d_aux_vec);
-	cudaFree(d_weights);
+	checkCuda(cudaFree(d_aux_vec));
+	checkCuda(cudaFree(d_weights));
 
 	/*Step 4 - Calculate the ideal best and ideal worst value*/
 	float *d_min, *d_max;
@@ -239,9 +234,9 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	subtractByMinMaxKernel<<<grid_2d, block_2d>>> (d_matrix, max_temp_matrix, min_temp_matrix, d_max, d_min, alt_size, resources_size);
 	cudaDeviceSynchronize();
 
-	cudaFree(d_matrix);
-	cudaFree(d_min);
-	cudaFree(d_max);
+	checkCuda(cudaFree(d_matrix));
+	checkCuda(cudaFree(d_min));
+	checkCuda(cudaFree(d_max));
 
 	float *d_smin, *d_smax;
 	checkCuda( cudaMalloc((void**)&d_smax, sizeof(float)*alt_size));
@@ -253,8 +248,8 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	ldKernel<<<grid_1d, block_1d>>>(max_temp_matrix, min_temp_matrix, d_smax, d_smin, alt_size, resources_size);
 	cudaDeviceSynchronize();
 
-	cudaFree(max_temp_matrix);
-	cudaFree(min_temp_matrix);
+	checkCuda(cudaFree(max_temp_matrix));
+	checkCuda(cudaFree(min_temp_matrix));
 
 	/*Step 6 - Calculate the similarity */
 
@@ -268,7 +263,7 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	float *result = (float*) malloc (result_bytes);
 	checkCuda( cudaMemcpy(result, d_result, result_bytes, cudaMemcpyDeviceToHost));
 
-	cudaFree(d_result);
+	checkCuda(cudaFree(d_result));
 
 	/*Store the ranked resources to future access*/
 	this->hosts_value = result;

@@ -32,7 +32,7 @@ AHPG::AHPG() {
 	char* result;
 	result = getcwd(cwd, sizeof(cwd));
 	if(result == NULL) {
-		printf("AHP Error get directory path\n");
+		printf("AHPG Error get directory path\n");
 	}
 	char* sub_path = (strstr(cwd, "ahp"));
 	if(sub_path!=NULL) {
@@ -116,8 +116,8 @@ void AHPG::buildMatrixG(Node* node) {
 
 	for (i = 0; i < size; i++) {
 		matrix[i*size+i] = 1;
-		weights = (node->getEdges())[i]->getWeights();
-		for (j = i + 1; j < size; j++) {
+		weights = (node->getEdges())[i] -> getWeights();
+		for (j = i + 1; j < size; j ++) {
 			if(weights == NULL ) {
 				printf("ahpg.cu(120) Error build matrix weight=NULL\n");
 				exit(0);
@@ -759,7 +759,10 @@ void AHPG::run(Host** alternatives, int size) {
 		// Add the resource of how many virtual resources are allocated in the host
 		this->hierarchy->addResource((char*)"allocated_resources");
 		this->setAlternatives(alternatives, size);
-		if(this->hierarchy->getSheetsSize()==0) exit(0);
+		if(this->hierarchy->getSheetsSize()==0) {
+			std::cerr<<"AHP Hierarchy with no sheets";
+			exit(0);
+		}
 	}
 
 	// printf("Aquisition: ");

@@ -25,6 +25,7 @@ inline int checkFit(Host* host, Pod* pod){
 	}else if(h_vcpu>=p_r["vcpu_min"]) {
 		total+=4;
 	}else{
+		printf("\tHOST %d HAS %f CPU\n",host->getId(),h_vcpu);
 		return 0;
 	}
 	if(h_mem >=p_r["ram_max"]) {
@@ -32,6 +33,7 @@ inline int checkFit(Host* host, Pod* pod){
 	} else if(h_mem >=p_r["ram_min"]) {
 		total+=7;
 	}else{
+		printf("\tHOST %d HAS %f RAM\n",host->getId(),h_mem);
 		return 0;
 	}
 	return total;
