@@ -2,55 +2,56 @@
 #define _FIRST_FIT_NOT_INCLUDED_
 
 #include <iostream>
-#include <queue>
 #include <string>
+#include <queue>
 #include <map>
 
+#include "../free.hpp"
 #include "../utils.hpp"
 
 namespace Allocator {
 
-bool firstFit (Builder* builder,  Task* task, std::map<unsigned int, unsigned int> &allocated_task,consumed_resource_t* consumed){
+bool firstFit (Builder* builder,  Task* task,consumed_resource_t* consumed){
 	std::vector<Host*> hosts = builder->getHosts();
-	int i=0;
 
-	for( i=0; i<hosts.size(); i++ ) {
-		int fit=checkFit(hosts[i],pod);
-		if(fit==0) {
-			continue;
+	Pod** pods = task->getPods();
+	unsigned int pods_size = task->getPodsSize();
+	bool pod_allocated;
+
+	for(size_t pod_index=0; pod_index < pods_size; pod_index++) {
+		for(size_t i=0; i<hosts.size(); i++ ) {
+
+			int fit=checkFit(hosts[i],pods[pod_index]);
+			if(fit==0) {
+				continue;
+			}
+
+			pods[pod_index]->setFit(fit);
+			std::map<std::string,float> p_r = pods[pod_index]->getResources();
+			hosts[i]->addPod(p_r, fit);
+
+			if(!hosts[i]->getActive()) {
+				hosts[i]->setActive(true);
+				consumed->active_servers++;
+			}
+
+			addToConsumed(consumed,p_r,fit);
+
+			hosts[i]->addAllocatedResources();
+
+			pods[pod_index]->setHost(hosts[i]);
+
+			pod_allocated=true;
+			break;
 		}
-
-		pod->setFit(fit);
-		hosts[i]->addPod(pod);
-
-		if(hosts[i]->getActive()==false) {
-			hosts[i]->setActive(true);
-			consumed->active_servers++;
+		if(!pod_allocated) {
+			//need to desalocate all the allocated pods.
+			for(size_t i=0; i< pod_index; i++)
+				freeHostResource(pods[i],consumed,builder);
+			return false;
 		}
-
-		// The pod was allocated, so the consumed variable has to be updated
-		if(fit==7) { // allocate MAX VCPU AND RAM
-			consumed->ram  += pod->getRamMax();
-			consumed->vcpu += pod->getVcpuMax();
-		}else if(fit==8) { // ALLOCATE MAX VCPU AND RAM MIN
-			consumed->ram  += pod->getRamMin();
-			consumed->vcpu += pod->getVcpuMax();
-		}else if(fit==10) { // ALLOCATE VCPU MIN AND RAM MAX
-			consumed->ram  += pod->getRamMax();
-			consumed->vcpu += pod->getVcpuMin();
-		}else if(fit==11) { // ALLOCATE VCPU AND RAM MIN
-			consumed->ram  += pod->getRamMin();
-			consumed->vcpu += pod->getVcpuMin();
-		}
-
-
-		hosts[i]->addAllocatedResources();
-
-		allocated_task[pod->getId()]= hosts[i]->getId();
-
-		return true;
 	}
-	return false;
+	return true;
 }
 
 };

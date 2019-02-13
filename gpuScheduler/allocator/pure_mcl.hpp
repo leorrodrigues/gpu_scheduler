@@ -7,7 +7,7 @@
 
 namespace Allocator {
 
-bool mcl_pure(Builder* builder, std::map<unsigned int, unsigned int> &allocated_task){
+bool mcl_pure(Builder* builder){
 	builder->runClustering(builder->getHosts());
 	builder->getClusteringResult();
 	return true;

@@ -2,16 +2,19 @@
 #define _BEST_FIT_NOT_INCLUDED_
 
 #include <iostream>
-#include <queue>
 #include <string>
+#include <queue>
 #include <map>
 
+#include "../free.hpp"
 #include "../utils.hpp"
 
 struct CompareBF {
 	bool operator()(Host* lhs, Host* rhs) const {
+		std::map<std::string,float> l_r = lhs->getResource();
+		std::map<std::string,float> r_r = rhs->getResource();
 		float r1=0, r2=0;
-		for(std::map<std::string,float>::iterator it_1 = lhs->getResource().begin(), it_2 = rhs->getResource().begin(); it_1!=lhs->getResource().end(); it_1++, it_2++) {
+		for(std::map<std::string,float>::iterator it_1 = l_r.begin(), it_2 = r_r.begin(); it_1!=l_r.end(); it_1++, it_2++) {
 			r1+=it_1->second;
 			r2+=it_2->second;
 		}
@@ -21,50 +24,62 @@ struct CompareBF {
 };
 
 namespace Allocator {
-bool bestFit(Builder* builder,  Task* task, std::map<unsigned int, unsigned int> &allocated_task,consumed_resource_t* consumed){
+bool bestFit(Builder* builder,  Task* task, consumed_resource_t* consumed){
 	std::vector<Host*> aux = builder->getHosts();
-	std::priority_queue<Host*, std::vector<Host*>, CompareBF> hosts (aux.begin(), aux.end());
-	Host* host = NULL;
+	std::priority_queue<Host*, std::vector<Host*>, CompareBF> hosts;
 
-	while(!hosts.empty()) {
-		host =  hosts.top();
-		hosts.pop();
 
-		int fit=checkFit(host,pod);
-		if(fit==0) {
-			continue;
+	Host* host=NULL;
+	// printf("Get Task Pods\n");
+	Pod** pods = task->getPods();
+	unsigned int pods_size = task->getPodsSize();
+	bool pod_allocated;
+
+	for(size_t pod_index=0; pod_index < pods_size; pod_index++) {
+		hosts = std::priority_queue<Host*, std::vector<Host*>, CompareBF>  (aux.begin(), aux.end());
+
+		pod_allocated = false;
+		host=NULL;
+
+		while(!hosts.empty()) {
+			host =  hosts.top();
+			hosts.pop();
+
+			int fit=checkFit(host,pods[pod_index]);
+			if(fit==0) {
+				continue;
+			}
+
+			pods[pod_index]->setFit(fit);
+			std::map<std::string,float> p_r = pods[pod_index]->getResources();
+			host->addPod(p_r, fit);
+
+			if(!host->getActive()) {
+				host->setActive(true);
+				consumed->active_servers++;
+			}
+
+			addToConsumed(consumed,p_r,fit);
+
+			host->addAllocatedResources();
+
+			pods[pod_index]->setHost(host);
+
+			pod_allocated=true;
+			break;
 		}
 
-		pod->setFit(fit);
-		host->addPod(pod);
+		hosts = std::priority_queue<Host*, std::vector<Host*>, CompareBF> ();
 
-		if(host->getActive()==false) {
-			host->setActive(true);
-			consumed->active_servers++;
+		if(!pod_allocated) {
+			//need to desalocate all the allocated pods.
+			for(size_t i=0; i< pod_index; i++)
+				freeHostResource(pods[i],consumed,builder);
+			return false;
 		}
 
-		// The pod was allocated, so the consumed variable has to be updated
-		if(fit==7) { // allocate MAX VCPU AND RAM
-			consumed->ram  += pod->getRamMax();
-			consumed->vcpu += pod->getVcpuMax();
-		}else if(fit==8) { // ALLOCATE MAX VCPU AND RAM MIN
-			consumed->ram  += pod->getRamMin();
-			consumed->vcpu += pod->getVcpuMax();
-		}else if(fit==10) { // ALLOCATE VCPU MIN AND RAM MAX
-			consumed->ram  += pod->getRamMax();
-			consumed->vcpu += pod->getVcpuMin();
-		}else if(fit==11) { // ALLOCATE VCPU AND RAM MIN
-			consumed->ram  += pod->getRamMin();
-			consumed->vcpu += pod->getVcpuMin();
-		}
-
-		host->addAllocatedResources();
-
-		allocated_task[pod->getId()]= host->getId();
-
-		return true;
 	}
-	return false;
+	return true;
 }
 
 }

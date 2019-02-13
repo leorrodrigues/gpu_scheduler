@@ -9,16 +9,16 @@
 #include "thirdparty/clara.hpp"
 
 
-// #include "allocator/standard/bestFit.hpp"
-// #include "allocator/standard/firstFit.hpp"
-// #include "allocator/standard/worstFit.hpp"
+#include "allocator/standard/bestFit.hpp"
+#include "allocator/standard/firstFit.hpp"
+#include "allocator/standard/worstFit.hpp"
 
-// #include "allocator/multicriteria_clusterized.cuh"
-// #include "allocator/pure_mcl.hpp"
+#include "allocator/multicriteria_clusterized.cuh"
+#include "allocator/pure_mcl.hpp"
 #include "allocator/naive.hpp"
 #include "allocator/utils.hpp"
 #include "allocator/free.hpp"
-// #include "allocator/all.cuh"
+#include "allocator/all.cuh"
 
 #include "objective_functions/fragmentation.hpp"
 #include "objective_functions/footprint.hpp"
@@ -251,11 +251,11 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			// allocate the new task in the data center.
 			if(options->standard==0) {
 				if( options->clustering_method=="pure_mcl") {
-					// allocation_success=Allocator::mcl_pure(builder,);
+					allocation_success=Allocator::mcl_pure(builder);
 				} else if( options->clustering_method == "none") {
 					allocation_success=Allocator::naive(builder,current, consumed);
 				} else if ( options->clustering_method == "mcl") {
-					// allocation_success=Allocator::multicriteria_clusterized(builder, current, ,consumed);
+					allocation_success=Allocator::multicriteria_clusterized(builder, current, consumed);
 				} else if ( options->clustering_method == "all") {
 					// allocation_success=Allocator::all();
 				} else {
@@ -264,11 +264,11 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				}
 			}else{
 				if(options->standard==1) {
-					// allocation_success=Allocator::firstFit(builder, current, ,consumed);
+					allocation_success=Allocator::firstFit(builder, current, consumed);
 				}else if(options->standard==2) {
-					// allocation_success=Allocator::bestFit(builder, current, ,consumed);
+					allocation_success=Allocator::bestFit(builder, current, consumed);
 				}else if(options->standard==3) {
-					// allocation_success=Allocator::worstFit(builder, current, ,consumed);
+					allocation_success=Allocator::worstFit(builder, current, consumed);
 				}else{
 					std::cerr << "(gpu_scheduler) Invalid type of standard allocation method\n";
 					exit(1);

@@ -46,7 +46,7 @@ bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed){
 			std::map<std::string,float> p_r = pods[pod_index]->getResources();
 			host->addPod(p_r, fit);
 
-			if(host->getActive()==false) {
+			if(!host->getActive()) {
 				host->setActive(true);
 				consumed->active_servers++;
 			}
@@ -61,7 +61,7 @@ bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed){
 			break;
 		}
 
-		if(pod_allocated==false) {
+		if(!pod_allocated) {
 			//need to desalocate all the allocated pods.
 			for(size_t i=0; i< pod_index; i++)
 				freeHostResource(pods[i],consumed,builder);
