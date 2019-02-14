@@ -6,6 +6,7 @@
 #include <queue>
 #include <map>
 
+#include "main_resources_types.hpp"
 #include "datacenter/tasks/task.hpp"
 
 struct CompareTaskOnSubmission {
@@ -40,17 +41,22 @@ typedef struct {
 	std::priority_queue<Task*, std::vector<Task*>, CompareTaskOnDelete> tasks_to_delete;
 } scheduler_t;
 
-typedef struct {
-	double vcpu=0;
-	double ram=0;
-	int servers=0;
+typedef struct total_resources_t : public main_resource_t {
+	int servers;
+
+	explicit total_resources_t() : main_resource_t(){
+		servers=0;
+	}
 } total_resources_t;
 
-typedef struct {
-	int time=0;
-	double vcpu=0;
-	double ram=0;
-	int active_servers=0;
+typedef struct consumed_resource_t : public main_resource_t {
+	int time;
+	int active_servers;
+
+	explicit consumed_resource_t() : main_resource_t(){
+		time=0;
+		active_servers=0;
+	}
 } consumed_resource_t;
 
 typedef struct {

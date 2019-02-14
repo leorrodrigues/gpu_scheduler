@@ -1,12 +1,11 @@
 #include "pod.hpp"
 
-Pod::Pod(){
+Pod::Pod() : Task_Resources(){
 	this->containers=NULL;
 	this->id=0;
 	this->host=NULL;
 
 	this->containers_size = 0;
-	this->fit=0;
 }
 
 Pod::Pod(unsigned int id){
@@ -15,7 +14,6 @@ Pod::Pod(unsigned int id){
 	this->host=NULL;
 
 	this->containers_size = 0;
-	this->fit=0;
 }
 
 Pod::~Pod(){
@@ -38,29 +36,25 @@ Host* Pod::getHost(){
 	return this->host;
 }
 
-unsigned int Pod::getFit(){
-	return this->fit;
-}
-
 void Pod::addContainer(Container* c){
 	this->containers_size++;
 	this->containers = (Container**) realloc ( this->containers, sizeof(Container*)*this->containers_size);
 
 	this->containers[this->containers_size-1] = c;
 
-	std::map<std::string,float> c_r = c->getResources();
+	std::map<std::string,std::tuple<float,float,bool> > c_r = c->getResources();
 
-	for(std::map<std::string,float>::iterator it=this->resources.begin(); it!=this->resources.end(); it++) {
-		this->resources[it->first]+=c_r[it->first];
+	float min,max;
+
+	for(auto & [key,val] : this->resources) {
+		std::tie(min,max,std::ignore) = c_r[key];
+		std::get<0>(val) += min;
+		std::get<1>(val) += max;
 	}
 }
 
 void Pod::setHost(Host* host){
 	this->host=host;
-}
-
-void Pod::setFit(unsigned int fit){
-	this->fit=fit;
 }
 
 std::ostream& operator<<(std::ostream& os, const Pod& p)  {
@@ -72,9 +66,13 @@ std::ostream& operator<<(std::ostream& os, const Pod& p)  {
 	}
 	os<<"\t\t]\n";
 	os<<"\t\tTotal Resources\n";
-	os<<"\t\t\tepc min: " <<p.resources.at("epc_min")<< "; epc_max: " <<p.resources.at("epc_max")<<"\n";
-	os<<"\t\t\tram min: " <<p.resources.at("ram_min")<< "; ram_max: " <<p.resources.at("ram_max")<<"\n";
-	os<<"\t\t\tvcpu min: "<<p.resources.at("vcpu_min")<<"; vcpu_max: "<<p.resources.at("vcpu_max")<<"\n";
+	for(auto const& [key, val] : p.resources) {
+		os<<"\t\t\t"<<key<<"-";
+		os<<std::get<0>(val)<<";";
+		os<<std::get<1>(val)<<";";
+		os<<std::get<2>(val);
+		os<<"\n";
+	}
 	os<<"\t\t}\n";
 	return os;
 }

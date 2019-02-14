@@ -19,7 +19,6 @@ unsigned int containers_size;
 unsigned int links_size;
 unsigned int allocated_time;
 unsigned int delay;
-unsigned int fit;
 
 public:
 
@@ -30,7 +29,6 @@ void setTask(const char*);
 
 void addDelay();
 void addDelay(unsigned int);
-void setFit(unsigned int);
 void setAllocatedTime(unsigned int);
 void setSubmission(unsigned int);
 
@@ -41,7 +39,6 @@ unsigned int getSubmission();
 unsigned int getContainersSize();
 unsigned int getAllocatedTime();
 unsigned int getDelay();
-unsigned int getFit();
 
 friend std ::ostream& operator<<(std::ostream&, Task const&);
 

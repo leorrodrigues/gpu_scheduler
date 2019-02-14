@@ -1,10 +1,7 @@
 #ifndef _FIRST_FIT_NOT_INCLUDED_
 #define _FIRST_FIT_NOT_INCLUDED_
 
-#include <iostream>
-#include <string>
 #include <queue>
-#include <map>
 
 #include "../free.hpp"
 #include "../utils.hpp"
@@ -21,21 +18,17 @@ bool firstFit (Builder* builder,  Task* task,consumed_resource_t* consumed){
 	for(size_t pod_index=0; pod_index < pods_size; pod_index++) {
 		for(size_t i=0; i<hosts.size(); i++ ) {
 
-			int fit=checkFit(hosts[i],pods[pod_index]);
-			if(fit==0) {
-				continue;
-			}
+			if(!checkFit(hosts[i],pods[pod_index])) continue;
 
-			pods[pod_index]->setFit(fit);
-			std::map<std::string,float> p_r = pods[pod_index]->getResources();
-			hosts[i]->addPod(p_r, fit);
+			std::map<std::string,std::tuple<float,float,bool> > p_r = pods[pod_index]->getResources();
+			hosts[i]->addPod(p_r);
 
 			if(!hosts[i]->getActive()) {
 				hosts[i]->setActive(true);
 				consumed->active_servers++;
 			}
 
-			addToConsumed(consumed,p_r,fit);
+			addToConsumed(consumed,pods[pod_index]);
 
 			hosts[i]->addAllocatedResources();
 

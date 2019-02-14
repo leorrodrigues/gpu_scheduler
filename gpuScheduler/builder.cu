@@ -49,20 +49,6 @@ Builder::~Builder(){
 
 }
 
-void Builder::generateContentSchema() {
-	std::string names;
-	std::string text = "{\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"definitions\":{\"topology\": {\"type\": \"object\",\"minProperties\": 1,\"additionalProperties\": false,\"properties\": {\"type\": {\"type\": \"string\"},\"size\": {\"type\": \"number\"},\"level\": {\"type\": \"number\"}},\"required\": [\"type\",\"size\"]},     \"host\": {\"type\": \"array\",\"minItems\": 1,\"items\":{\"properties\": {";
-	for (auto it : this->resource) {
-		//need to correct the type of the variable
-		text += "\"" + it.first + "\":{\"type\":\"number\"},";
-		names += "\"" + it.first + "\",";
-	}
-	names.pop_back();
-	text.pop_back();
-	text += "},\"additionalProperties\": false,\"required\": [" + names +        "]}}},\"type\": \"object\",\"minProperties\": 1,\"additionalProperties\": false,\"properties\": {\"topology\": {\"$ref\": \"#/definitions/topology\"}, \"hosts\": {\"$ref\": \"#/definitions/host\"}},\"required\": [\"topology\",\"hosts\"]}";
-	JSON::writeJson("datacenter/json/hostsSchema.json", text);
-}
-
 Multicriteria* Builder::getMulticriteria(){
 	return this->multicriteriaMethod;
 }
@@ -102,6 +88,10 @@ std::map<std::string, float> Builder::getResource(){
 	return this->resource;
 }
 
+std::vector<Host*> Builder::getHosts(){
+	return this->hosts;
+}
+
 Host* Builder::getHost(unsigned int id){
 	// std::cout << "Looking for "<<name<<"\n";
 	for(Host* h : this->hosts) {
@@ -112,10 +102,6 @@ Host* Builder::getHost(unsigned int id){
 	}
 	// std::cout<<" Name Not Found!\n";
 	return NULL;
-}
-
-std::vector<Host*> Builder::getHosts(){
-	return this->hosts;
 }
 
 std::vector<Host*> Builder::getClusterHosts(){
@@ -144,24 +130,6 @@ int Builder::getTotalActiveHosts(){
 	return total;
 }
 
-void Builder::addResource(std::string name){
-	if(name!="id" && name!="name")
-		this->resource[name] = 0;
-}
-
-Host* Builder::addHost() {
-	//Call the host constructor (i.e., new host).
-	Host* host = new Host(this->resource);
-	//Add the host pointer in the hierarchy (i.e., the hosts vector).
-	this->hosts.push_back(host);
-	assert(host!=NULL);
-	return host;
-}
-
-void Builder::setMulticriteria(Multicriteria* method){
-	this->multicriteriaMethod=method;
-}
-
 void Builder::printClusterResult(){
 	for(Host* it: this->clusterHosts) {
 		std::cout<<it->getId()<<"\n";
@@ -174,6 +142,10 @@ void Builder::printClusterResult(){
 
 void Builder::printTopologyType(){
 	std::cout<<this->topology->getTopology();
+}
+
+void Builder::setMulticriteria(Multicriteria* method){
+	this->multicriteriaMethod=method;
 }
 
 void Builder::setAHP(){
@@ -249,12 +221,12 @@ void Builder::setDcell(int nHosts,int nLevels){
 }
 
 void Builder::setDataCenterResources(total_resources_t* resource){
-	int i;
-	int size=hosts.size();
-	resource->servers = size;
-	for(i=0; i < size; i++) {
-		resource->vcpu += hosts[i]->getResource()["vcpu"];
-		resource->ram += hosts[i]->getResource()["memory"];
+	resource->servers = this->hosts.size();
+	for(size_t i=0; i<this->hosts.size(); i++) {
+		std::map<std::string,float> h_r = this->hosts[i]->getResource();
+		for(auto it = resource->resource.begin(); it!=resource->resource.end(); it++) {
+			resource->resource[it->first] += h_r[it->first];
+		}
 	}
 }
 
@@ -306,101 +278,40 @@ void Builder::listCluster(){
 
 /*Parser Functions*/
 
-void Builder::parserResources(JSON::jsonGenericType* dataResource) {
-	std::string variableName, variableType;
-	for (auto &arrayData : dataResource->value.GetArray()) {
-		variableName = variableType = "";
-		for (auto &objectData : arrayData.GetObject()) {
-			if (strcmp(objectData.name.GetString(), "name") == 0) {
-				variableName = objectData.value.GetString();
-			} else if (strcmp(objectData.name.GetString(), "variableType") == 0) {
-				variableType = strLower(objectData.value.GetString());
-			} else {
-				std::cout << "(builder.cu 321) Error in reading resources\nExiting...\n";
-				exit(0);
-			}
-		}
-		this->addResource(variableName);
-		this->addResource("allocated_resources");
-	}
-}
+void Builder::parserTopology(const rapidjson::Value &dataTopology){
+	std::string topologyType (dataTopology["type"].GetString());
+	unsigned int size = dataTopology["size"].GetInt();
+	unsigned int level;
+	if(dataTopology.HasMember("level"))
+		level = dataTopology["level"].GetInt();
 
-void Builder::parserTopology(JSON::jsonGenericType* dataTopology){
-	std::string topologyType;
-	int size,level;
-	for(auto &topology : dataTopology->value.GetObject()) {
-		if(strcmp(topology.name.GetString(),"type")==0) {
-			topologyType=topology.value.GetString();
-		}
-		else if(strcmp(topology.name.GetString(),"size")==0) {
-			size=topology.value.GetInt();
-		}
-		else if(strcmp(topology.name.GetString(),"level")==0) {
-			level=topology.value.GetInt();
-		}
-	}
-	if(topologyType == "fattree" || topologyType == "fat tree" || topologyType == "fat_tree") {
+	if(topologyType == "fat_tree" || topologyType == "fat tree" || topologyType == "fattree") {
 		this->setFatTree(size);
 	}else if(topologyType == "bcube") {
 		this->setBcube(size,level);
 	}else if(topologyType == "dcell") {
 		this->setDcell(size,level);
 	}else{
-		std::cout<<"(builder.cu 350) unknow topology...\nexiting....\n";
+		std::cout<<"(builder.cu) unknow topology...\nexiting....\n";
 		exit(1);
 	}
 }
 
-void Builder::parserHosts(JSON::jsonGenericType* dataHost) {
-	for (auto &arrayHost : dataHost->value.GetArray()) {
-		Host* host = this->addHost();
-		for (auto &alt : arrayHost.GetObject()) {
-			std::string name(alt.name.GetString());
-			if (alt.value.IsNumber()) {
-				if(name!="id" && name!="name") {
-					host->setResource(name, alt.value.GetFloat());
-				}else{
-					host->setId(alt.value.GetInt());
-				}
-			} else if (alt.value.IsBool()) {
-				host->setResource(name, alt.value.GetBool());
-			} else {
-				printf("builder.cu(333) ERROR TYPE\n");
-				exit(0);
-			}
+void Builder::parserHosts(const rapidjson::Value &dataHost) {
+	Host* host=NULL;
+	std::map<std::string,float> resource = host->getResource();
+	for(size_t i=0; i<dataHost.Size(); i++) {
+		host = new Host();
+		this->hosts.push_back(host);
+		host->setId(dataHost[i]["id"].GetInt());
+		for(auto it = resource.begin(); it!=resource.end(); it++) {
+			host->setResource(it->first,dataHost[i][it->first.c_str()].GetFloat());
 		}
 	}
 }
 
-void Builder::parserDOM(JSON::jsonGenericDocument* data) {
-	for (auto &m : data->GetObject()) { // query through all objects in data.
-		if (strcmp(m.name.GetString(), "resources") == 0) {
-			this->parserResources(&m);
-		} else if (strcmp(m.name.GetString(), "hosts") == 0) {
-			this->parserHosts(&m);
-		} else if (strcmp(m.name.GetString(),"topology")==0) {
-			this->parserTopology(&m);
-		}
-	}
-}
-
-void Builder::parser(
-	const char* hostsDataPath,
-	const char* resourceDataPath,
-	const char* hostsSchemaPath,
-	const char* resourceSchemaPath
-	){
-	//Parser the resources
-	rapidjson::SchemaDocument resourcesSchema =
-		JSON::generateSchema(resourceSchemaPath);
-	rapidjson::Document resourcesData =
-		JSON::generateDocument(resourceDataPath);
-	rapidjson::SchemaValidator resourcesValidator(resourcesSchema);
-	if (!resourcesData.Accept(resourcesValidator))
-		JSON::jsonError(&resourcesValidator);
-	parserDOM(&resourcesData);
-	// generateContentSchema();
-	//Parser the hosts
+void Builder::parser(const char* hostsDataPath,const char* hostsSchemaPath){
+	//Parser the hosts and topology
 	rapidjson::SchemaDocument hostsSchema =
 		JSON::generateSchema(hostsSchemaPath);
 	rapidjson::Document hostsData =
@@ -408,5 +319,6 @@ void Builder::parser(
 	rapidjson::SchemaValidator hostsValidator(hostsSchema);
 	if (!hostsData.Accept(hostsValidator))
 		JSON::jsonError(&hostsValidator);
-	parserDOM(&hostsData);
+	this->parserTopology(hostsData["topology"]);
+	this->parserHosts(hostsData["hosts"]);
 }

@@ -1,6 +1,6 @@
 #include "task.hpp"
 
-Task::Task(){
+Task::Task() : Task_Resources(){
 	this->pods=NULL;
 	this->duration=0;
 	this->submission=0;
@@ -8,7 +8,6 @@ Task::Task(){
 	this->pods_size = 0;
 	this->allocated_time=0;
 	this->delay=0;
-	this->fit=0;
 }
 
 Task::~Task(){
@@ -48,23 +47,20 @@ void Task::setTask(const char* taskMessage){
 		containers=(Container**) malloc (sizeof(Container*)*this->containers_size);
 		Container *c=NULL;
 
-		const char *resources[]={
-			"epc_min","epc_max",
-			"ram_min","ram_max",
-			"vcpu_min","vcpu_max"
-		};
-		unsigned int resources_size=6;
-
 		for(size_t i=0; i < this->containers_size; i++) {
 			c = new Container();
 			//CRIA UM CONTAINER E COLOCA OS VALORES DENTRO DELE, APOS ISSO ADICIONA ELE DENTRO DO ARRAY DE CONTAINERS =).
 
-			for(size_t r_s=0; r_s < resources_size; r_s++) {
-				c->setValue(
-					resources[r_s],
-					containersArray[i][resources[r_s]].GetDouble()
-					);
-				this->resources[resources[r_s]]+=c->getResource(resources[r_s]);
+			// for(size_t r_s=0; r_s < this->resources.size(); r_s++) {
+			for(auto [key, val] : this->resources) {
+				std::string min  = key+"_min";
+				std::string max = key+"_max";
+				float vmin  = containersArray[i][max.c_str()].GetDouble();
+				float vmax = containersArray[i][min.c_str()].GetDouble();
+				c->setValue(key, vmin, false);
+				c->setValue(key, vmax, true);
+				this->setValue(key, vmin, false);
+				this->setValue(key, vmax, true);
 			}
 
 			//POD
@@ -136,10 +132,6 @@ void Task::addDelay(unsigned int delay){
 	this->delay+=delay;
 }
 
-void Task::setFit(unsigned int fit){
-	this->fit=fit;
-}
-
 void Task::setAllocatedTime(unsigned int allocatedTime){
 	this->allocated_time = allocatedTime;
 }
@@ -176,10 +168,6 @@ unsigned int Task::getDelay(){
 	return this->delay;
 }
 
-unsigned int Task::getFit(){
-	return this->fit;
-}
-
 std::ostream& operator<<(std::ostream& os, const Task& t)  {
 	os<<"Task:{\n";
 	os<<"\tDuration: "<<t.duration<<"\n";
@@ -191,9 +179,13 @@ std::ostream& operator<<(std::ostream& os, const Task& t)  {
 	os<<"\tId: "<< t.id<<"\n";
 	os<<"\tSubmission: "<<t.submission<<"\n";
 	os<<"\tTotal Resources\n";
-	os<<"\t\tepc min: " <<t.resources.at("epc_min")<< "; epc_max: " <<t.resources.at("epc_max")<<"\n";
-	os<<"\t\tram min: " <<t.resources.at("ram_min")<< "; ram_max: " <<t.resources.at("ram_max")<<"\n";
-	os<<"\t\tvcpu min: "<<t.resources.at("vcpu_min")<<"; vcpu_max: "<<t.resources.at("vcpu_max")<<"\n";
+	for(auto const& [key, val] : t.resources) {
+		os<<"\t\t\t"<<key<<"-";
+		os<<std::get<0>(val)<<";";
+		os<<std::get<1>(val)<<";";
+		os<<std::get<2>(val);
+		os<<"\n";
+	}
 	os<<"}\n";
 	return os;
 }

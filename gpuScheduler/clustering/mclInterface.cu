@@ -34,7 +34,7 @@ std::vector<Host*> MCLInterface::getResult(Topology* topology,std::vector<Host*>
 	for(int i=0; i<topology->getGraph()->get_hosts(); i++) {
 		if ( convertion.find(graph_groups[i]) == convertion.end() ) {
 			convertion[graph_groups[i]]=group_index++;
-			groups[convertion[graph_groups[i]]]=new Host(topology->getResource());
+			groups[convertion[graph_groups[i]]]=new Host();
 			groups[convertion[graph_groups[i]]]->setId(convertion[graph_groups[i]]);//or ID
 		}
 		(*groups[convertion[graph_groups[i]]])+=(*hosts[i]); // the group ID has the node i

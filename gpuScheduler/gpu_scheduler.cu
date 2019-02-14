@@ -111,7 +111,7 @@ void setup(int argc, char** argv, Builder* builder, scheduler_t *scheduler, opti
 		}
 	}
 
-	if(test_type >=0 && test_type<=4) {
+	if(test_type >0 && test_type<=4) {
 		options->test_type=test_type;
 	}else{
 		std::cerr << "(gpu_scheduler) Invalid Type of test: " << test_type << "\n";
@@ -303,7 +303,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 	// printf("total_delay,%d,%d\n", options->current_time,total_delay);
 }
 
-void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, options_t* options, int message_count){
+void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int message_count){
 	const int total_tasks = scheduler->tasks_to_allocate.size();
 	//Create the variable to store all the data center resource
 	total_resources_t total_resources;
@@ -322,32 +322,6 @@ void schedule(Builder* builder, Comunicator* conn, scheduler_t* scheduler, optio
 		// if(options->current_time==options->end_time) break;
 		// std::cout<<"Scheduler Time "<< options->current_time<<"\n";
 		// std::cout<<"message_count "<<message_count<<"\n";
-
-		//************************************************//
-		//     READ CONTAINER REQUEST THROUGH RABBITMQ    //
-		//************************************************//
-		// while(message_count>0 || options->current_time <= options->end_time || !scheduler->pods_to_allocate.empty() || !scheduler->pods_to_delete.empty()) {
-		// if(message_count>0) {
-		//      while(true) {
-		//              // Create new container
-		//              Pod *current = new Pod();
-		//              // Set the resources to the container
-		//              current->setTask(conn->getNextTask());
-		//              // Put the container in the vector
-		//              scheduler->pods_to_allocate.push(current);
-		//              // getchar();
-		//              message_count--;
-		//              // printf("Receiving new container %d\n in time %d", current->getId(), options->current_time);
-		//              if(current->getSubmission()!=options->current_time) {
-		//                      break;
-		//              }
-		//      }
-		//    // Print the container
-		//    std::cout << *c << "\n";
-		// }
-		//************************************************//
-		//************************************************//
-		//************************************************//
 
 		// Search the containers to delete
 		delete_tasks(scheduler, builder, options, &consumed_resources);
@@ -394,67 +368,55 @@ int main(int argc, char **argv){
 
 	std::map<unsigned int, Pod> pods;
 
-	if (options.test_type==0) {     // no test is set
-		// Creating the communicatior
-		Comunicator *conn = new Comunicator();
-		conn->setup();
-		int message_count=conn->getQueueSize();
-
-		schedule(builder, conn, &scheduler, &options, message_count);
-
-		delete(conn);
-
-	}else{
-		// parse all json
-		printf("parsing\n");
-		Reader* reader = new Reader();
-		std::string path = "../simulator/json/";
-		if(options.test_type==1) {
-			path+="container/data-";
-		} else if(options.test_type==2) {
-			path+="googleBorg/google-";
-		} else if(options.test_type==3) {
-			path+="datacenter/data-";
-		} else if(options.test_type==4) {
-			path+="container_link/requests-";
-		}
-		path+= std::to_string(options.request_size);
-		path+=".json";
-		reader->openDocument(path.c_str());
-		std::string message;
-		printf("Creating the contianers\n");
-		Task * current = NULL;
-		while((message=reader->getNextTask())!="eof") {
-			// Create new container
-			current = new Task();
-			// Set the resources to the container
-			current->setTask(message.c_str());
-			// Put the container in the vector
-			scheduler.tasks_to_allocate.push(current);
-			// std::cout<<*current<<"\n";
-		}
-		message.clear();
-		delete(reader);
-		printf("done\n");
-		if(options.clustering_method!="none") {
-			builder->runClustering(builder->getHosts());
-
-			builder->getClusteringResult();
-		}
-		// Scalability Test or Objective Function Test
-		// force cout to not print in cientific notation
-		std::cout<<std::fixed;
-
-		std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-		printf("Calling the scheduler\n");
-		schedule(builder, NULL, &scheduler, &options, 0);
-
-		std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-
-		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
-
-		std::cout<<options.multicriteria_method<<";" << options.topology_size << ";" << time_span.count() << "\n";
+	// parse all json
+	printf("parsing\n");
+	Reader* reader = new Reader();
+	std::string path = "../simulator/json/";
+	if(options.test_type==1) {
+		path+="container/data-";
+	} else if(options.test_type==2) {
+		path+="googleBorg/google-";
+	} else if(options.test_type==3) {
+		path+="datacenter/data-";
+	} else if(options.test_type==4) {
+		path+="container_link/requests-";
 	}
+	path+= std::to_string(options.request_size);
+	path+=".json";
+	reader->openDocument(path.c_str());
+	std::string message;
+	printf("Creating the contianers\n");
+	Task * current = NULL;
+	while((message=reader->getNextTask())!="eof") {
+		// Create new container
+		current = new Task();
+		// Set the resources to the container
+		current->setTask(message.c_str());
+		// Put the container in the vector
+		scheduler.tasks_to_allocate.push(current);
+		// std::cout<<*current<<"\n";
+	}
+	message.clear();
+	delete(reader);
+	printf("done\n");
+	if(options.clustering_method!="none") {
+		builder->runClustering(builder->getHosts());
+
+		builder->getClusteringResult();
+	}
+	// Scalability Test or Objective Function Test
+	// force cout to not print in cientific notation
+	std::cout<<std::fixed;
+
+	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	printf("Calling the scheduler\n");
+	schedule(builder, &scheduler, &options, 0);
+
+	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+
+	std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
+
+	std::cout<<options.multicriteria_method<<";" << options.topology_size << ";" << time_span.count() << "\n";
 
 	// Free the allocated pointers
 	printf("Deleting the builder\n");

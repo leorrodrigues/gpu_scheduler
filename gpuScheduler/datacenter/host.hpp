@@ -1,21 +1,13 @@
 #ifndef _HOST_NOT_INCLUDED_
 #define _HOST_NOT_INCLUDED_
 
-#include <string>
-#include <map>
+#include "../main_resources_types.hpp"
 
-class Host {
+class Host : public main_resource_t {
 public:
-Host(){
+Host() : main_resource_t(){
 	active = false;
 	id=0;
-}
-
-Host(std::map<std::string, float> resource) {
-	for(auto it : resource) {
-		this->resource[it.first]+=it.second;
-	}
-	active = false;
 }
 
 ~Host(){
@@ -77,53 +69,23 @@ Host& operator-= (Host& rhs){
 	return *this;
 }
 
-void  addPod(std::map<std::string,float> rhs, unsigned int fit){
-	if(fit==7) { // allocate MAX VCPU AND RAM
-		this->resource["memory"]-=rhs["ram_max"];
-		this->resource["vcpu"]-=rhs["vcpu_max"];
-	}else if(fit==8) { // ALLOCATE MAX VCPU AND RAM MIN
-		this->resource["memory"]-=rhs["ram_min"];
-		this->resource["vcpu"]-=rhs["vcpu_max"];
-	}else if(fit==10) { // ALLOCATE VCPU MIN AND RAM MAX
-		this->resource["memory"]-=rhs["ram_max"];
-		this->resource["vcpu"]-=rhs["vcpu_min"];
-	}else if(fit==11) { // ALLOCATE VCPU AND RAM MIN
-		this->resource["memory"]-=rhs["ram_min"];
-		this->resource["vcpu"]-=rhs["vcpu_min"];
-	}
+void  addPod(std::map<std::string,std::tuple<float,float,bool> > rhs){
+	for(auto const& r : rhs)
+		if(std::get<2>(r.second))
+			this->resource[r.first] -= std::get<1>(r.second);
+		else
+			this->resource[r.first] -= std::get<0>(r.second);
 }
 
-void removePod(std::map<std::string,float> rhs, unsigned int fit){
-	if(fit==7) { // allocate MAX VCPU AND RAM
-		this->resource["memory"]+=rhs["ram_max"];
-		this->resource["vcpu"]+=rhs["ram_max"];
-	}else if(fit==8) { // ALLOCATE MAX VCPU AND RAM MIN
-		this->resource["memory"]+=rhs["ram_min"];
-		this->resource["vcpu"]+=rhs["vcpu_max"];
-	}else if(fit==10) { // ALLOCATE VCPU MIN AND RAM MAX
-		this->resource["memory"]+=rhs["ram_max"];
-		this->resource["vcpu"]+=rhs["vcpu_min"];
-	}else if(fit==11) { // ALLOCATE VCPU AND RAM MIN
-		this->resource["memory"]+=rhs["ram_min"];
-		this->resource["vcpu"]+=rhs["vcpu_min"];
-	}
+void removePod(std::map<std::string,std::tuple<float,float,bool> > rhs){
+	for(auto const& r : rhs)
+		if(std::get<2>(r.second))
+			this->resource[r.first] += std::get<1>(r.second);
+		else
+			this->resource[r.first] += std::get<0>(r.second);
 }
-
-
-// Host& operator+= (Container& rhs){
-//      this->resource["memory"]+=rhs.ram_max;
-//      this->resource["vcpu"]+=rhs.vcpu_max;
-//      return *this;
-// }
-//
-// Host& operator-= (Container& rhs){
-//      this->resource["memory"]-=rhs.ram_max;
-//      this->resource["vcpu"]-=rhs.vcpu_max;
-//      return *this;
-// }
 
 private:
-std::map<std::string, float> resource;
 bool active;
 unsigned int id;
 };

@@ -1,10 +1,6 @@
 #ifndef _MULTICRITERIA_CLUSTERIZED_ALLOCATION_
 #define _MULTICRITERIA_CLUSTERIZED_ALLOCATION_
 
-#include <iostream>
-#include <string>
-#include <map>
-
 #include "free.hpp"
 #include "utils.hpp"
 
@@ -59,8 +55,7 @@ bool multicriteria_clusterized(Builder* builder,  Task* task, consumed_resource_
 			}
 
 			//If the group can't contain the pod, search the next group
-			if(checkFit(groups[group_index], pods[pod_index])==0)
-				continue;
+			if(!checkFit(groups[group_index], pods[pod_index])) continue;
 
 			std::vector<Host*> hostsInGroup = builder->getHostsInGroup(result[i]);
 
@@ -76,23 +71,17 @@ bool multicriteria_clusterized(Builder* builder,  Task* task, consumed_resource_
 				// Get the host pointer
 				host=builder->getHost(ranked_hosts[j]);
 				// Check if the host can support the resource
-				int fit=checkFit(host,pods[pod_index]);
+				if(!checkFit(host,pods[pod_index])) continue;
 
-				if(fit==0) {
-					// If can't ignore the rest of the loop
-					continue;
-				}
-
-				pods[pod_index]->setFit(fit);
-				std::map<std::string,float> p_r = pods[pod_index]->getResources();
-				host->addPod(p_r, fit);
+				std::map<std::string,std::tuple<float,float,bool> > p_r = pods[pod_index]->getResources();
+				host->addPod(p_r);
 
 				if(!host->getActive()) {
 					host->setActive(true);
 					consumed->active_servers++;
 				}
 
-				addToConsumed(consumed,p_r,fit);
+				addToConsumed(consumed,pods[pod_index]);
 
 				host->addAllocatedResources();
 				// Update the allocated tasks map

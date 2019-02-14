@@ -1,10 +1,7 @@
 #ifndef _WORST_FIT_NOT_INCLUDED_
 #define _WORST_FIT_NOT_INCLUDED_
 
-#include <iostream>
-#include <string>
 #include <queue>
-#include <map>
 
 #include "../free.hpp"
 #include "../utils.hpp"
@@ -45,21 +42,17 @@ bool worstFit(Builder* builder,  Task* task, consumed_resource_t* consumed){
 			host =  hosts.top();
 			hosts.pop();
 
-			int fit=checkFit(host,pods[pod_index]);
-			if(fit==0) {
-				continue;
-			}
+			if(!checkFit(host,pods[pod_index])) continue;
 
-			pods[pod_index]->setFit(fit);
-			std::map<std::string,float> p_r = pods[pod_index]->getResources();
-			host->addPod(p_r, fit);
+			std::map<std::string,std::tuple<float,float,bool> > p_r = pods[pod_index]->getResources();
+			host->addPod(p_r);
 
 			if(!host->getActive()) {
 				host->setActive(true);
 				consumed->active_servers++;
 			}
 
-			addToConsumed(consumed,p_r,fit);
+			addToConsumed(consumed,pods[pod_index]);
 
 			host->addAllocatedResources();
 

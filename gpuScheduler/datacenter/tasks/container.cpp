@@ -1,6 +1,6 @@
 #include "container.hpp"
 
-Container::Container(){
+Container::Container() : Task_Resources(){
 	this->links=NULL;
 	this->links_size=0;
 }
@@ -31,9 +31,12 @@ std::ostream& operator<<(std::ostream& os, const Container& c)  {
 		os<<"\t\t\t\tBandwidth: "<<c.links[i].bandwidth_min<<" | "<<c.links[i].bandwidth_max<<"\n";
 	}
 	os<<"\t\t\t]\n";
-	os<<"\t\t\tepc min: "<<c.resources.at("epc_min")<<"; epc_max: "<<c.resources.at("epc_max")<<"\n";
-	os<<"\t\t\tram mi: "<<c.resources.at("ram_min")<<"; ram_max: "<<c.resources.at("ram_max")<<"\n";
-	os<<"\t\t\tvcpu min: "<<c.resources.at("vcpu_min")<<"; vcpu_max: "<<c.resources.at("vcpu_max")<<"\n";
+	for(auto const& [key, val] : c.resources) {
+		os<<"\t\t\t"<<key<<"-";
+		os<<std::get<0>(val)<<";";
+		os<<std::get<1>(val);
+		os<<"\n";
+	}
 	os<<"\t\t\t}\n";
 	return os;
 }

@@ -1,8 +1,6 @@
 #ifndef _CONTAINER_NOT_INCLUDED_
 #define _CONTAINER_NOT_INCLUDED_
 
-#include <iostream>
-
 #include "task_resources.hpp"
 
 typedef struct {
@@ -17,7 +15,6 @@ Link *links;
 unsigned int links_size;
 
 public:
-
 
 Container();
 ~Container();

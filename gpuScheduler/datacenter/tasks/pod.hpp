@@ -14,8 +14,6 @@ Host* host;
 
 //Management variables
 unsigned int containers_size;
-unsigned int fit;
-
 public:
 
 Pod();
@@ -26,11 +24,9 @@ Container** getContainers();
 unsigned int getContainersSize();
 
 Host* getHost();
-unsigned int getFit();
 
 void addContainer(Container*);
 void setHost(Host*);
-void setFit(unsigned int);
 
 friend std ::ostream& operator<<(std::ostream&, Pod const&);
 

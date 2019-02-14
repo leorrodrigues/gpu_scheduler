@@ -31,15 +31,8 @@ void setMulticriteria(Multicriteria*);
 void setClustering(Clustering*);
 void setTopology(Topology*);
 
-void generateContentSchema();
-
-void addResource(std::string);
-Host* addHost();
-
-void parserDOM(JSON::jsonGenericDocument*);
-void parserResources(JSON::jsonGenericType*);
-void parserHosts(JSON::jsonGenericType*);
-void parserTopology(JSON::jsonGenericType*);
+void parserHosts(const rapidjson::Value &);
+void parserTopology(const rapidjson::Value &);
 public:
 
 Builder();
@@ -93,9 +86,7 @@ void listResources();
 void listCluster();
 void parser(
 	const char* hostsDataPath = "datacenter/json/fat_tree/20.json",
-	const char* resourceDataPath = "datacenter/json/resourcesData.json",
-	const char* hostsSchemaPath = "datacenter/json/hostsSchema.json",
-	const char* resourceSchemaPath = "datacenter/json/resourcesSchema.json"
+	const char* hostsSchemaPath = "datacenter/json/hostsSchema.json"
 	);
 
 };
