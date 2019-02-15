@@ -11,7 +11,6 @@ bool freeHostResource(Pod* pod, consumed_resource_t* consumed, Builder* builder)
 
 	//Update the host resources
 	host->removePod(pod->getResources());
-	host->removeAllocaredResource();
 
 	//Need to find the group that has this host and update their resource
 	std::vector<Host*> groups = builder->getClusterHosts();

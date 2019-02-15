@@ -44,7 +44,6 @@ void deleteNormalizedMatrixG(Node*);
 void deleteNormalizedMatrixIG(Node*);
 void deletePmlG(Node*);
 void checkConsistencyG(Node*);
-void generateContentSchemaG();
 
 /*Iterate auxiliar function*/
 template <typename F> void iterateFuncG(F, Node*);
@@ -57,7 +56,7 @@ AHPG();
 
 void setHierarchyG();
 
-void conceptionG(bool);
+void conceptionG();
 void acquisitionG();
 void synthesisG();
 void consistencyG();
@@ -71,11 +70,7 @@ void setAlternatives(Host** host,int size);
 /************************************/
 
 char* strToLowerG(const char*);
-void resourcesParserG(genericValue* dataResource);
-void hierarchyParserG(genericValue* dataObjective);
-void criteriasParserG(genericValue* dataCriteria, Node* p);
-void alternativesParserG(genericValue* dataAlternative);
-void domParserG(rapidjson::Document* data);
+void hierarchyParserG(const rapidjson::Value &hierarchyData);
 
 /*Print functions*/
 /**WARNING If you want to show all calculated data, you have to call the print function before the next synthesis calculus (i.e., edit the synthesis function to print each step before the next).*/

@@ -4,8 +4,6 @@
         \brief Hierarchy constructior, setting all the variables to default (empty) values.
  */
 Hierarchy::Hierarchy() {
-	this->sheets=NULL;
-	this->sheets_size=0;
 	this->alternatives=NULL;
 	this->alternatives_size=0;
 	this->criterias=NULL;
@@ -17,22 +15,16 @@ Hierarchy::Hierarchy() {
         \brief Hierarchy destructor.
  */
 Hierarchy::~Hierarchy() {
-	int i;
-	for(i=0; i< this->criterias_size; i++) {
+	for(size_t i=0; i< this->criterias_size; i++) {
 		delete(this->criterias[i]);
 	}
 	free(this->criterias);
-	for(i=0; i< this->sheets_size; i++) {
-		delete(this->sheets[i]);
-	}
-	free(this->sheets);
-	for(i=0; i< this->alternatives_size; i++) {
+	for(size_t i=0; i< this->alternatives_size; i++) {
 		delete(this->alternatives[i]);
 	}
 	free(this->alternatives);
 	delete(this->objective);
 	this->criterias=NULL;
-	this->sheets=NULL;
 	this->alternatives=NULL;
 	this->objective=NULL;
 }
@@ -64,8 +56,7 @@ Node* Hierarchy::addFocus(const char* name) {
  */
 Node* Hierarchy::addCriteria(const char* name) {
 	//Iterate though criterias array.
-	int i;
-	for ( i = 0; i < this->criterias_size; i++) {
+	for ( size_t i = 0; i < this->criterias_size; i++) {
 		//If found some criteria with same name/id return NULL
 		if (strcmp(this->criterias[i]->getName(), name) == 0) {
 			return NULL;
@@ -214,50 +205,18 @@ Node* Hierarchy::addAlternative(Node* alternative) {
 }
 
 /**
-    \brief Add an edge between the hierarchy sheets and the alternatives.
+    \brief Add an edge between the hierarchy criterias and the alternatives.
  */
-void Hierarchy::addEdgeSheetsAlternatives() {
-	int i,j;
+void Hierarchy::addEdgeCriteriasAlternatives() {
 	//Iterate through all the sheets.
 	float temp[this->alternatives_size] = {0}; //initiate all elements with 0
-	for(i=0; i<this->sheets_size; i++) {
+	for(size_t i=0,j=0; i<this->criterias_size; i++) {
 		//Iterate through all the alternatives.
 		for(j=0; j<this->alternatives_size; j++) {
 			//Create an edge between them.
-			this->addEdgeAlternative(this->sheets[i], this->alternatives[j], temp, alternatives_size);
+			this->addEdgeAlternative(this->criterias[i], this->alternatives[j], temp, alternatives_size);
 		}
 	}
-}
-
-Node* Hierarchy::addSheets(const char* name) {
-	//Call the node's constructor (i.e., create a new node)
-	Node* c = new Node();
-	c->setName(name);
-	c->setTypeCriteria();
-	//Add the criteria sheets in hierarchy (criterias vector).
-	//Add the criteria in the sheets vector.
-	this->sheets = (Node**) realloc (this->sheets, sizeof(Node*)* (this->sheets_size+1));
-	this->sheets[this->sheets_size] = c;
-	this->sheets_size++;
-	return c;
-}
-
-/**
-    \brief Add a new sheet.
-    This function will add the existing criteria in the sheets vector if this criteria has the leaf value set as true.
- */
-void Hierarchy::addCriteriaSheets(Node* criteria) {
-	//If the criteria isn't a sheet.
-	if (!findSheets(criteria)) {
-		//Add the criteria in the sheets vector.
-		this->sheets = (Node**) realloc (this->sheets, sizeof(Node*)* (this->sheets_size+1));
-		this->sheets[this->sheets_size] = criteria;
-		this->sheets_size++;
-	}
-}
-
-void Hierarchy::setSheetsSize(int size){
-	this->sheets_size = size;
 }
 
 /*Printing status Function*/
@@ -278,9 +237,8 @@ void Hierarchy::listFocus() {
    \brief List all the criterias names in the hierarchy.
  */
 void Hierarchy::listCriteria() {
-	int i;
 	//Iterate through the criterias list and print their names.
-	for(i=0; i<this->criterias_size; i++) {
+	for(size_t i=0; i<this->criterias_size; i++) {
 		printf("%s\n", this->criterias[i]->getName());
 	}
 }
@@ -290,9 +248,7 @@ void Hierarchy::listCriteria() {
     The function will check the size of each map and if their size is bigger than 0, the variable name and value will be printed.
  */
 void Hierarchy::listResources() {
-	int i;
-	int size = this->resource.getDataSize();
-	for(i=0; i<size; i++) {
+	for(size_t i=0; i<(size_t)this->resource.getDataSize(); i++) {
 		printf("%s: %lf\n",  this->resource.getResourceName(i), this->resource.getResource(i));
 	}
 }
@@ -305,9 +261,8 @@ void Hierarchy::listResources() {
     \return True if the criteria was found, false otherwise.
  */
 bool Hierarchy::findCriteria(Node *c) {
-	int i;
 	//iterate through the criterias in the hierarchy.
-	for ( i=0; i<this->criterias_size; i++) {
+	for ( size_t i=0; i<this->criterias_size; i++) {
 		if ( (this->criterias[i]->getName(), c->getName() ) ==0) {
 			return true;
 		}
@@ -321,9 +276,8 @@ bool Hierarchy::findCriteria(Node *c) {
     \return The criteria pointer if exists one criteria with the name parameter, NULL otherwise.
  */
 Node* Hierarchy::findCriteria(const char* name) {
-	int i;
 	//iterate through the criterias in the hierarchy.
-	for ( i=0; i<this->criterias_size; i++) {
+	for ( size_t i=0; i<this->criterias_size; i++) {
 		if ( (this->criterias[i]->getName(), name ) ==0) {
 			return this->criterias[i];
 		}
@@ -332,30 +286,12 @@ Node* Hierarchy::findCriteria(const char* name) {
 }
 
 /**
-    \brief  The function will search the sheets list trying to find the a specific criteria in the list.
-    \param c: Criteria pointer.
-    \return True if the criteria are in the sheets list, false otherwise.
- */
-bool Hierarchy::findSheets(Node *c) {
-	int i;
-	//Iterate through all the sheets list.
-	for ( i=0; i<this->sheets_size; i++) {
-		if(c->getName()!=NULL)
-			if ( strcmp( this->sheets[i]->getName(),  c->getName())==0) {
-				return true;
-			}
-	}
-	return false;
-}
-
-/**
     \brief The function will search the alternatives list trying to find an alternative with the respective param name/id.
     \param v: The alternative name/id to find.
     \return Alternative pointer if exista an alternative with the respective name/id, NULL otherwise.
  */
 Node * Hierarchy::findAlternative(const char* name) {
-	int i;
-	for ( i=0; i < this->alternatives_size; i++) {
+	for ( size_t i=0; i < this->alternatives_size; i++) {
 		if ( strcmp(this->alternatives[i]->getName(), name) ==0 ) {
 			return (this->alternatives[i]);
 		}
@@ -366,14 +302,11 @@ Node * Hierarchy::findAlternative(const char* name) {
 /*Clear Functions*/
 
 /**
-    \brief The function will clear all the edges between the sheets and alternatives.
+    \brief The function will clear all the edges between the criteiras and alternatives.
  */
-void Hierarchy::clearSheetsEdges() {
-	int i;
-	int size = this->sheets_size;
-	//Iterate through all the sheets.
-	for ( i=0; i<size; i++) {
-		this->sheets[i]->clearEdges();
+void Hierarchy::clearCriteriasEdges() {
+	for ( size_t i=0; i<this->criterias_size; i++) {
+		this->criterias[i]->clearEdges();
 	}
 }
 
@@ -381,29 +314,17 @@ void Hierarchy::clearSheetsEdges() {
     \brief The function will clear all the alternatives in the hierarchy.
  */
 void Hierarchy::clearAlternatives() {
-	int i=0;
-	int size= this->alternatives_size;
-	for(i=0; i<size; i++) {
+	for(size_t i=0; i<this->alternatives_size; i++) {
 		delete(this->alternatives[i]);
 	}
 	free(this->alternatives);
 	this->alternatives = NULL;
 	this->alternatives_size=0;
-	clearSheetsEdges();
+	clearCriteriasEdges();
 }
 
 void Hierarchy::clearResource(){
 	this->resource.clear();
-}
-
-/*Update Functions*/
-
-/**
-    \brief The function update all the edges between the sheets list and the criterias.
- */
-void Hierarchy::updateSheetsEdges() {
-	clearSheetsEdges();
-	addEdgeSheetsAlternatives();
 }
 
 /*Getting Focus*/
@@ -421,7 +342,7 @@ Node* Hierarchy::getFocus() {
     \return Nodes size.
  */
 int Hierarchy::getNodesSize(){
-	return this->criterias_size+this->sheets_size+this->alternatives_size+1;
+	return this->criterias_size+this->alternatives_size+1;
 }
 
 /**
@@ -430,14 +351,6 @@ int Hierarchy::getNodesSize(){
  */
 int Hierarchy::getCriteriasSize(){
 	return this->criterias_size;
-}
-
-/**
-    \brief Return the size of the sheets list.
-    \return Sheets size.
- */
-int Hierarchy::getSheetsSize() {
-	return this->sheets_size;
 }
 
 /**
@@ -462,14 +375,6 @@ H_Resource* Hierarchy::getResource() {
  */
 Node** Hierarchy::getCriterias() {
 	return this->criterias;
-}
-
-/**
-    \brief Get function to return the sheets list.
-    \return Return sheets list.
- */
-Node** Hierarchy::getSheets() {
-	return this->sheets;
 }
 
 /**

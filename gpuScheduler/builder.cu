@@ -299,7 +299,7 @@ void Builder::parserTopology(const rapidjson::Value &dataTopology){
 
 void Builder::parserHosts(const rapidjson::Value &dataHost) {
 	Host* host=NULL;
-	std::map<std::string,float> resource = host->getResource();
+	std::map<std::string,float> resource = main_resource_t ().resource;
 	for(size_t i=0; i<dataHost.Size(); i++) {
 		host = new Host();
 		this->hosts.push_back(host);
@@ -319,6 +319,7 @@ void Builder::parser(const char* hostsDataPath,const char* hostsSchemaPath){
 	rapidjson::SchemaValidator hostsValidator(hostsSchema);
 	if (!hostsData.Accept(hostsValidator))
 		JSON::jsonError(&hostsValidator);
+
 	this->parserTopology(hostsData["topology"]);
 	this->parserHosts(hostsData["hosts"]);
 }

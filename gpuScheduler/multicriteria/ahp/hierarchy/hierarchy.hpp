@@ -74,10 +74,7 @@ void addResource(const char*);
 void addResource(char*);
 Node *addAlternative();
 Node *addAlternative(Node*);
-void addEdgeSheetsAlternatives();
-Node *addSheets(const char*);
-void addCriteriaSheets(Node *);
-void setSheetsSize(int);
+void addEdgeCriteriasAlternatives();
 
 /*Printing Status Function*/
 void listFocus();
@@ -87,37 +84,28 @@ void listResources();
 /*Finding Functions*/
 bool findCriteria(Node *);
 Node *findCriteria(const char*);
-bool findSheets(Node *);
 Node *findAlternative(const char*);
 
 /*Clear Functions*/
-void clearSheetsEdges();
+void clearCriteriasEdges();
 void clearAlternatives();
 void clearResource();
-
-/*Updating Member Functions*/
-void updateSheetsEdges();
 
 /*Getters*/
 Node *getFocus();
 int getNodesSize();
 int getCriteriasSize();
-int getSheetsSize();
 int getAlternativesSize();
 H_Resource *getResource();
 Node** getCriterias();
-Node** getSheets();
 Node** getAlternatives();
 
 private:
 Node** criterias; //< Criteria pointer array to store all the criterias
-int criterias_size;
-
-Node** sheets;   ///< Criteria pointer vector to store all the leaf nodes in the hierarchy.
-int sheets_size;
+size_t criterias_size;
 
 Node**  alternatives;        ///< Alternative pointer vector to store all the alternatives.
-int alternatives_size;
+size_t alternatives_size;
 
 Node* objective;        ///< The main objective pointer.
 

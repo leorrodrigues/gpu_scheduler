@@ -3,11 +3,9 @@
 #include <ctime>
 #include <ratio>
 
-#include "types.hpp"
-#include "reader.hpp"
 #include "builder.cuh"
+#include "reader.hpp"
 #include "thirdparty/clara.hpp"
-
 
 #include "allocator/standard/bestFit.hpp"
 #include "allocator/standard/firstFit.hpp"
@@ -371,7 +369,7 @@ int main(int argc, char **argv){
 	// parse all json
 	printf("parsing\n");
 	Reader* reader = new Reader();
-	std::string path = "../simulator/json/";
+	std::string path = "requests/";
 	if(options.test_type==1) {
 		path+="container/data-";
 	} else if(options.test_type==2) {

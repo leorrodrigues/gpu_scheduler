@@ -30,8 +30,6 @@ bool firstFit (Builder* builder,  Task* task,consumed_resource_t* consumed){
 
 			addToConsumed(consumed,pods[pod_index]);
 
-			hosts[i]->addAllocatedResources();
-
 			pods[pod_index]->setHost(hosts[i]);
 
 			pod_allocated=true;

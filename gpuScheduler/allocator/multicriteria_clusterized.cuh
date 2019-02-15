@@ -83,7 +83,6 @@ bool multicriteria_clusterized(Builder* builder,  Task* task, consumed_resource_
 
 				addToConsumed(consumed,pods[pod_index]);
 
-				host->addAllocatedResources();
 				// Update the allocated tasks map
 				pods[pod_index]->setHost(host);
 

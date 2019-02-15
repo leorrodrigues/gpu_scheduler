@@ -24,7 +24,6 @@ void Task::setTask(const char* taskMessage){
 	/**********************************************************/
 	/********                   Task variables              *********/
 	/*********************************************************/
-
 	//Duration
 	this->duration = task["duration"].GetDouble();
 
@@ -40,8 +39,8 @@ void Task::setTask(const char* taskMessage){
 	const rapidjson::Value &containersArray = task["containers"];
 	this->containers_size = containersArray.Size();
 	Container **containers = NULL;
-	if(this->containers_size!=0) {
 
+	if(this->containers_size!=0) {
 		std::map<unsigned int, Pod*> temp_pods;
 		Pod* pod = NULL;
 		containers=(Container**) malloc (sizeof(Container*)*this->containers_size);
@@ -55,14 +54,17 @@ void Task::setTask(const char* taskMessage){
 			for(auto [key, val] : this->resources) {
 				std::string min  = key+"_min";
 				std::string max = key+"_max";
+
+				if(!containersArray[i].HasMember(max.c_str())) continue;
+
 				float vmin  = containersArray[i][max.c_str()].GetDouble();
 				float vmax = containersArray[i][min.c_str()].GetDouble();
+
 				c->setValue(key, vmin, false);
 				c->setValue(key, vmax, true);
 				this->setValue(key, vmin, false);
 				this->setValue(key, vmax, true);
 			}
-
 			//POD
 			int pod_index = containersArray[i]["pod"].GetInt();
 
@@ -71,14 +73,12 @@ void Task::setTask(const char* taskMessage){
 				pod = new Pod(pod_index);
 				temp_pods[pod_index] = pod;
 			}
-
 			//NAME
 			c->setId(containersArray[i]["name"].GetInt());
 
 			temp_pods[pod_index]->addContainer(c);
 			containers[i]=c;
 		}
-
 		this->pods_size = temp_pods.size();
 		//Create the pods array
 		this->pods = (Pod**) malloc (sizeof(Pod*)*this->pods_size);
@@ -92,14 +92,12 @@ void Task::setTask(const char* taskMessage){
 			this->pods[it->first-1] = it->second;
 		}
 	}
-
 	//Now we have all te pods constructed and their respectives containers inside it.
 	//To construct the links between two containers, use the containers array to easy do this job. As the elements in the pods and in this vector are the pointers to the same memory address.
 
 	/**********************************************************/
 	/********                   Link variables                *********/
 	/*********************************************************/
-
 	//Links
 	const rapidjson::Value &linksArray = task["links"];
 	this->links_size = linksArray.Size();

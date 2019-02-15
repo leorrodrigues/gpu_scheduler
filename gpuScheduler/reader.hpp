@@ -17,7 +17,7 @@ Reader(){
 	delete(this->doc);
 }
 
-void openDocument(const char* taskDataPath, const char* taskSchemaPath = "../simulator/json/containerRequestSchema.json"){
+void openDocument(const char* taskDataPath, const char* taskSchemaPath = "requests/containerRequestSchema.json"){
 	rapidjson::SchemaDocument taskSchema =
 		JSON::generateSchema(taskSchemaPath);
 	JSON::jsonGenericDocument* taskData =                                       JSON::generateDocumentP ( taskDataPath );

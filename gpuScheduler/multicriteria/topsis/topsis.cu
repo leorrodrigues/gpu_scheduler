@@ -58,34 +58,14 @@ void TOPSIS::getWeights(float* weights, unsigned int* types, std::map<std::strin
 	if(!weightsData.Accept(weightsValidator))
 		JSON::jsonError(&weightsValidator);
 
-	int i=0;
-
-	float value=0;
-	bool type=false;
 	int index=0;
 
-	for(auto &dataObject: weightsData.GetObject()) {
-		for(auto &arrayObject: dataObject.value.GetArray()) {
-			for(auto &data: arrayObject.GetObject()) {
-				if(data.value.IsFloat()) {
-					value = data.value.GetFloat();
-				}else if(data.value.IsString()) {
-					index = distance(resource.begin(), resource.find(data.value.GetString()));
-					// printf("The resource %s has index %d\n", data.value.GetString(), index);
-				}else if(data.value.IsBool()) {
-					type = data.value.GetBool();
-				}
-				i++;
-			}
-			weights[index] = value;
-			types[index] = (type == true) ? 1 : 0;
-			// printf("Index = %d\n",index);
-		}
+	const rapidjson::Value &w_array = weightsData["weights"];
+	for(size_t i=0; i<w_array.Size(); i++) {
+		index = distance(resource.begin(), resource.find(w_array[i]["name"].GetString()));
+		weights[index] = w_array[i]["value"].GetFloat();
+		types[index] = (w_array[i]["prop"].GetBool()) ? 1 : 0;
 	}
-	// for(int i=0; i<resource.size(); i++) {
-	//      printf("%f - ", weights[i]);
-	// }
-	// printf("\n");
 }
 
 void TOPSIS::run(Host** alternatives, int alt_size){

@@ -1,11 +1,12 @@
 #ifndef _HOST_NOT_INCLUDED_
 #define _HOST_NOT_INCLUDED_
 
-#include "../main_resources_types.hpp"
+#include "../main_resources/main_resources_types.hpp"
 
 class Host : public main_resource_t {
 public:
 Host() : main_resource_t(){
+	resource["allocated_resources"]=0;
 	active = false;
 	id=0;
 }
@@ -75,6 +76,7 @@ void  addPod(std::map<std::string,std::tuple<float,float,bool> > rhs){
 			this->resource[r.first] -= std::get<1>(r.second);
 		else
 			this->resource[r.first] -= std::get<0>(r.second);
+	this->resource["allocated_resources"]++;
 }
 
 void removePod(std::map<std::string,std::tuple<float,float,bool> > rhs){
@@ -83,6 +85,7 @@ void removePod(std::map<std::string,std::tuple<float,float,bool> > rhs){
 			this->resource[r.first] += std::get<1>(r.second);
 		else
 			this->resource[r.first] += std::get<0>(r.second);
+	this->resource["allocated_resources"]--;
 }
 
 private:

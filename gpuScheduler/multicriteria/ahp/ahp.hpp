@@ -37,7 +37,6 @@ void deleteMatrix(Node*);
 void deleteNormalizedMatrix(Node*);
 void deletePml(Node*);
 void checkConsistency(Node*);
-void generateContentSchema();
 
 /*Iterate auxiliar function*/
 template <typename F> void iterateFunc(F, Node*);
@@ -49,7 +48,7 @@ AHP();
 
 void setHierarchy();
 
-void conception(bool);
+void conception();
 void acquisition();
 void synthesis();
 void consistency();
@@ -60,11 +59,7 @@ unsigned int* getResult(unsigned int&);
 void setAlternatives(Host** alternatives,int size);
 
 char* strToLower(const char*);
-void resourcesParser(genericValue* dataResource);
-void hierarchyParser(genericValue* dataObjective);
-void criteriasParser(genericValue* dataCriteria, Node* p);
-void alternativesParser(genericValue* dataAlternative);
-void domParser(rapidjson::Document* data);
+void hierarchyParser(const rapidjson::Value &hierarchyData);
 
 /*Print functions*/
 /**WARNING If you want to show all calculated data, you have to call the print function before the next synthesis calculus (i.e., edit the synthesis function to print each step before the next).*/

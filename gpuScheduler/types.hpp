@@ -6,7 +6,7 @@
 #include <queue>
 #include <map>
 
-#include "main_resources_types.hpp"
+#include "main_resources/main_resources_types.hpp"
 #include "datacenter/tasks/task.hpp"
 
 struct CompareTaskOnSubmission {

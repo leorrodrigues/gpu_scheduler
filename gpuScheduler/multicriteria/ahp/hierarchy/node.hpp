@@ -28,7 +28,6 @@ void setResource(char*,float);
 void setName(const char*);
 void setEdges(Edge**);
 void addEdge(Edge*);
-void setLeaf(bool);
 void setActive(bool);
 void setSize(int);
 void setMatrix(float*);
@@ -43,7 +42,6 @@ H_Resource* getResource();
 char* getName();
 int getSize();
 Edge** getEdges();
-bool getLeaf();
 bool getActive();
 node_t getType();
 float* getMatrix();
@@ -70,8 +68,6 @@ float* pml; ///< PML variable is used to store all the local avarage priority of
 float* pg; ///< PG variable is used to store the Global priority of the alternatives, represents the final alternative's ranking.
 
 int size; ///< Size variable is used to represent the size of all array elements.
-
-bool leaf; ///< Leaf variable is used to assist in the management of the final hierarchical nodes. If this node is true the node will be included in the criterias and sheets vector, otherwise it's included only in the criterias vector.
 
 bool active; ///< Active variable is used to assist in the AHP methods. If this variable is true, the respective node is used in the hierarchy, but if this node it's inactive, this node and all theis childs aren't  used in the AHP methods.
 };

@@ -1,8 +1,6 @@
 #ifndef  _POD_NOT_INCLUDED_
 #define  _POD_NOT_INCLUDED_
 
-#include "../../thirdparty/rapidjson/document.h"
-
 #include "../host.hpp"
 #include "container.hpp"
 

@@ -1,8 +1,6 @@
 #ifndef  _TASK_NOT_INCLUDED_
 #define _TASK_NOT_INCLUDED_
 
-#include "../../thirdparty/rapidjson/document.h"
-
 #include "task_resources.hpp"
 #include "pod.hpp"
 

@@ -9,7 +9,6 @@ Node::Node(){
 	this->normalized_matrix=NULL;
 	this->pml=NULL;
 	this->pg=NULL;
-	this->leaf=true;
 	this->active=true;
 	this->size=0;
 	this->type= node_t::ALTERNATIVE;
@@ -94,10 +93,6 @@ void Node::addEdge(Edge* edge){
 
 	this->edges[this->size] = edge;
 
-	if (this->type==node_t::CRITERIA) {
-		this->leaf=false;
-	}
-
 	this->size++;
 }
 
@@ -119,7 +114,6 @@ void Node::setPg(float* pg){
 
 void Node::setTypeFocus(){
 	this->type=node_t::FOCUS;
-	this->leaf= false;
 }
 
 void Node::setTypeCriteria(){
@@ -128,11 +122,6 @@ void Node::setTypeCriteria(){
 
 void Node::setTypeAlternative(){
 	this->type=node_t::ALTERNATIVE;
-	this->leaf = false;
-}
-
-void Node::setLeaf(bool leaf){
-	this->leaf = leaf;
 }
 
 void Node::setActive(bool active){
@@ -173,10 +162,6 @@ float* Node::getPml(){
 
 float* Node::getPg(){
 	return this->pg;
-}
-
-bool Node::getLeaf(){
-	return this->leaf;
 }
 
 bool Node::getActive(){

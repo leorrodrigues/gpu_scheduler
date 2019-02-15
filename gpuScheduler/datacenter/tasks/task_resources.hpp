@@ -4,7 +4,7 @@
 #include <iostream>
 #include <tuple>
 
-#include "../../main_resources_types.hpp"
+#include "../../main_resources/main_resources_types.hpp"
 
 class Task_Resources :  main_resource_t {
 protected:

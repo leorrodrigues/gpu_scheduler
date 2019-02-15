@@ -2,10 +2,6 @@
 #ifndef _MCLINTERFACE_NOT_INCLUDED_
 #define _MCLINTERFACE_NOT_INCLUDED_
 
-#include <vector>
-#include <string>
-#include <map>
-
 #include "clustering.cuh"
 
 #include <vnegpu/algorithm/mcl.cuh>

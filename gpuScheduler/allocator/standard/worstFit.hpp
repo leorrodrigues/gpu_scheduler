@@ -54,8 +54,6 @@ bool worstFit(Builder* builder,  Task* task, consumed_resource_t* consumed){
 
 			addToConsumed(consumed,pods[pod_index]);
 
-			host->addAllocatedResources();
-
 			pods[pod_index]->setHost(host);
 
 			pod_allocated=true;

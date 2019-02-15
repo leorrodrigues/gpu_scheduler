@@ -44,7 +44,7 @@ AHPG::AHPG() {
 		strcat(this->path,"/");
 	}
 	this->setHierarchyG();
-	this->conceptionG(false);
+	this->conceptionG();
 }
 
 AHPG::~AHPG(){
@@ -88,7 +88,7 @@ void AHPG::updateAlternativesG() {
 	if (!alternativesData.Accept(alternativesValidator))
 		JSON::jsonError(&alternativesValidator);
 	// domParser(&alternativesData, this);
-	this->hierarchy->addEdgeSheetsAlternatives();
+	this->hierarchy->addEdgeCriteriasAlternatives();
 }
 
 // Recieve a function address to iterate, used in build matrix, normalized, pml
@@ -407,162 +407,25 @@ void AHPG::printPgG(Node* node) {
 	printf("\n");
 }
 
-void AHPG::generateContentSchemaG() {
-	std::string names;
-	std::string text = "{\"$schema\":\"http://json-schema.org/draft-04/"
-	                   "schema#\",\"definitions\": {\"alternative\": {\"type\": "
-	                   "\"array\",\"minItems\": 1,\"items\":{\"properties\": {";
-	H_Resource* resource = this->hierarchy->getResource();
-	int i, size = resource->getDataSize();
-	for (i=0; i<size; i++) {
-		text += "\"" + std::to_string(resource->getResource(i)) + "\":{\"type\":\"number\"},";
-		names += "\"" + std::string(resource->getResourceName(i)) + "\",";
-	}
-	names.pop_back();
-	text.pop_back();
-	text += "},\"additionalProperties\": false,\"required\": [" + names +
-	        "]}}},\"type\": \"object\",\"minProperties\": "
-	        "1,\"additionalProperties\": false,\"properties\": "
-	        "{\"alternatives\": {\"$ref\": \"#/definitions/alternative\"}}}";
-	JSON::writeJson("multicriteria/json/alternativesSchema.json", text);
-}
+void AHPG::hierarchyParserG(const rapidjson::Value &hierarchyData) {
+	Node* focus= this->hierarchy->addFocus(hierarchyData["name"].GetString());
+	Node* criteria = NULL;
 
-void AHPG::resourcesParserG(genericValue* dataResource) {
-	std::string variableName, variableType;
-	for (auto &arrayData : dataResource->value.GetArray()) {
-		variableName = variableType = "";
-		for (auto &objectData : arrayData.GetObject()) {
-			if (strcmp(objectData.name.GetString(), "name") == 0) {
-				variableName = objectData.value.GetString();
-			} else if (strcmp(objectData.name.GetString(), "variableType") == 0) {
-				variableType = strToLowerG(objectData.value.GetString());
-			} else {
-				std::cout << "Error in reading resources\nExiting...\n";
-				exit(0);
-			}
+	const rapidjson::Value &c_array = hierarchyData["childs"];
+	size_t c_size = c_array.Size();
+	float weights[c_size];
+
+	for(size_t i=0; i< c_size; i++) {
+		criteria = this->hierarchy->addCriteria(c_array[i]["name"].GetString());
+		const rapidjson::Value & w_array = c_array[i]["weight"];
+		for(size_t j=0; j<w_array.Size(); j++) {
+			weights[j] = w_array[j].GetFloat();
 		}
-		this->hierarchy->addResource((char*)variableName.c_str());
+		this->hierarchy->addEdge(focus, criteria, weights, c_size);
 	}
 }
 
-void AHPG::hierarchyParserG(genericValue* dataObjective) {
-	char* name = NULL;
-	for (auto &hierarchyObject : dataObjective->value.GetObject()) {
-		if (strcmp(hierarchyObject.name.GetString(), "name") == 0) {
-			name = strToLowerG(hierarchyObject.value.GetString());
-			this->hierarchy->addFocus(name); // create the Focus* in the hierarchy;
-			free ( name );
-		} else if (strcmp(hierarchyObject.name.GetString(), "childs") == 0) {
-			criteriasParserG(&hierarchyObject, this->hierarchy->getFocus() );
-		} else {
-			std::cout << "AHP -> Unrecognizable Type\nExiting...\n";
-			exit(0);
-		}
-	}
-}
-
-void AHPG::criteriasParserG(genericValue* dataCriteria, Node* parent) {
-	char* name=(char*)"\0";
-	bool leaf = false;
-	float* weight = NULL;
-	int index=0;
-	for (auto &childArray : dataCriteria->value.GetArray()) {
-		weight = NULL;
-		index=0;
-		for (auto &child : childArray.GetObject()) {
-			const char* n = child.name.GetString();
-			if (strcmp(n, "name") == 0) {
-				name = strToLowerG(child.value.GetString());
-			} else if (strcmp(n, "leaf") == 0) {
-				leaf = child.value.GetBool();
-			} else if (strcmp(n, "weight") == 0) {
-				for (auto &weightChild : child.value.GetArray()) {
-					weight = (float*) realloc (weight, sizeof(float) * (index+1) );
-					weight[index]=weightChild.GetFloat();
-					index++;
-				}
-			} else if (strcmp(n, "childs") == 0) {
-				// at this point, all the criteria variables were read, now the document
-				// has the child's of the criteria. To put the childs corretly inside
-				// the hierarchy, the criteria node has to be created.
-				Node* criteria = this->hierarchy->addCriteria(name);
-				criteria->setLeaf(leaf);
-				this->hierarchy->addEdge(parent, criteria, weight, index);
-				// with the criteria node added, the call recursively the
-				// criteriasParser.
-				criteriasParserG(&child, criteria);
-				free(name);
-			}
-		}
-		if (leaf) {
-			Node* criteria = this->hierarchy->addSheets(name);
-			criteria->setLeaf(leaf);
-			this->hierarchy->addEdge(parent, criteria, weight, index);
-		}
-		free(name);
-		free(weight);
-	}
-}
-
-void AHPG::alternativesParserG(genericValue* dataAlternative) {
-	for (auto &arrayAlternative : dataAlternative->value.GetArray()) {
-		auto alternative = this->hierarchy->addAlternative();
-		for (auto &alt : arrayAlternative.GetObject()) {
-			std::string name(alt.name.GetString());
-			if (alt.value.IsNumber()) {
-				alternative->getResource()->addResource((char*) name.c_str(), alt.value.GetFloat());
-			} else if (alt.value.IsBool()) {
-				bool b = alt.value.GetBool();
-				if(b==true) {
-					alternative->getResource()->addResource((char*) name.c_str(), 1);
-				}else{
-					alternative->getResource()->addResource((char*) name.c_str(), 0);
-				}
-			} else {
-				if(name=="name") {
-					alternative->setName(strToLowerG(alt.value.GetString()));
-				}
-			}
-		}
-	}
-}
-
-void AHPG::domParserG(rapidjson::Document *data) {
-	for (auto &m : data->GetObject()) { // query through all objects in data.
-		if (strcmp(m.name.GetString(), "resources") == 0) {
-			resourcesParserG(&m);
-		} else if (strcmp(m.name.GetString(), "objective") == 0) {
-			hierarchyParserG(&m);
-		} else if (strcmp(m.name.GetString(), "alternatives") == 0) {
-			alternativesParserG(&m);
-		}
-	}
-}
-
-void AHPG::conceptionG(bool alternativeParser) {
-	// The hierarchy contruction were divided in three parts, first the resources
-	// file was to be loaded to construct the alternatives dynamically. Second the
-	// hierarchy focus and criteria were loaded in the hierarchyData.json, and
-	// finally the alternatives were loaded.
-	if (alternativeParser) {
-		char resource_schema[1024];
-		char resource_data[1024];
-		strcpy(resource_schema, path);
-		strcpy(resource_data, path);
-		strcat(resource_schema, "multicriteria/ahp/json/resourcesSchema.json");
-		strcat(resource_data, "multicriteria/ahp/json/resourcesData.json");
-
-		rapidjson::SchemaDocument resourcesSchema =
-			JSON::generateSchema(resource_schema);
-		rapidjson::Document resourcesData =
-			JSON::generateDocument(resource_data);
-		rapidjson::SchemaValidator resourcesValidator(resourcesSchema);
-		if (!resourcesData.Accept(resourcesValidator))
-			JSON::jsonError(&resourcesValidator);
-		domParserG(&resourcesData);
-		generateContentSchemaG();
-	}
-	// After reading the resoucesData, new alternativesSchema has to be created.
+void AHPG::conceptionG() {
 	// Parser the Json File that contains the Hierarchy
 	char hierarchy_schema [1024] = "\0";
 	char hierarchy_data [1024] = "\0";
@@ -581,27 +444,7 @@ void AHPG::conceptionG(bool alternativeParser) {
 
 	if (!hierarchyData.Accept(hierarchyValidator))
 		JSON::jsonError(&hierarchyValidator);
-	domParserG(&hierarchyData);
-
-	if (alternativeParser) {
-		char alternative_schema [1024];
-		char alternative_data [1024];
-
-		strcpy(alternative_schema, path);
-		strcpy(alternative_data, path);
-
-		strcat(alternative_schema, "multicriteria/ahp/json/alternativesSchema.json");
-		strcat(alternative_data, "multicriteria/ahp/json/alternativesDataDefault.json");
-		// The Json Data is valid and can be used to construct the hierarchy.
-		rapidjson::SchemaDocument alternativesSchema =
-			JSON::generateSchema(alternative_schema);
-		rapidjson::Document alternativesData = JSON::generateDocument(alternative_data);
-		rapidjson::SchemaValidator alternativesValidator(alternativesSchema);
-		if (!alternativesData.Accept(alternativesValidator))
-			JSON::jsonError(&alternativesValidator);
-		domParserG(&alternativesData);
-		this->hierarchy->addEdgeSheetsAlternatives();
-	}
+	hierarchyParserG(hierarchyData["objective"]);
 }
 
 void AHPG::acquisitionG() {
@@ -618,10 +461,10 @@ void AHPG::acquisitionG() {
 	// auto max = this->hierarchy->getResource();
 	// auto min = this->hierarchy->getResource();
 	Node** alt = this->hierarchy->getAlternatives();
-	Node** sheets = this->hierarchy->getSheets();
+	Node** sheets = this->hierarchy->getCriterias();
 
 	int altSize = this->hierarchy->getAlternativesSize();
-	int sheetsSize = this->hierarchy->getSheetsSize();
+	int sheetsSize = this->hierarchy->getCriteriasSize();
 	int resourceSize = this->hierarchy->getResource()->getDataSize();
 
 	float* min_max_values = (float*) malloc (sizeof(float) * resourceSize);
@@ -744,25 +587,17 @@ void AHPG::consistencyG() {
 
 void AHPG::run(Host** alternatives, int size) {
 	this->hierarchy->clearAlternatives();
-	if (size == 0) {
-		this->conceptionG(true);
-	} else {
-		// this->hierarchy->clearAlternatives(); // made in the setAlternatives function
+	this->hierarchy->clearResource();
 
-		this->hierarchy->clearResource();
+	std::map<std::string, float> resource = alternatives[0]->getResource();
+	for (auto it : resource) {
+		this->hierarchy->addResource((char*)it.first.c_str());
+	}
 
-		std::map<std::string, float> resource = alternatives[0]->getResource();
-		for (auto it : resource) {
-			this->hierarchy->addResource((char*)it.first.c_str());
-		}
-
-		// Add the resource of how many virtual resources are allocated in the host
-		this->hierarchy->addResource((char*)"allocated_resources");
-		this->setAlternatives(alternatives, size);
-		if(this->hierarchy->getSheetsSize()==0) {
-			std::cerr<<"AHP Hierarchy with no sheets";
-			exit(0);
-		}
+	this->setAlternatives(alternatives, size);
+	if(this->hierarchy->getCriteriasSize()==0) {
+		std::cerr<<"AHP Hierarchy with no sheets";
+		exit(0);
 	}
 
 	// printf("Aquisition: ");
@@ -826,11 +661,8 @@ void AHPG::setAlternatives(Host** alternatives, int size) {
 			a->setResource((char*)it.first.c_str(), it.second);
 		}
 
-		// Populate the alternative node with the Host Value
-		a->setResource((char*)"allocated_resources", alternatives[i]->getAllocatedResources());
-
 		this->hierarchy->addAlternative(a);
 	}
 
-	this->hierarchy->addEdgeSheetsAlternatives();
+	this->hierarchy->addEdgeCriteriasAlternatives();
 }
