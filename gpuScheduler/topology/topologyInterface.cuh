@@ -25,8 +25,6 @@ virtual std::string getTopology()=0;
 
 virtual int getIndexEdge()=0;
 
-virtual std::map<std::string, float> getResource()=0;
-
 virtual void listTopology()=0;
 };
 

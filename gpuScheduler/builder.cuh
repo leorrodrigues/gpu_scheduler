@@ -15,13 +15,12 @@
 
 #include <cmath>
 
-class Builder {
+class Builder : public main_resource_t {
 private:
 Multicriteria* multicriteriaMethod;
 Multicriteria* multicriteriaClusteredMethod;
 Clustering* clusteringMethod;
 Topology* topology;
-std::map<std::string,float> resource;
 std::vector<Host*> hosts;
 std::vector<Host*> clusterHosts;
 

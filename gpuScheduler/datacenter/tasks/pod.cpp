@@ -55,6 +55,10 @@ void Pod::addContainer(Container* c){
 
 void Pod::setHost(Host* host){
 	this->host=host;
+	unsigned int id = host->getId();
+	for(size_t i=0; i<this->containers_size; i++) {
+		this->containers[i].setHostId(id);
+	}
 }
 
 std::ostream& operator<<(std::ostream& os, const Pod& p)  {

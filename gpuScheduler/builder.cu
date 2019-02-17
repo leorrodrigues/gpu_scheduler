@@ -1,7 +1,7 @@
 #include  "builder.cuh"
 #include <assert.h>
 
-Builder::Builder(){
+Builder::Builder() : main_resource_t() {
 	this->multicriteriaMethod=NULL;
 	this->multicriteriaClusteredMethod=NULL;
 	this->clusteringMethod=NULL;
@@ -198,6 +198,8 @@ void Builder::setFatTree(int k){
 	graph->setResource(this->resource);
 	graph->populateTopology(this->hosts);
 	this->setTopology(graph);
+	graph->listTopology();
+	exit(0);
 }
 
 void Builder::setBcube(int nHosts,int nLevels){
@@ -320,6 +322,6 @@ void Builder::parser(const char* hostsDataPath,const char* hostsSchemaPath){
 	if (!hostsData.Accept(hostsValidator))
 		JSON::jsonError(&hostsValidator);
 
-	this->parserTopology(hostsData["topology"]);
 	this->parserHosts(hostsData["hosts"]);
+	this->parserTopology(hostsData["topology"]);
 }

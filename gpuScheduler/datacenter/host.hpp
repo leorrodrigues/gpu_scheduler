@@ -9,6 +9,7 @@ Host() : main_resource_t(){
 	resource["allocated_resources"]=0;
 	active = false;
 	id=0;
+	id_g=0;
 }
 
 ~Host(){
@@ -44,8 +45,16 @@ unsigned int getId(){
 	return this->id;
 }
 
+unsigned int getIdg(){
+	return this->id_g;
+}
+
 void setId(unsigned int id){
 	this->id = id;
+}
+
+void setIdg(unsigned int id_g){
+	this->id_g = id_g;
 }
 
 bool getActive(){
@@ -89,8 +98,9 @@ void removePod(std::map<std::string,std::tuple<float,float,bool> > rhs){
 }
 
 private:
-bool active;
 unsigned int id;
+unsigned int id_g;
+bool active;
 };
 
 #endif

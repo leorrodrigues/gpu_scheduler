@@ -272,6 +272,8 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 					exit(1);
 				}
 			}
+			if(allocation_success)
+				allocation_success=Allocator::links_allocator(builder, current, consumed);
 		}else{
 			allocation_success=false;
 		}

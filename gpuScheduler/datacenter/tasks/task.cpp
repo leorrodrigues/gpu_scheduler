@@ -2,6 +2,7 @@
 
 Task::Task() : Task_Resources(){
 	this->pods=NULL;
+	this->containers=NULL;
 	this->duration=0;
 	this->submission=0;
 
@@ -14,7 +15,8 @@ Task::~Task(){
 	for(size_t i=0; i<this->pods_size; i++)
 		delete(this->pods[i]);
 	free(this->pods);
-	pods=NULL;
+	this->pods=NULL;
+	this->containers=NULL;
 }
 
 void Task::setTask(const char* taskMessage){
@@ -38,12 +40,12 @@ void Task::setTask(const char* taskMessage){
 	/*********************************************************/
 	const rapidjson::Value &containersArray = task["containers"];
 	this->containers_size = containersArray.Size();
-	Container **containers = NULL;
+	this->containers = NULL;
 
 	if(this->containers_size!=0) {
 		std::map<unsigned int, Pod*> temp_pods;
 		Pod* pod = NULL;
-		containers=(Container**) malloc (sizeof(Container*)*this->containers_size);
+		this->containers=(Container**) malloc (sizeof(Container*)*this->containers_size);
 		Container *c=NULL;
 
 		for(size_t i=0; i < this->containers_size; i++) {
@@ -77,7 +79,7 @@ void Task::setTask(const char* taskMessage){
 			c->setId(containersArray[i]["name"].GetInt());
 
 			temp_pods[pod_index]->addContainer(c);
-			containers[i]=c;
+			this->containers[i]=c;
 		}
 		this->pods_size = temp_pods.size();
 		//Create the pods array
@@ -108,8 +110,8 @@ void Task::setTask(const char* taskMessage){
 			source = linksArray[i]["source"].GetInt();
 			//Finding the respective container
 			for(size_t j=0; j< this->containers_size; j++) {
-				if(containers[j]->getId()==source) {
-					containers[j]->setLink(
+				if(this->containers[j]->getId()==source) {
+					this->containers[j]->setLink(
 						linksArray[i]["destination"].GetInt(),
 						linksArray[i]["bandwidth_min"].GetDouble(),
 						linksArray[i]["bandwidth_max"].GetDouble()
@@ -118,8 +120,6 @@ void Task::setTask(const char* taskMessage){
 			}
 		}
 	}
-
-	free(containers);
 }
 
 void Task::addDelay(){
@@ -140,6 +140,10 @@ void Task::setSubmission(unsigned int submission){
 
 Pod** Task::getPods(){
 	return this->pods;
+}
+
+Container** Task::getContainers(){
+	return this->containers;
 }
 
 unsigned int Task::getPodsSize(){

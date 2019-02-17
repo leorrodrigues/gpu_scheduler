@@ -666,6 +666,11 @@ inline void cpu_modified()
 	this->state = GRAPH_ON_CPU;
 }
 
+__host__
+inline int* get_all_node_type(){
+	return this->node_type;
+}
+
 __host__ __device__
 inline int get_node_type(int node_id)
 {

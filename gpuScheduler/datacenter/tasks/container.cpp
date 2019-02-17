@@ -3,6 +3,7 @@
 Container::Container() : Task_Resources(){
 	this->links=NULL;
 	this->links_size=0;
+	this->host_id=0;
 }
 
 Container::~Container(){
@@ -14,12 +15,24 @@ Link* Container::getLinks(){
 	return this->links;
 }
 
+unsigned int Container::getLinksSize(){
+	return this->links_size;
+}
+
+unsigned int Container::getHostId(){
+	return this->host_id;
+}
+
 void Container::setLink(unsigned int dest, float bandwidth_min, float bandwidth_max){
 	this->links_size++;
 	this->links = (Link*) realloc (this->links,sizeof(Link)*this->links_size);
 	this->links[this->links_size-1].destination=dest;
 	this->links[this->links_size-1].bandwidth_min=bandwidth_min;
 	this->links[this->links_size-1].bandwidth_max=bandwidth_max;
+}
+
+void Container::setHostId(unsigned int id){
+	this->host_id=id;
 }
 
 std::ostream& operator<<(std::ostream& os, const Container& c)  {
