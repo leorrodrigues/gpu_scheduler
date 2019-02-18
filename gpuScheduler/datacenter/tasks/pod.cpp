@@ -56,8 +56,18 @@ void Pod::addContainer(Container* c){
 void Pod::setHost(Host* host){
 	this->host=host;
 	unsigned int id = host->getId();
+	unsigned int idg = host->getIdg();
 	for(size_t i=0; i<this->containers_size; i++) {
-		this->containers[i].setHostId(id);
+		this->containers[i]->setHostId(id);
+		this->containers[i]->setHostIdg(idg);
+	}
+}
+
+void Pod::updateBandwidth(){
+	this->resources["bandwidth"]=std::make_tuple(0,0,false);
+	for(size_t i=0; i<this->containers_size; i++) {
+		std::get<0>(this->resources["bandwidth"])+=this->containers[i]->getBandwidthMin();
+		std::get<1>(this->resources["bandwidth"])+=this->containers[i]->getBandwidthMax();
 	}
 }
 

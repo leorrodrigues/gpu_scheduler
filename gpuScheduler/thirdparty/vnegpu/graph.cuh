@@ -511,7 +511,7 @@ inline void set_egdes_ids(int index, T value)
  * \return the variable.
  */
 __host__ __device__
-inline int get_egdes_ids(int index)
+inline int get_edges_ids(int index)
 {
       #ifdef __CUDA_ARCH__
 	return this->d_egdes_ids[index];
@@ -832,7 +832,7 @@ void check_edges_ids(){
 				{
 					int neighbor_2 = this->get_destination_indice(y);
 					if(id==neighbor_2) {
-						this->set_egdes_ids(i, this->get_egdes_ids(y));
+						this->set_egdes_ids(i, this->get_edges_ids(y));
 						break;
 					}
 				}

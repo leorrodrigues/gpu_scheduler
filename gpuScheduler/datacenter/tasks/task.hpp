@@ -8,7 +8,7 @@ class Task : public Task_Resources {
 private:
 //Pod variables
 Pod** pods;
-containers **containers;
+Container **containers;
 unsigned int duration;
 unsigned int submission;
 
@@ -37,6 +37,7 @@ unsigned int getPodsSize();
 unsigned int getDuration();
 unsigned int getSubmission();
 unsigned int getContainersSize();
+unsigned int getLinksSize();
 unsigned int getAllocatedTime();
 unsigned int getDelay();
 

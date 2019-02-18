@@ -18,6 +18,8 @@
 #include "allocator/free.hpp"
 #include "allocator/all.cuh"
 
+#include "allocator/links/links_allocator.hpp"
+
 #include "objective_functions/fragmentation.hpp"
 #include "objective_functions/footprint.hpp"
 

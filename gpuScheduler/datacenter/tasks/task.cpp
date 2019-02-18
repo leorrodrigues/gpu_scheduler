@@ -109,16 +109,15 @@ void Task::setTask(const char* taskMessage){
 		for(size_t i=0; i < this->links_size; i++) {
 			source = linksArray[i]["source"].GetInt();
 			//Finding the respective container
-			for(size_t j=0; j< this->containers_size; j++) {
-				if(this->containers[j]->getId()==source) {
-					this->containers[j]->setLink(
-						linksArray[i]["destination"].GetInt(),
-						linksArray[i]["bandwidth_min"].GetDouble(),
-						linksArray[i]["bandwidth_max"].GetDouble()
-						);
-				}
-			}
+			this->containers[source-1]->setLink(
+				linksArray[i]["destination"].GetInt(),
+				linksArray[i]["bandwidth_min"].GetDouble(),
+				linksArray[i]["bandwidth_max"].GetDouble()
+				);
 		}
+	}
+	for(size_t i=0; i<pods_size; i++) {
+		this->pods[i]->updateBandwidth();
 	}
 }
 
@@ -148,6 +147,10 @@ Container** Task::getContainers(){
 
 unsigned int Task::getPodsSize(){
 	return this->pods_size;
+}
+
+unsigned int Task::getLinksSize(){
+	return this->links_size;
 }
 
 unsigned int Task::getDuration(){

@@ -26,6 +26,8 @@ Host* getHost();
 void addContainer(Container*);
 void setHost(Host*);
 
+void updateBandwidth();
+
 friend std ::ostream& operator<<(std::ostream&, Pod const&);
 
 };

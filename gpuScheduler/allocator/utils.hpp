@@ -7,6 +7,7 @@ inline bool checkFit(Host* host, Pod* pod){
 	std::map<std::string, float> h_r = host->getResource();
 
 	for(auto r : pod->getResources()) {
+		std::cout<<r.first<<"\n";
 		if(h_r[r.first]>=std::get<1>(r.second)) {
 			std::get<2>(r.second) = true;
 		}else if(h_r[r.first]>=std::get<0>(r.second)) {
