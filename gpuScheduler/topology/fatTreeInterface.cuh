@@ -93,14 +93,13 @@ int getIndexEdge(){
 void listTopology(){
 	std::cout<<"\n\nList Topology\n";
 	const char *nodeType[] ={"Host node","Switch node","Core switch node"};
-	const char *varName[]={"Capacity","vCPU","Bandwidth","Memory","Storage","Security"};
+	std::vector<std::string> *varName = this->topology->get_var_node_str();
 	const char *varEdge[]={"Edge Capacity","Bandwidth"};
-	int nVarNodes=this->topology->get_num_var_nodes();
 	int nVarEdg=this->topology->get_num_var_edges();
 	int nNodes=this->topology->get_num_nodes();
 	int nHosts=this->topology->get_hosts();
 	int nEdges=this->topology->get_num_edges();
-	std::cout<<std::setw(40)<<std::left<<"# Number of Nodes Variables: "<<std::setw(5)<<nVarNodes<<"\n";
+	std::cout<<std::setw(40)<<std::left<<"# Number of Nodes Variables: "<<std::setw(5)<<varName->size()<<"\n";
 	std::cout<<std::setw(40)<<std::left<<"# Number of Edges Variables: "<<std::setw(5)<<nVarEdg<<"\n";
 	std::cout<<std::setw(40)<<std::left<<"# Number of Nodes: "<<std::setw(5)<<nNodes<<"\n";
 	std::cout<<std::setw(40)<<std::left<<"# Number of Hosts: "<<std::setw(5)<<nHosts<<"\n";
@@ -109,17 +108,17 @@ void listTopology(){
 	for(int i=0; i<nNodes; i++) {
 		std::cout<<"\t\tType: "<<nodeType[this->topology->get_node_type(i)]<<" has the id "<<i<<"\n";
 		if(this->topology->get_node_type(i)==0) {// if is a host node
-			for(int j=0; j<nVarNodes; j++) {
-				std::cout<<"\t\t\t"<<std::setw(20)<<std::left<<varName[j]<<std::setw(5)<<std::right<<this->topology->get_variable_node(j,i)<<"\n";
+			for(int j=0; j<varName->size(); j++) {
+				std::cout<<"\t\t\t"<<std::setw(20)<<std::left<<(*varName)[j]<<std::setw(5)<<std::right<<this->topology->get_variable_node(j,i)<<"\n";
 			}
 		}
 	}
 	std::cout<<"\t#Edge#\n";
 	for(int i=0; i<nEdges; i++) {
 		std::cout<<"\t\tEdge "<<i<<"\n";
-		for(int j=0; j<nVarEdg; j++) {
-			std::cout<<"\t\t\t"<<std::setw(20)<<std::left<<varEdge[j]<<std::setw(5)<<std::right<<this->topology->get_variable_edge(j,i)<<"\n";
-		}
+		// for(int j=0; j<nVarEdg; j++) {
+		std::cout<<"\t\t\t"<<std::setw(20)<<std::left<<varEdge[1]<<std::setw(5)<<std::right<<this->topology->get_variable_edge(1,i)<<"\n";
+		// }
 	}
 	std::cout<<"\n\n";
 }

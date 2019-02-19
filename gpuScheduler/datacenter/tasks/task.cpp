@@ -7,8 +7,15 @@ Task::Task() : Task_Resources(){
 	this->submission=0;
 
 	this->pods_size = 0;
+	this->containers_size=0;
+	this->links_size=0;
 	this->allocated_time=0;
 	this->delay=0;
+
+	this->path = NULL;
+	this->path_edge = NULL;
+	this->destination = NULL;
+	this->values = NULL;
 }
 
 Task::~Task(){
@@ -16,7 +23,24 @@ Task::~Task(){
 		delete(this->pods[i]);
 	free(this->pods);
 	this->pods=NULL;
+
+	free(containers); // dont free each container (containers[i]), because it is freed by cascade when you call delete(pod). Free only the array of pointers.
 	this->containers=NULL;
+
+	// if(this->path!=NULL) {
+	//      for(size_t i=0; i<this->links_size; i++) {
+	//              free(this->path[i]);
+	//              free(this->path_edge[i]);
+	//      }
+	//      free(this->path);
+	//      free(this->path_edge);
+	//      free(this->destination);
+	//      free(this->values);
+	//      this->path=NULL;
+	//      this->path_edge=NULL;
+	//      this->destination=NULL;
+	//      this->values=NULL;
+	// }
 }
 
 void Task::setTask(const char* taskMessage){
@@ -137,6 +161,22 @@ void Task::setSubmission(unsigned int submission){
 	this->submission = submission;
 }
 
+void Task::setLinkPath(int** path){
+	this->path=path;
+}
+
+void Task::setLinkPathEdge(int** path_edge){
+	this->path_edge=path_edge;
+}
+
+void Task::setLinkDestination(int* destination){
+	this->destination=destination;
+}
+
+void Task::setLinkValues(float* values){
+	this->values=values;
+}
+
 Pod** Task::getPods(){
 	return this->pods;
 }
@@ -171,6 +211,22 @@ unsigned int Task::getAllocatedTime(){
 
 unsigned int Task::getDelay(){
 	return this->delay;
+}
+
+int** Task::getLinkPath(){
+	return this->path;
+}
+
+int** Task::getLinkPathEdge(){
+	return this->path_edge;
+}
+
+int* Task::getLinkDestination(){
+	return this->destination;
+}
+
+float* Task::getLinkValues(){
+	return this->values;
 }
 
 std::ostream& operator<<(std::ostream& os, const Task& t)  {

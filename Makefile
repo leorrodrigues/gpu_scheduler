@@ -43,7 +43,7 @@ SO_NAME:= $(shell cat /etc/os-release | grep "ID=" | egrep -v "*_ID_*" | cut -c4
 
 LIBS_PATH :=;
 
-CXXFLAGS = $(DEBUG_CXX) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -O2
+CXXFLAGS = $(DEBUG_CXX) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security  -Wduplicated-branches  -Wlogical-op  -Wnull-dereference  -Wdouble-promotion  -Wshadow  -Wformat=2 -Wduplicated-cond -fconcepts -O2
 
 #CXXFLAGS = -std=c++17 -Wall -fconcepts
 

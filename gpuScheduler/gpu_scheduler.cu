@@ -164,10 +164,7 @@ inline objective_function_t calculateObjectiveFunction(consumed_resource_t consu
 }
 
 inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed){
-
-	bool free_success = false;
 	Task* current = NULL;
-	Host* temp = NULL;
 
 	while(true) {
 
@@ -185,46 +182,23 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 
 		// if(  [ current->getId() ]!=NULL ) {
 		//Iterate through the PODs of the TASK, and erase each of one.
-		unsigned int pods_size = current->getPodsSize();
 		printf("Scheduler Time %d\n\tDeleting task %d\n", options->current_time, current->getId());
-		if(pods_size>0) {
-			Pod **pods= current->getPods();
-			for(size_t i=0; i< pods_size; i++) {
-				printf("\t\tDeleting pod %d\n",pods[i]->getId());
-				temp =  pods[i]->getHost();
 
-				const bool active_status=temp->getActive();
-
-				free_success=Allocator::freeHostResource(
-					/* The pod to be removed*/
-					current,
-					/* The consumed DC status*/
-					consumed,
-					builder
-					);
-
-				if(!free_success) {
-					std::cerr << "(gpu_scheduler) - Error in free the task " << current->getId() << " from the data center\n";
-					exit(1);
-				}
-
-				if(temp->getAllocatedResources()==0) {
-					temp->setActive(false);
-					//Check if the server was on and now is off
-					if(active_status==true) {
-						consumed->active_servers--;
-					}
-				}
-			}
-		}else{
-			std::cerr << "(gpu_scheduler) ERROR Task withouth pod!\n";
-		}
+		Allocator::freeAllResources(
+			/* The task to be removed*/
+			current,
+			/* The consumed DC status*/
+			consumed,
+			builder
+			);
 
 		delete(current);
+
 	}
 
+	// builder->getTopology()->listTopology();
+
 	current = NULL;
-	temp = NULL;
 }
 
 inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed, total_resources_t* total_dc){
@@ -274,8 +248,11 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 					exit(1);
 				}
 			}
-			if(allocation_success)
+			if(allocation_success) {
+				// builder->getTopology()->listTopology();
 				allocation_success=Allocator::links_allocator(builder, current, consumed);
+				// builder->getTopology()->listTopology();
+			}
 		}else{
 			allocation_success=false;
 		}

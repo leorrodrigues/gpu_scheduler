@@ -531,6 +531,11 @@ inline T* get_variables_node(int var)
 	return this->var_nodes_d_pointes[var];
 }
 
+__host__
+inline std::vector<std::string>* get_var_node_str(){
+	return this->nodes_variables_names;
+}
+
 /**
  * \brief Set the value of a source offset.
  * \param index the index on source offset array.

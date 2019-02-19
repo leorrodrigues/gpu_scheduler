@@ -198,7 +198,6 @@ void Builder::setFatTree(int k){
 	graph->setResource(this->resource);
 	graph->populateTopology(this->hosts);
 	this->setTopology(graph);
-	graph->listTopology();
 }
 
 void Builder::setBcube(int nHosts,int nLevels){
