@@ -18,6 +18,7 @@ namespace Allocator {
    res is the result variable, used as a manager variable to tell if the found path can support the maximum or minimum bandwidth.
  */
 unsigned int widestPath(vnegpu::graph<float>*dc, int src, int dst, int* path, int* path_edge, float b_min, float b_max){
+	// printf("SRC %d | DST %d |  TOTAL %d\n",src,dst, dc->get_num_nodes());
 	int *nodes_types = dc->get_all_node_type();
 	unsigned int nodes_size = dc->get_num_nodes();
 
@@ -46,31 +47,44 @@ unsigned int widestPath(vnegpu::graph<float>*dc, int src, int dst, int* path, in
 	float next_node_weight, alt;
 
 	pq.push(std::make_pair(0,src));
+	// printf("Start Iteration\n");
 	while(!pq.empty()) {
+		// printf("Getting the node index\n");
 		node_index=pq.top().second;
 		pq.pop();
 
+		// printf("Cheking if i was in the limit\n");
 		if(weights[node_index]==FLT_MIN || node_index==dst)
 			break;
 
 		//need to run through all the edges of the Node_index
+		// printf("Iterating throught the edges of node_index %d\n",node_index);
 		for(destination_index= dc->get_source_offset(node_index);
 		    destination_index< dc->get_source_offset(node_index+1);
 		    destination_index++) {
 
+			// printf("Getting the next node destination\n");
 			next_node = dc->get_destination_indice(destination_index);
+
+			// printf("\tIf this node is a HOST ignore it\n");
 			if(visited[next_node]) continue; //if the node is another host, ignore it.
 
+			// printf("Get the weight of this node\n");
 			next_node_weight = dc->get_variable_edge ( 1, dc->get_edges_ids(destination_index)); // get the value of the edge bettween U and V.
 
+			// printf("Get the value\n");
 			alt = std::max(weights[next_node], std::min(weights[node_index], next_node_weight));
 
+			// printf("Check if its necessary to update\n");
 			if(alt> weights[next_node]) {
+				// printf("Updating\n");
 				weights[next_node] = alt;
 				path[next_node] = node_index;
 				path_edge[next_node] = dc->get_edges_ids(destination_index);
 				pq.push(std::make_pair(weights[next_node],next_node));
 			}
+			// printf("Iteration made\n");
+			// printf("------------------------------------\n");
 		}
 	}
 

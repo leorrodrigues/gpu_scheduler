@@ -56,7 +56,7 @@ inline void freeLinks(Task* task, consumed_resource_t* consumed, Builder* builde
 
 		walk_index = destination[p];
 		if(walk_index == -1 ) {
-			printf("\t\t\tThe containers are in the same host\n");
+			// printf("\t\t\tThe containers are in the same host\n");
 			continue;                         // the link is between two containers that are in the same host
 		}
 

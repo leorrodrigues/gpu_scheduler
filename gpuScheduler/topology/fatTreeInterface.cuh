@@ -54,28 +54,21 @@ void populateTopology(std::vector<Host*> hosts){
 		this->topology->set_variable_edge_undirected(0,i,1); //capacity
 		this->topology->set_variable_edge_undirected(1,i,1000); //bandwidth
 	}
-	int i,k,step;
-	i=k=0;
-	step=this->size;
-	for(auto itHosts: hosts) {
-		//std::cout<<"\tNew Host\n";
-		itHosts->setIdg(i+k*step);
-
-		std::map<std::string, float> res=itHosts->getResource();
-		for(auto it: res) {
-			this->topology->set_variable_node(indices[it.first],i+k*step,it.second);
+	size_t host_index=0;
+	for(size_t i=0; i< this->topology->get_num_nodes(); i++) {
+		if(this->topology->get_node_type(i)==0) {// if is a host node
+			hosts[host_index]->setIdg(i);
+			std::map<std::string, float> res = hosts[host_index]->getResource();
+			for(auto it: res) {
+				this->topology->set_variable_node(indices[it.first], i,it.second);
+			}
+			//For each edge in the host i+k*step
+			for(size_t j=this->topology->get_source_offset(i); j<this->topology->get_source_offset( i+1); j++) {
+				this->topology->set_variable_edge(indexEdge, j, res["bandwidth"]);
+			}
+			host_index++;
 		}
-		//For each edge in the host i+k*step
-		for(int x=this->topology->get_source_offset(i+k*step); x<this->topology->get_source_offset((i+k*step)+1); x++) {
-			this->topology->set_variable_edge(indexEdge,x,res["bandwidth"]);
-		}
-		//this->topology->set_variable_edge_undirected(indexEdge,(i+k*step),res->mFloat["bandwidth"]);
-		//std::cout<<"\t\tSet in "<<i*k<<std::setw(20)<<" edge weight with"<<std::setw(12)<<res->mFloat["bandwidth"]<<"\n";
-		i++;
-		if(i%this->size==0) k++;
 	}
-	//this->topology->set_hosts(i);
-	//this->topology->check_edges_ids();
 }
 
 vnegpu::graph<float>* getGraph(){

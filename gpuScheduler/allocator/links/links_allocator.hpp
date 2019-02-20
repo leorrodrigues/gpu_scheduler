@@ -67,7 +67,7 @@ bool links_allocator(Builder* builder,  Task* task, consumed_resource_t* consume
 			//printf("Update the destination index\n");
 			destination[link_index] = containers[links[i].destination-1]->getHostIdg();
 
-			//printf("Call the widestPath\n");
+			// printf("Call the widestPath\n");
 			result[link_index]= widestPath(
 				graph,         //the graph to calculate
 				containers[container_index]->getHostIdg(),         // the source host
@@ -77,7 +77,7 @@ bool links_allocator(Builder* builder,  Task* task, consumed_resource_t* consume
 				links[i].bandwidth_min,
 				links[i].bandwidth_max
 				);
-			// //printf("Widest path calculated\n");
+			// printf("Widest path calculated\n");
 
 			//Now we have the shortest path between src and the destination. If the link can't be set between the [SRC, DST], the result value in the result[index] == 0, if the minimum can be allocated, the value is 1, if maximum, the value is 2.
 			if(result[link_index]==0) {
