@@ -150,16 +150,20 @@ inline objective_function_t calculateObjectiveFunction(consumed_resource_t consu
 	obj.time = consumed.time;
 
 	// printf("Fragmentation\n");
-	obj.fragmentation = ObjectiveFunction::fragmentation(consumed, total);
+	obj.dc_fragmentation = ObjectiveFunction::Fragmentation::datacenter(consumed, total);
+
+	obj.link_fragmentation = ObjectiveFunction::Fragmentation::link(consumed,total);
 
 	// printf("vcpu footprint\n");
-	obj.vcpu_footprint = ObjectiveFunction::vcpu_footprint(consumed, total);
+	obj.vcpu_footprint = ObjectiveFunction::Footprint::vcpu(consumed, total);
 
 	// printf("ram footprint\n");
-	obj.ram_footprint = ObjectiveFunction::ram_footprint(consumed, total);
+	obj.ram_footprint = ObjectiveFunction::Footprint::ram(consumed, total);
+
+	obj.link_footprint = ObjectiveFunction::Footprint::link(consumed,total);
 
 	// printf("footprint\n");
-	obj.footprint = ObjectiveFunction::footprint(consumed, total);
+	obj.footprint = ObjectiveFunction::Footprint::footprint(consumed, total);
 	return obj;
 }
 
@@ -312,13 +316,15 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		//************************************************//
 		objective=calculateObjectiveFunction(consumed_resources, total_resources);
 
-		if(options->test_type==2) {
-			printf("%d,%.7lf,%.7lf,%.7lf,%.7lf,%.5lf%%\n",
+		if(options->test_type==2 || options->test_type==4) {
+			printf("%d,%.7lf,%.7lf,%.7lf,%.7lf,%.7lf,%.7lf,%.5lf%%\n",
 			       objective.time,
-			       objective.fragmentation,
+			       objective.dc_fragmentation,
+			       objective.link_fragmentation,
 			       objective.footprint,
 			       objective.vcpu_footprint,
 			       objective.ram_footprint,
+			       objective.link_footprint,
 			       (100 - (
 					100.0*(
 						scheduler->tasks_to_allocate.size()/(float)total_tasks)

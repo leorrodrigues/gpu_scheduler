@@ -66,6 +66,11 @@ inline void freeLinks(Task* task, consumed_resource_t* consumed, Builder* builde
 				path_edge[p][walk_index],                                 //to refer to the specific edge
 				(graph->get_variable_edge( 1, path_edge[p][ walk_index ] ) + values[p])
 				);
+
+			consumed->resource["bandwidth"] -= values[p];
+
+			graph->sub_connection_edge( path_edge [p][walk_index] );
+
 			walk_index = path[p][walk_index];
 		}
 	}
@@ -82,6 +87,8 @@ inline void freeLinks(Task* task, consumed_resource_t* consumed, Builder* builde
 	task->setLinkPathEdge(NULL);
 	task->setLinkDestination(NULL);
 	task->setLinkValues(NULL);
+
+	consumed->active_links = graph->get_num_active_edges();
 }
 
 inline void freeAllResources(Task* task, consumed_resource_t* consumed, Builder* builder){

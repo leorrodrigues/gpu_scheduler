@@ -52,10 +52,6 @@ std::string getTopology(){
 	return "BCUBE\n";
 }
 
-int getIndexEdge(){
-	return this->indexEdge;
-}
-
 std::map<std::string, float> getResource(){
 	return this->resource;
 }

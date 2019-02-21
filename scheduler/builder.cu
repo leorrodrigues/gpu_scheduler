@@ -228,6 +228,7 @@ void Builder::setDataCenterResources(total_resources_t* resource){
 			resource->resource[it->first] += h_r[it->first];
 		}
 	}
+	resource->links=this->topology->getGraph()->get_num_edges();
 }
 
 void Builder::runMulticriteria(std::vector<Host*> alt){

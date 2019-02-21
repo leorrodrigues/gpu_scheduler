@@ -101,6 +101,11 @@ bool links_allocator(Builder* builder,  Task* task, consumed_resource_t* consume
 					path_edge[link_index][walk_index],         //to refer to the specific edge
 					(graph->get_variable_edge( 1, path_edge[link_index][ walk_index ] ) - values[link_index])
 					);
+
+				consumed->resource["bandwidth"] += values[link_index];
+
+				graph->add_connection_edge(path_edge[link_index][walk_index]);
+
 				walk_index = path[link_index][walk_index];
 			}
 			//printf("---------------------------------\n\n\n");
@@ -108,7 +113,7 @@ bool links_allocator(Builder* builder,  Task* task, consumed_resource_t* consume
 			link_index++;
 		}
 	}
-
+	consumed->active_links = graph->get_num_active_edges();
 	return true;
 }
 

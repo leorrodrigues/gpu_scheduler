@@ -9,7 +9,6 @@ class FatTree : public Topology {
 private:
 vnegpu::graph<float> *topology;
 std::map<std::string,int> indices;
-int indexEdge;
 int size;
 public:
 
@@ -42,9 +41,11 @@ void setResource(std::map<std::string, float> resource){
 		index = this->topology->add_node_variable(it.first);
 		this->indices[it.first]=index;
 	}
-	this->indexEdge=this->topology->add_edge_variable("bandwidth");
+	this->topology->add_edge_variable("bandwidth");
+	this->topology->add_edge_variable("connections");
+
 	//std::cout<<"\t\tEdge Capacity "<<this->topology->get_num_var_edges()<<"\n";
-	//std::cout<<"\t\t\tIndex "<<this->indexEdge<<"\n";
+	//std::cout<<"\t\t\tIndex "<<"\n";
 	//std::cout<<"\t\tVariables Capacity "<<this->topology->get_num_var_nodes()<<"\n";
 }
 
@@ -53,18 +54,14 @@ void populateTopology(std::vector<Host*> hosts){
 	for(int i=0; i<this->topology->get_num_edges(); i++) {
 		this->topology->set_variable_edge_undirected(0,i,1); //capacity
 		this->topology->set_variable_edge_undirected(1,i,1000); //bandwidth
+		this->topology->set_variable_edge_undirected(2,i,0); //connections
 	}
-	size_t host_index=0;
-	for(size_t i=0; i< this->topology->get_num_nodes(); i++) {
+	for(size_t i=0, host_index=0; i< this->topology->get_num_nodes(); i++) {
 		if(this->topology->get_node_type(i)==0) {// if is a host node
 			hosts[host_index]->setIdg(i);
 			std::map<std::string, float> res = hosts[host_index]->getResource();
 			for(auto it: res) {
 				this->topology->set_variable_node(indices[it.first], i,it.second);
-			}
-			//For each edge in the host i+k*step
-			for(size_t j=this->topology->get_source_offset(i); j<this->topology->get_source_offset( i+1); j++) {
-				this->topology->set_variable_edge(indexEdge, j, res["bandwidth"]);
 			}
 			host_index++;
 		}
@@ -77,10 +74,6 @@ vnegpu::graph<float>* getGraph(){
 
 std::string getTopology(){
 	return "Fat Tree\n";
-}
-
-int getIndexEdge(){
-	return this->indexEdge;
 }
 
 void listTopology(){
@@ -109,9 +102,9 @@ void listTopology(){
 	std::cout<<"\t#Edge#\n";
 	for(int i=0; i<nEdges; i++) {
 		std::cout<<"\t\tEdge "<<i<<"\n";
-		// for(int j=0; j<nVarEdg; j++) {
-		std::cout<<"\t\t\t"<<std::setw(20)<<std::left<<varEdge[1]<<std::setw(5)<<std::right<<this->topology->get_variable_edge(1,i)<<"\n";
-		// }
+		for(int j=1; j<nVarEdg; j++) {
+			std::cout<<"\t\t\t"<<std::setw(20)<<std::left<<varEdge[j]<<std::setw(5)<<std::right<<this->topology->get_variable_edge(j,i)<<"\n";
+		}
 	}
 	std::cout<<"\n\n";
 }

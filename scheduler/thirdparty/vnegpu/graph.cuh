@@ -180,6 +180,7 @@ graph(unsigned int _num_nodes, unsigned int _num_edges, unsigned int _num_var_no
 	//Seting the new variables
 	this->num_nodes=_num_nodes;
 	this->num_edges=_num_edges;
+	this->num_active_edges= 0;
 	this->num_var_nodes=_num_var_nodes;
 	this->num_var_edges=_num_var_edges;
 	this->hosts=0;
@@ -193,8 +194,8 @@ graph(unsigned int _num_nodes, unsigned int _num_edges, unsigned int _num_var_no
 	cudaMallocHost((void**)&this->destination_indices,sizeof(int)*this->num_edges*2);
 	cudaMalloc(&this->d_destination_indices, sizeof(int)*this->num_edges*2);
 
-	cudaMallocHost((void**)&this->egdes_ids,sizeof(int)*this->num_edges*2);
-	cudaMalloc(&this->d_egdes_ids, sizeof(int)*this->num_edges*2);
+	cudaMallocHost((void**)&this->edges_ids,sizeof(int)*this->num_edges*2);
+	cudaMalloc(&this->d_edges_ids, sizeof(int)*this->num_edges*2);
 
 	cudaMallocHost((void**)&this->node_type,sizeof(int)*this->num_nodes);
 	cudaMalloc(&this->d_node_type, sizeof(int)*this->num_nodes);
@@ -267,6 +268,16 @@ inline void set_num_edges(int value)
 	this->num_edges=value;
 }
 
+__host__
+inline void add_num_active_edges(){
+	this->num_active_edges++;
+}
+
+__host__
+inline void sub_num_active_edges(){
+	this->num_active_edges--;
+}
+
 /**
  * \brief Set the number of nodes.
  * \param value the new number of nodes.
@@ -325,6 +336,12 @@ __host__ __device__
 inline unsigned int get_num_edges()
 {
 	return this->num_edges;
+}
+
+__host__
+inline unsigned int get_num_active_edges()
+{
+	return this->num_active_edges;
 }
 
 /**
@@ -410,10 +427,24 @@ inline void set_variable_edge(int var, int index, T value)
 {
 
       #ifdef __CUDA_ARCH__
-	this->d_var_edges[var][this->d_egdes_ids[index]]=value;
+	this->d_var_edges[var][this->d_edges_ids[index]]=value;
       #else
-	this->var_edges[var][this->egdes_ids[index]]=value;
+	this->var_edges[var][this->edges_ids[index]]=value;
       #endif
+}
+
+__host__
+inline void add_connection_edge(int index){
+	if(this->var_edges[2][this->edges_ids[index]]==0)
+		this->num_active_edges++;
+	this->var_edges[2][this->edges_ids[index]]++;
+}
+
+__host__
+inline void sub_connection_edge(int index){
+	this->var_edges[2][this->edges_ids[index]]--;
+	if(this->var_edges[2][this->edges_ids[index]]==0)
+		this->num_active_edges--;
 }
 
 __host__ __device__
@@ -421,9 +452,9 @@ inline T* get_variable_edge_pointer(int var, int index)
 {
 
       #ifdef __CUDA_ARCH__
-	return &this->d_var_edges[var][this->d_egdes_ids[index]];
+	return &this->d_var_edges[var][this->d_edges_ids[index]];
       #else
-	return &this->var_edges[var][this->egdes_ids[index]];
+	return &this->var_edges[var][this->edges_ids[index]];
       #endif
 }
 
@@ -448,9 +479,9 @@ __host__ __device__
 inline T get_variable_edge(int var, int index)
 {
       #ifdef __CUDA_ARCH__
-	return this->d_var_edges[var][this->d_egdes_ids[index]];
+	return this->d_var_edges[var][this->d_edges_ids[index]];
       #else
-	return this->var_edges[var][this->egdes_ids[index]];
+	return this->var_edges[var][this->edges_ids[index]];
       #endif
 }
 
@@ -494,13 +525,13 @@ inline T get_variable_edge_undirected(int var, int index)
  * \param value the new value.
  */
 __host__ __device__
-inline void set_egdes_ids(int index, T value)
+inline void set_edges_ids(int index, T value)
 {
 
       #ifdef __CUDA_ARCH__
-	this->d_egdes_ids[index]=value;
+	this->d_edges_ids[index]=value;
       #else
-	this->egdes_ids[index]=value;
+	this->edges_ids[index]=value;
       #endif
 }
 
@@ -514,9 +545,9 @@ __host__ __device__
 inline int get_edges_ids(int index)
 {
       #ifdef __CUDA_ARCH__
-	return this->d_egdes_ids[index];
+	return this->d_edges_ids[index];
       #else
-	return this->egdes_ids[index];
+	return this->edges_ids[index];
       #endif
 }
 
@@ -750,20 +781,20 @@ inline void set_allocation_to_nodes_ids(int node_id, int id)
 __host__
 inline std::vector<int>* get_allocation_to_edges_ids(int edge_id)
 {
-	return this->allocation_to_edges_ids[this->egdes_ids[edge_id]];
+	return this->allocation_to_edges_ids[this->edges_ids[edge_id]];
 
 }
 
 __host__
 inline void add_allocation_to_edges_ids(int edge_id, int id)
 {
-	this->allocation_to_edges_ids[this->egdes_ids[edge_id]]->push_back(id);
+	this->allocation_to_edges_ids[this->edges_ids[edge_id]]->push_back(id);
 }
 
 __host__
 inline void set_allocation_to_edges_ids(int edge_id, std::vector<int>* vec)
 {
-	this->allocation_to_edges_ids[this->egdes_ids[edge_id]] = vec;
+	this->allocation_to_edges_ids[this->edges_ids[edge_id]] = vec;
 }
 
 __host__
@@ -830,14 +861,14 @@ void check_edges_ids(){
 		{
 			int neighbor = this->get_destination_indice(i);
 			if(neighbor>id) {
-				this->set_egdes_ids(i,number_edges);
+				this->set_edges_ids(i,number_edges);
 				number_edges++;
 			}else{
 				for(int y=this->get_source_offset(neighbor); y<this->get_source_offset(neighbor+1); y++)
 				{
 					int neighbor_2 = this->get_destination_indice(y);
 					if(id==neighbor_2) {
-						this->set_egdes_ids(i, this->get_edges_ids(y));
+						this->set_edges_ids(i, this->get_edges_ids(y));
 						break;
 					}
 				}
@@ -883,7 +914,7 @@ void update_gpu(bool force=false)
 
 	cudaMemcpy(this->d_source_offsets, this->source_offsets, sizeof(int)*(this->num_nodes+1), cudaMemcpyHostToDevice);
 	cudaMemcpy(this->d_destination_indices, this->destination_indices, sizeof(int)*this->num_edges*2, cudaMemcpyHostToDevice);
-	cudaMemcpy(this->d_egdes_ids, this->egdes_ids, sizeof(int)*this->num_edges*2, cudaMemcpyHostToDevice);
+	cudaMemcpy(this->d_edges_ids, this->edges_ids, sizeof(int)*this->num_edges*2, cudaMemcpyHostToDevice);
 	cudaMemcpy(this->d_node_type, this->node_type, sizeof(int)*this->num_nodes, cudaMemcpyHostToDevice);
 
 	if(this->is_grouped)
@@ -946,7 +977,7 @@ void update_cpu(bool force=false)
 
 	cudaMemcpy(this->source_offsets, this->d_source_offsets, sizeof(int)*(this->num_nodes+1), cudaMemcpyDeviceToHost);
 	cudaMemcpy(this->destination_indices, this->d_destination_indices, sizeof(int)*this->num_edges*2, cudaMemcpyDeviceToHost);
-	cudaMemcpy(this->egdes_ids, this->d_egdes_ids, sizeof(int)*this->num_edges*2, cudaMemcpyDeviceToHost);
+	cudaMemcpy(this->edges_ids, this->d_edges_ids, sizeof(int)*this->num_edges*2, cudaMemcpyDeviceToHost);
 	cudaMemcpy(this->node_type, this->d_node_type, sizeof(int)*this->num_nodes, cudaMemcpyDeviceToHost);
 
 	if(this->is_grouped)
@@ -1219,7 +1250,7 @@ void free_graph()
 
 	cudaFreeHost(source_offsets);
 	cudaFreeHost(destination_indices);
-	cudaFreeHost(egdes_ids);
+	cudaFreeHost(edges_ids);
 	CUDA_CHECK();
 	for(int i=0; i<num_var_nodes; i++) {
 		cudaFreeHost(var_nodes[i]);
@@ -1239,7 +1270,7 @@ void free_graph()
 
 	cudaFree(d_source_offsets);
 	cudaFree(d_destination_indices);
-	cudaFree(d_egdes_ids);
+	cudaFree(d_edges_ids);
 	cudaFree(d_var_nodes);
 	cudaFree(d_var_edges);
 
@@ -1283,6 +1314,7 @@ private:
 //General info.
 unsigned int num_nodes;       ///< Number of nodes.
 unsigned int num_edges;       ///< Number of edges.
+unsigned int num_active_edges; ///< Number of active edges
 unsigned int num_var_nodes;       ///< Number of nodes variables.
 unsigned int num_var_edges;       ///< Number of edges variables.
 unsigned int hosts;
@@ -1291,14 +1323,14 @@ graph_state state;      ///< State where the data was last modificated.
 //Host Topology info.
 int *source_offsets;       ///< Offsets for CSR on Host.
 int *destination_indices;       ///< Destinations for CSR on Host.
-int *egdes_ids;
+int *edges_ids;
 T **var_nodes;       ///< nodes variables on Host.
 T **var_edges;       ///< Edges variables on Host.
 
 //Device Topology info.
 int* d_source_offsets;       ///< Offsets for CSR on Device.
 int* d_destination_indices;       ///< Destinations for CSR on Device.
-int* d_egdes_ids;
+int* d_edges_ids;
 T **d_var_nodes;       ///< nodes variables on Device.
 T **d_var_edges;       ///< Edges variables on Device.
 

@@ -23,8 +23,6 @@ virtual vnegpu::graph<float>* getGraph()=0;
 
 virtual std::string getTopology()=0;
 
-virtual int getIndexEdge()=0;
-
 virtual void listTopology()=0;
 };
 

@@ -68,10 +68,6 @@ std::string getTopology(){
 	return "DCELL\n";
 }
 
-int getIndexEdge(){
-	return this->indexEdge;
-}
-
 std::map<std::string, float> getResource(){
 	return this->resource;
 }

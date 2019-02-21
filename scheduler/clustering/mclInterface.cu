@@ -17,7 +17,7 @@ MCLInterface::~MCLInterface(){
 void MCLInterface::run(Topology* topology){
 	vnegpu::graph<float>* dataCenter=topology->getGraph();
 	dataCenter->update_gpu();
-	vnegpu::algorithm::mcl(dataCenter,topology->getIndexEdge(),2,1.2,0);
+	vnegpu::algorithm::mcl(dataCenter, 1 /*the bandwidth variable in the edge*/, 2,1.2,0);
 
 	dataCenter->update_cpu();
 }

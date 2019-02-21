@@ -2,10 +2,10 @@
 #        SCHEDULER      #
 ####################
 
-$(shell mkdir -p gpuScheduler/build)
-$(shell mkdir -p gpuScheduler/build/ahp)
-$(shell mkdir -p gpuScheduler/build/ahp/hierarchy)
-$(shell mkdir -p gpuScheduler/build/topsis)
+$(shell mkdir -p scheduler/build)
+$(shell mkdir -p scheduler/build/ahp)
+$(shell mkdir -p scheduler/build/ahp/hierarchy)
+$(shell mkdir -p scheduler/build/topsis)
 
 #Programs
 CXX = g++
@@ -14,14 +14,14 @@ LD = nvcc
 RM = rm -f
 
 #Folders
-MULTICRITERIA_PATH = gpuScheduler/multicriteria/
-DATACENTER_PATH = gpuScheduler/datacenter/
-BUILD_GPUSCHEDULER = gpuScheduler/build/
-CLUSTERING_PATH = gpuScheduler/clustering/
-TASKS_PATH = gpuScheduler/datacenter/tasks/
-VNE_PATH = gpuScheduler/thirdparty/vnegpu/
-TOPOLOGY_PATH = gpuScheduler/topology/
-GPUSCHEDULER_PATH= gpuScheduler/
+MULTICRITERIA_PATH = scheduler/multicriteria/
+DATACENTER_PATH = scheduler/datacenter/
+BUILD_GPUSCHEDULER = scheduler/build/
+CLUSTERING_PATH = scheduler/clustering/
+TASKS_PATH = scheduler/datacenter/tasks/
+VNE_PATH = scheduler/thirdparty/vnegpu/
+TOPOLOGY_PATH = scheduler/topology/
+GPUSCHEDULER_PATH= scheduler/
 BUILD_MAIN = ./
 TARGET_NAME = main
 TARGET = $(BUIILD_MAIN)$(TARGET_NAME)
@@ -58,7 +58,7 @@ NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas -O2 -use_fast_math -lineinfo
 
 #nve
 GPUSCHEDULER_FLAG = -I "gpuScheduler"
-THIRDPARTY_FLAGS = -I "gpuScheduler/thirdparty/"
+THIRDPARTY_FLAGS = -I "scheduler/thirdparty/"
 
 LDFLAGS = -lcublas -lboost_program_options
 
@@ -194,5 +194,5 @@ $(BUILD_GPUSCHEDULER)pugixml$(OBJ): $(VNE_PATH)libs/pugixml/src/pugixml.cpp
 clear:
 	rm -f $(BUILD_GPUSCHEDULER)*.o $(BUILD_GPUSCHEDULER)*.d;
 	rm -f $(GPUSCHEDULER_PATH)gpuscheduler.out
-	# $(shell rm -r gpuScheduler/build/hierarchy)
-	$(shell rm -r gpuScheduler/build)
+	# $(shell rm -r scheduler/build/hierarchy)
+	$(shell rm -r scheduler/build)

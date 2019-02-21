@@ -42,29 +42,38 @@ typedef struct {
 } scheduler_t;
 
 typedef struct total_resources_t : public main_resource_t {
-	int servers;
+	unsigned int links;
+	unsigned int servers;
+
 
 	explicit total_resources_t() : main_resource_t(){
+		links = 0;
 		servers=0;
 	}
 } total_resources_t;
 
 typedef struct consumed_resource_t : public main_resource_t {
-	int time;
-	int active_servers;
+	unsigned int time;
+	unsigned int active_servers;
+	unsigned int active_links;
 
 	explicit consumed_resource_t() : main_resource_t(){
 		time=0;
 		active_servers=0;
+		active_links=0;
 	}
+
 } consumed_resource_t;
 
 typedef struct {
-	int time = 0;
-	double fragmentation = 0;
-	double footprint = 0;
-	double vcpu_footprint = 0;
-	double ram_footprint = 0;
+	float dc_fragmentation=0;
+	float link_fragmentation=0;
+	float footprint=0;
+	float vcpu_footprint = 0;
+	float ram_footprint = 0;
+	float link_footprint=0;
+	unsigned int time=0;
+
 } objective_function_t;
 
 #endif
