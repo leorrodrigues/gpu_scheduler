@@ -9,12 +9,16 @@
 class Task_Resources :  main_resource_t {
 protected:
 std::map<std::string,std::tuple<float,float,bool> > resources;
+std::map<std::string,float> total_max;
+std::map<std::string,float> total_allocated;
 unsigned int id;
 
 public:
 explicit Task_Resources() : main_resource_t(){
 	for(auto const&it : this->resource) {
 		this->resources[it.first] = std::make_tuple(0,0,false);
+		this->total_max[it.first] = 0;
+		this->total_allocated[it.first] = 0;
 	}
 	id=0;
 }
@@ -38,19 +42,51 @@ unsigned int getId(){
 	return this->id;
 }
 
-void setValue(std::string key, float value, bool type){
-	if(type)
-		std::get<1>(this->resources[key])=value;
-	else
-		std::get<0>(this->resources[std::string(key)])=value;
+float getMaxResource(std::string key){
+	return this->total_max[key];
 }
+
+float getTotalAllocated(std::string key){
+	return this->total_allocated[key];
+}
+
+void setValue(std::string key, float value, bool type){
+	if(type) {
+		std::get<1>(this->resources[key])=value;
+		this->total_max[key] = value;
+	}else{
+		std::get<0>(this->resources[std::string(key)])=value;
+	}
+}
+
 
 void setFit(std::string key, bool fit){
 	std::get<2>(this->resources[key])=fit;
+	if(fit) {
+		this->total_allocated[key] = std::get<1>(this->resources[key]);
+	}else{
+		this->total_allocated[key] = std::get<0>(this->resources[key]);
+	}
+
 }
 
 void setId(unsigned int id){
 	this->id=id;
+}
+
+float taskUtility(){
+	float max=0, allocated=0;
+	for(auto const&it : this->total_allocated) {
+		if(it.first!="bandwidth") {
+			allocated+=it.second;
+			max=this->total_max[it.first];
+		}
+	}
+	return allocated/max;
+}
+
+float linkUtility(){
+	return this->total_allocated["bandwidth"]/this->total_max["bandwidth"];
 }
 
 };

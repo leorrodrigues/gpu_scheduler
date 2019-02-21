@@ -8,9 +8,9 @@ inline bool checkFit(Host* host, Pod* pod){
 
 	for(auto r : pod->getResources()) {
 		if(h_r[r.first]>=std::get<1>(r.second)) {
-			std::get<2>(r.second) = true;
+			pod->setFit(r.first, true);
 		}else if(h_r[r.first]>=std::get<0>(r.second)) {
-			std::get<2>(r.second) = false;
+			pod->setFit(r.first, false);
 		}else{
 			return false;
 		}
@@ -21,9 +21,9 @@ inline bool checkFit(Host* host, Pod* pod){
 inline bool checkFit(total_resources_t* dc, consumed_resource_t* consumed, Task* task){
 	for(auto r : task->getResources()) {
 		if(dc->resource[r.first] - consumed->resource[r.first]>=std::get<1>(r.second)) {
-			std::get<2>(r.second) = true;
+			task->setFit(r.first,true);
 		}else if(dc->resource[r.first] - consumed->resource[r.first] >= std::get<0>(r.second) ) {
-			std::get<2>(r.second) = false;
+			task->setFit(r.first,false);
 		}else{
 			return false;
 		}
