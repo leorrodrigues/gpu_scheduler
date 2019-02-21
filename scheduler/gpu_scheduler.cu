@@ -167,6 +167,14 @@ inline objective_function_t calculateObjectiveFunction(consumed_resource_t consu
 	return obj;
 }
 
+inline void logTask(scheduler_t *scheduler, Task* task, unsigned int time){
+	scheduler->task_logger->info("{} {} {} {} {} {}",task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time);
+}
+
+inline void logDC(scheduler_t *scheduler, objective_function_t *objective){
+	scheduler->dc_logger->info("{} {} {} {} {} {}", objective->time,    objective->dc_fragmentation,  objective->vcpu_footprint, objective->ram_footprint, objective->link_fragmentation, objective->link_footprint);
+}
+
 inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed){
 	Task* current = NULL;
 
@@ -186,7 +194,7 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 
 		// if(  [ current->getId() ]!=NULL ) {
 		//Iterate through the PODs of the TASK, and erase each of one.
-		printf("Scheduler Time %d\n\tDeleting task %d\n", options->current_time, current->getId());
+		// printf("Scheduler Time %d\n\tDeleting task %d\n", options->current_time, current->getId());
 
 		Allocator::freeAllResources(
 			/* The task to be removed*/
@@ -196,6 +204,7 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 			builder
 			);
 
+		logTask(scheduler, current, options->current_time);
 		delete(current);
 
 	}
@@ -275,13 +284,13 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
 			total_delay+=current->getDelay();
 
-			printf("\tTask %d Added Delay in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
+			// printf("\tTask %d Added Delay in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
 		}else{
-
-			printf("\tTask %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
+			// printf("\tTask %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
 			current->setAllocatedTime(options->current_time);
 			scheduler->tasks_to_delete.push(current);
 		}
+		logTask(scheduler, current, options->current_time);
 	}
 	// printf("total_delay,%d,%d\n", options->current_time,total_delay);
 }
@@ -317,20 +326,7 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		objective=calculateObjectiveFunction(consumed_resources, total_resources);
 
 		if(options->test_type==2 || options->test_type==4) {
-			printf("%d,%.7lf,%.7lf,%.7lf,%.7lf,%.7lf,%.7lf,%.5lf%%\n",
-			       objective.time,
-			       objective.dc_fragmentation,
-			       objective.link_fragmentation,
-			       objective.footprint,
-			       objective.vcpu_footprint,
-			       objective.ram_footprint,
-			       objective.link_footprint,
-			       (100 - (
-					100.0*(
-						scheduler->tasks_to_allocate.size()/(float)total_tasks)
-					)
-			       )
-			       );
+			logDC(scheduler, &objective);
 		}
 		//************************************************//
 		//************************************************//
@@ -353,9 +349,8 @@ int main(int argc, char **argv){
 
 	std::map<unsigned int, Pod> pods;
 
-	// parse all json
-	printf("parsing\n");
 	Reader* reader = new Reader();
+	// parse all json
 	std::string path = "requests/";
 	if(options.test_type==1) {
 		path+="container/data-";
@@ -370,7 +365,7 @@ int main(int argc, char **argv){
 	path+=".json";
 	reader->openDocument(path.c_str());
 	std::string message;
-	printf("Creating the contianers\n");
+
 	Task * current = NULL;
 	while((message=reader->getNextTask())!="eof") {
 		// Create new container
@@ -383,7 +378,7 @@ int main(int argc, char **argv){
 	}
 	message.clear();
 	delete(reader);
-	printf("done\n");
+
 	if(options.clustering_method!="none") {
 		builder->runClustering(builder->getHosts());
 
@@ -394,7 +389,7 @@ int main(int argc, char **argv){
 	std::cout<<std::fixed;
 
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-	printf("Calling the scheduler\n");
+
 	schedule(builder, &scheduler, &options, 0);
 
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
@@ -404,7 +399,7 @@ int main(int argc, char **argv){
 	std::cout<<options.multicriteria_method<<";" << options.topology_size << ";" << time_span.count() << "\n";
 
 	// Free the allocated pointers
-	printf("Deleting the builder\n");
+
 	delete(builder);
 	return 0;
 }

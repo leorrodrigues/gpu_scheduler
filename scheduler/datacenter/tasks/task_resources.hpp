@@ -82,11 +82,11 @@ float taskUtility(){
 			max=this->total_max[it.first];
 		}
 	}
-	return allocated/max;
+	return allocated!=0 ? allocated/max : 0;
 }
 
 float linkUtility(){
-	return this->total_allocated["bandwidth"]/this->total_max["bandwidth"];
+	return (this->total_allocated["bandwidth"]!=0) ? this->total_allocated["bandwidth"]/this->total_max["bandwidth"] : 0;
 }
 
 };
