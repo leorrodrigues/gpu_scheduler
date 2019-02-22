@@ -21,6 +21,7 @@ rapidjson::Document generateDocument(const char *path){
 	if(sd.Parse(buffer).HasParseError()) {
 		free(buffer);
 		SPDLOG_ERROR("JSON::Erro in parsing the json {}", path);
+		exit(0);
 	}
 	free( buffer );
 	return sd;
@@ -38,7 +39,8 @@ rapidjson::Document* generateDocumentP(const char *path){
 	rapidjson::Document* sd = new rapidjson::Document;
 	if(sd->Parse(buffer).HasParseError()) {
 		free(buffer);
-		SPDLOG_ERROR("Can't parse the json {}",path);
+		SPDLOG_ERROR("!Can't parse the json {}",path);
+		exit(0);
 	}
 	free(buffer);
 	return sd;

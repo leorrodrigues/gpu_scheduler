@@ -420,8 +420,10 @@ int main(int argc, char **argv){
 	spdlog::info("Reading the Tasks");
 	while((message=reader->getNextTask())!="eof") {
 		// Create new container
+		spdlog::debug("New task created");
 		current = new Task();
 		// Set the resources to the container
+		spdlog::debug("Set the variables into task");
 		current->setTask(message.c_str());
 
 		current->print();

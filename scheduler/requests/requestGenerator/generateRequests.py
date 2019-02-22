@@ -59,45 +59,46 @@ if __name__ == '__main__':
     task_id = 1
     pod_id = 1
     tasks = Tasks()
+    for r in range(1, args.requests + 1):
+        if args.distribution == 'uniform':
+            submission = get_uniform_int(1, args.intervals)
+        elif args.distribution == 'poisson':
+            print 'Please someone implement me'
+            break
+        else:
+            print 'Invalid distribution!'
+            break
+        duration = get_uniform_int(1, args.duration)
+        t = Task(task_id, submission, duration)
+
+        cont_id = 1
+        cpods = math.ceil(args.size * args.pod)
+        for c in range(1, args.size + 1):
+            min_cpu = get_uniform_float(1, args.CPU)
+            max_cpu = get_uniform_float(min_cpu, args.CPU)
+            min_memory = get_uniform_float(1, args.RAM)
+            max_memory = get_uniform_float(min_memory, args.RAM)
+            pod = abs(cpods)
+            cpods = cpods - 1
+
+            if cpods == 0:
+                pod_id = pod_id + 1
+                cpods = math.ceil(args.size * args.pod)
+
+            c = Container(cont_id, min_cpu, max_cpu, min_memory, max_memory, 0, 0, pod)
+            t.addContainer(c)
+
+            cont_id = cont_id + 1
+
+        for i in range(1, args.size + 1):
+            for j in range(i + 1, args.size + 1):
+                bw_min = get_uniform_float(1, args.bandwidth)
+                bw_max = get_uniform_float(bw_min, args.bandwidth)
+                cl = ContainerLink(str(i) + '-' + str(j), i, j, bw_min, bw_max)
+                t.addLink(cl)
+
+        tasks.addTask(t)
+        task_id = task_id + 1
+
     with open(args.output, 'w') as f:
-        for r in range(1, args.requests + 1):
-            if args.distribution == 'uniform':
-                submission = get_uniform_int(1, args.intervals)
-            elif args.distribution == 'poisson':
-                print 'Please someone implement me'
-                break
-            else:
-                print 'Invalid distribution!'
-                break
-            duration = get_uniform_int(1, args.duration)
-            t = Task(task_id, submission, duration)
-
-            cont_id = 1
-            cpods = math.ceil(args.size * args.pod)
-            for c in range(1, args.size + 1):
-                min_cpu = get_uniform_float(1, args.CPU)
-                max_cpu = get_uniform_float(min_cpu, args.CPU)
-                min_memory = get_uniform_float(1, args.RAM)
-                max_memory = get_uniform_float(min_memory, args.RAM)
-                pod = abs(cpods)
-                cpods = cpods - 1
-
-                if cpods == 0:
-                    pod_id = pod_id + 1
-                    cpods = math.ceil(args.size * args.pod)
-
-                c = Container(cont_id, min_cpu, max_cpu, min_memory, max_memory, 0, 0, pod)
-                t.addContainer(c)
-
-                cont_id = cont_id + 1
-
-            for i in range(1, args.size + 1):
-                for j in range(i + 1, args.size + 1):
-                    bw_min = get_uniform_float(1, args.bandwidth)
-                    bw_max = get_uniform_float(bw_min, args.bandwidth)
-                    cl = ContainerLink(str(i) + '-' + str(j), i, j, bw_min, bw_max)
-                    t.addLink(cl)
-
-            f.write(dumps(t.__dict__, indent=4))
-    #        tasks.addTask(t)
-            task_id = task_id + 1
+        f.write(dumps(tasks.__dict__, indent=4))

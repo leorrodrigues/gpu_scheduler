@@ -50,6 +50,7 @@ void Task::setTask(const char* taskMessage){
 	/**********************************************************/
 	/********                   Task variables              *********/
 	/*********************************************************/
+	spdlog::debug("Getting the task variables");
 	//Duration
 	this->duration = task["duration"].GetDouble();
 
@@ -62,6 +63,7 @@ void Task::setTask(const char* taskMessage){
 	/**********************************************************/
 	/********              Pod   variables                    ********/
 	/*********************************************************/
+	spdlog::debug("Getting the pod variables");
 	const rapidjson::Value &containersArray = task["containers"];
 	this->containers_size = containersArray.Size();
 	this->containers = NULL;
@@ -73,11 +75,15 @@ void Task::setTask(const char* taskMessage){
 		Container *c=NULL;
 
 		for(size_t i=0; i < this->containers_size; i++) {
+			spdlog::debug("Creating a new container");
 			c = new Container();
 			//CRIA UM CONTAINER E COLOCA OS VALORES DENTRO DELE, APOS ISSO ADICIONA ELE DENTRO DO ARRAY DE CONTAINERS =).
 
 			// for(size_t r_s=0; r_s < this->resources.size(); r_s++) {
+			spdlog::debug("Reading the information of this container");
 			for(auto [key, val] : this->resources) {
+				spdlog::debug("Gettin the values of {}", key);
+
 				std::string min  = key+"_min";
 				std::string max = key+"_max";
 
@@ -95,27 +101,31 @@ void Task::setTask(const char* taskMessage){
 			int pod_index = containersArray[i]["pod"].GetInt();
 
 			// The pod isn't already created, create a new pod and then set the container into it.
+			spdlog::debug("Searching if the pod exists");
 			if(temp_pods.find(pod_index) == temp_pods.end()) {
 				pod = new Pod(pod_index);
 				temp_pods[pod_index] = pod;
 			}
 			//NAME
+			spdlog::debug("Adding the container into the pod");
 			c->setId(containersArray[i]["name"].GetInt());
 
 			temp_pods[pod_index]->addContainer(c);
 			this->containers[i]=c;
 		}
+		spdlog::debug("Updating the last variables of the pod");
 		this->pods_size = temp_pods.size();
 		//Create the pods array
 		this->pods = (Pod**) malloc (sizeof(Pod*)*this->pods_size);
 
 		//Populate the pods array
+		spdlog::debug("Populating all the pods in the task array");
 		for(
 			std::map<unsigned int,Pod*>::iterator it=temp_pods.begin();
 			it!=temp_pods.end();
 			it++
 			) {
-			this->pods[it->first-1] = it->second;
+			this->pods[it->first] = it->second;
 		}
 	}
 	//Now we have all te pods constructed and their respectives containers inside it.
@@ -125,6 +135,7 @@ void Task::setTask(const char* taskMessage){
 	/********                   Link variables                *********/
 	/*********************************************************/
 	//Links
+	spdlog::debug("Getting the link variables");
 	const rapidjson::Value &linksArray = task["links"];
 	this->links_size = linksArray.Size();
 	unsigned int source=0;
