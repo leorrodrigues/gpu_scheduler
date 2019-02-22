@@ -5,8 +5,7 @@ cudaError_t checkCuda(cudaError_t result)
 {
 #if defined(DEBUG) || defined(_DEBUG)
 	if (result != cudaSuccess) {
-		fprintf(stderr, "CUDA Runtime Error: %s\n",
-		        cudaGetErrorString(result));
+		SPDLOG_ERROR("CUDA Runtime Error: {}", cudaGetErrorString(result));
 		assert(result == cudaSuccess);
 	}
 #endif
@@ -32,7 +31,7 @@ AHPG::AHPG() {
 	char* result;
 	result = getcwd(cwd, sizeof(cwd));
 	if(result == NULL) {
-		printf("AHPG Error get directory path\n");
+		SPDLOG_ERROR("The directory path is not correct");
 	}
 	char* sub_path = (strstr(cwd, "ahp"));
 	if(sub_path!=NULL) {
@@ -68,29 +67,6 @@ char* AHPG::strToLowerG(const char* str) {
 	return res;
 }
 
-void AHPG::updateAlternativesG() {
-
-	char alt_schema_path [1024];
-	char alt_data_path [1024];
-
-	strcpy(alt_schema_path, path);
-	strcpy(alt_data_path, path);
-
-	strcat(alt_schema_path, "multicriteria/ahp/json/alternativesSchema.json");
-	strcat(alt_data_path, "multicriteria/ahp/json/alternativesDataDefault.json");
-
-	this->hierarchy->clearAlternatives();
-	rapidjson::SchemaDocument alternativesSchema =
-		JSON::generateSchema(alt_schema_path);
-	rapidjson::Document alternativesData =
-		JSON::generateDocument(alt_data_path);
-	rapidjson::SchemaValidator alternativesValidator(alternativesSchema);
-	if (!alternativesData.Accept(alternativesValidator))
-		JSON::jsonError(&alternativesValidator);
-	// domParser(&alternativesData, this);
-	this->hierarchy->addEdgeCriteriasAlternatives();
-}
-
 // Recieve a function address to iterate, used in build matrix, normalized, pml
 // and pg functions.
 template <typename F> void AHPG::iterateFuncG(F f, Node* node) {
@@ -116,10 +92,10 @@ void AHPG::buildMatrixG(Node* node) {
 
 	for (i = 0; i < size; i++) {
 		matrix[i*size+i] = 1;
-		weights = (node->getEdges())[i] -> getWeights();
-		for (j = i + 1; j < size; j ++) {
+		weights = (node->getEdges())[i]->getWeights();
+		for (j = i + 1; j < size; j++) {
 			if(weights == NULL ) {
-				printf("ahpg.cu(120) Error build matrix weight=NULL\n");
+				SPDLOG_ERROR("Build matrix weight is NULL");
 				exit(0);
 			}
 			matrix[i*size+j] = weights[j];
@@ -221,11 +197,11 @@ void AHPG::buildPmlG(Node* node) {
 	cudaDeviceSynchronize();
 	checkCuda( cudaMemcpy(pml, d_pml, sizeof(float)*size, cudaMemcpyDeviceToHost));
 	cudaDeviceSynchronize();
-	// printf("INSIDE FUNCTION\n");
+	// spdlog::debug("INSIDE FUNCTION\n");
 	// for(int i=0; i<size; i++) {
-	//      printf("%f ",pml[i]);
+	//      spdlog::debug("%f ",pml[i]);
 	// }
-	// printf("\n");
+	// spdlog::debug("\n");
 	node->setPml(pml);
 	deleteNormalizedMatrixG(node);
 	cudaFree(d_pml);
@@ -340,9 +316,9 @@ void AHPG::checkConsistencyG(Node* node) {
 		RC = (abs(lambda - size) / (1.7699 * size - 4.3513));
 	}
 	if (RC > 0.1) {
-		printf("ERROR: Criteria %s is inconsistent\n", node->getName());
-		printf("RC= %lf\n", RC);
-		printf("SIZE= %d\n", size);
+		SPDLOG_ERROR("Criteria {} is inconsistent", node->getName());
+		spdlog::debug("RC= {}", RC);
+		spdlog::debug("SIZE= {}", size);
 		printMatrixG(node);
 		printNormalizedMatrixG(node);
 		printPmlG(node);
@@ -356,14 +332,14 @@ void AHPG::printMatrixG(Node* node) {
 	float* matrix = node->getMatrix();
 	int tam = node->getSize();
 	if(tam==0) return;
-	printf("Matrix of %s\n", node->getName());
+	spdlog::debug("Matrix of %s\n", node->getName());
 	for (i = 0; i < tam; i++) {
 		for (j = 0; j < tam; j++) {
-			printf("%010lf\t", matrix[i*tam+j]);
+			spdlog::debug("%010lf\t", matrix[i*tam+j]);
 		}
-		printf("\n");
+		spdlog::debug("\n");
 	}
-	printf("\n");
+	spdlog::debug("\n");
 	iterateFuncG(&AHPG::printMatrixG, node);
 }
 
@@ -372,14 +348,13 @@ void AHPG::printNormalizedMatrixG(Node* node) {
 	float* matrix = node->getNormalizedMatrix();
 	int tam = node->getSize();
 	if(tam==0) return;
-	printf("Normalized Matrix of %s\n", node->getName());
+	spdlog::debug("Normalized Matrix of {}", node->getName());
 	for (i = 0; i < tam; i++) {
 		for (j = 0; j < tam; j++) {
-			printf("%010lf\t", matrix[i*tam+j]);
+			spdlog::debug("{}\t", matrix[i*tam+j]);
 		}
-		printf("\n");
 	}
-	std::cout << "\n";
+	spdlog::debug("");
 	iterateFuncG(&AHPG::printNormalizedMatrixG, node);
 }
 
@@ -388,11 +363,11 @@ void AHPG::printPmlG(Node* node) {
 	float* pml = node->getPml();
 	int tam = node->getSize();
 	if(tam==0) return;
-	printf("PML of %s\n", node->getName());
+	spdlog::debug("PML of {}", node->getName());
 	for (i = 0; i < tam; i++) {
-		printf("%010lf\t", pml[i]);
+		spdlog::debug("{}\t", pml[i]);
 	}
-	printf("\n");
+	spdlog::debug("");
 	iterateFuncG(&AHPG::printPmlG, node);
 }
 
@@ -400,11 +375,11 @@ void AHPG::printPgG(Node* node) {
 	int i;
 	float* pg = node->getPg();
 	int tam = this->hierarchy->getAlternativesSize();
-	printf("PG of %s\n", node->getName());
+	spdlog::debug("PG of {}", node->getName());
 	for (i = 0; i < tam; i++) {
-		printf("%010lf\t",pg[i]);
+		spdlog::debug("{}\t",pg[i]);
 	}
-	printf("\n");
+	spdlog::debug("");
 }
 
 void AHPG::hierarchyParserG(const rapidjson::Value &hierarchyData) {
@@ -434,7 +409,13 @@ void AHPG::conceptionG() {
 	strcpy(hierarchy_data, path);
 
 	strcat(hierarchy_schema, "multicriteria/ahp/json/hierarchySchema.json");
-	strcat(hierarchy_data, "multicriteria/ahp/json/hierarchyData.json");
+
+	if(this->type==0)
+		strcat(hierarchy_data, "multicriteria/ahp/json/hierarchyData.json");
+	else if(this->type==1)
+		strcat(hierarchy_data, "multicriteria/ahp/json/hierarchyDataFrag.json");
+	else
+		SPDLOG_ERROR("Hierarchy data type error");
 
 	rapidjson::SchemaDocument hierarchySchema =
 		JSON::generateSchema(hierarchy_schema);
@@ -534,8 +515,8 @@ void AHPG::acquisitionG() {
 	dim3 block(block_size,block_size);
 	dim3 grid(ceil(altSize/(float)block.x), ceil(altSize/(float)block.y));
 
-	// printf("Calling the kernel\n");
-	// printf("Data size %d, result size %d\n", data_size, result_size);
+	// spdlog::debug("Calling the kernel\n");
+	// spdlog::debug("Data size %d, result size %d\n", data_size, result_size);
 	acquisitonKernel <<< grid, block >>> (d_data, d_min_max, d_result, sheetsSize, altSize);
 
 	cudaDeviceSynchronize();
@@ -564,18 +545,18 @@ void AHPG::acquisitionG() {
 
 void AHPG::synthesisG() {
 	// 1 - Build the construccd the matrix
-	// printf("B M\n");
+	// spdlog::debug("B M\n");
 	buildMatrixG(this->hierarchy->getFocus());
 	// printMatrixG(this->hierarchy->getFocus());
 	// 2 - Normalize the matrix
-	// printf("B N\n");
+	// spdlog::debug("B N\n");
 	buildNormalizedMatrixG(this->hierarchy->getFocus());
 	// printNormalizedMatrixG(this->hierarchy->getFocus());
-	// printf("B P\n");
+	// spdlog::debug("B P\n");
 	buildPmlG(this->hierarchy->getFocus());
 	// printPmlG(this->hierarchy->getFocus());
 	// 4 - calculate the PG
-	// printf("B PG\n");
+	// spdlog::debug("B PG\n");
 	buildPgG(this->hierarchy->getFocus());
 	// printPgG(this->hierarchy->getFocus());
 }
@@ -600,10 +581,10 @@ void AHPG::run(Host** alternatives, int size) {
 		exit(0);
 	}
 
-	// printf("Aquisition: ");
+	// spdlog::debug("Aquisition: ");
 	this->acquisitionG();
 
-	// printf("Synthesis\n");
+	// spdlog::debug("Synthesis\n");
 	this->synthesisG();
 	// this->consistency();
 }
@@ -617,14 +598,14 @@ unsigned int* AHPG::getResult(unsigned int& size) {
 
 	std::priority_queue<std::pair<float, int> > alternativesPair;
 
-	// printf("PG\n");
+	// spdlog::debug("PG\n");
 	for (i = 0; i < (unsigned int) this->hierarchy->getAlternativesSize(); i++) {
 
 		// if( (unsigned int)alternativesPair.size()<20)
-		// printf("%f#%u$ ",values[i],i);
+		// spdlog::debug("%f#%u$ ",values[i],i);
 		alternativesPair.push(std::make_pair(values[i], i));
 	}
-	// printf("\n");
+	// spdlog::debug("\n");
 
 
 	Node** alternatives = this->hierarchy->getAlternatives();

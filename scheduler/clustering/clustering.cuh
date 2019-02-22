@@ -6,6 +6,9 @@
 #include <map>
 #include <set>
 
+#include "../thirdparty/spdlog/spdlog.h"
+#include "../thirdparty/spdlog/sinks/stdout_color_sinks.h"
+
 #include "../datacenter/host.hpp"
 
 #include "../topology/fatTreeInterface.cuh"

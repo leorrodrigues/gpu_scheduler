@@ -59,7 +59,7 @@ int** getLinkPathEdge();
 int* getLinkDestination();
 float* getLinkValues();
 
-friend std ::ostream& operator<<(std::ostream&, Task const&);
+void print();
 
 };
 

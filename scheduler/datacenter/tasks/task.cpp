@@ -229,24 +229,19 @@ float* Task::getLinkValues(){
 	return this->values;
 }
 
-std::ostream& operator<<(std::ostream& os, const Task& t)  {
-	os<<"Task:{\n";
-	os<<"\tDuration: "<<t.duration<<"\n";
-	os<<"\tPods:[\n";
-	for(size_t i=0; i<t.pods_size; i++) {
-		os<<(*t.pods[i]);
+void Task::print() {
+	spdlog::debug("Task:{");
+	spdlog::debug("Duration {}",this->duration);
+	spdlog::debug("\tPods:[");
+	for(size_t i=0; i<this->pods_size; i++) {
+		this->pods[i]->print();
 	}
-	os<<"\t]\n";
-	os<<"\tId: "<< t.id<<"\n";
-	os<<"\tSubmission: "<<t.submission<<"\n";
-	os<<"\tTotal Resources\n";
-	for(auto const& [key, val] : t.resources) {
-		os<<"\t\t\t"<<key<<"-";
-		os<<std::get<0>(val)<<";";
-		os<<std::get<1>(val)<<";";
-		os<<std::get<2>(val);
-		os<<"\n";
+	spdlog::debug("\t]");
+	spdlog::debug("\tId: {}",this->id);
+	spdlog::debug("\tSubmission: {}",this->submission);
+	spdlog::debug("\tTotal Resources");
+	for(auto const& [key, val] : this->resources) {
+		spdlog::debug("\t\t\t{} - {}; {}; {}",key, std::get<0>(val), std::get<1>(val),  std::get<2>(val));
 	}
-	os<<"}\n";
-	return os;
+	spdlog::debug("}");
 }

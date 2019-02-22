@@ -17,19 +17,23 @@ inline float footprint(consumed_resource_t alocado, total_resources_t total){
 		r_t += total.resource[it->first];
 		a_t+= it->second;
 	}
-	return a_t/r_t;
+	float value =  a_t/r_t;
+	return (value > 0.00000001) ? value : 0;
 }
 
 inline float vcpu(consumed_resource_t alocado, total_resources_t total){
-	return alocado.resource["vcpu"]/total.resource["vcpu"];
+	float value =  alocado.resource["vcpu"]/total.resource["vcpu"];
+	return (value > 0.00000001) ? value : 0;
 }
 
 inline float ram(consumed_resource_t alocado, total_resources_t total){
-	return alocado.resource["ram"]/total.resource["ram"];
+	float value =  alocado.resource["ram"]/total.resource["ram"];
+	return (value > 0.00000001) ? value : 0;
 }
 
 inline float link(consumed_resource_t alocado, total_resources_t total){
-	return alocado.resource["bandwidth"]/total.resource["bandwidth"];
+	float value =  alocado.resource["bandwidth"] /total.resource["bandwidth"];
+	return (value > 0.00000001) ? value : 0;
 }
 
 }

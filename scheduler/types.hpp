@@ -11,6 +11,7 @@
 
 #include "thirdparty/spdlog/spdlog.h"
 #include "thirdparty/spdlog/sinks/basic_file_sink.h"
+#include "thirdparty/spdlog/sinks/stdout_color_sinks.h"
 
 struct CompareTaskOnSubmission {
 	bool operator()( Task* lhs, Task* rhs) const {
@@ -42,10 +43,6 @@ typedef struct {
 typedef struct {
 	std::priority_queue<Task*, std::vector<Task*>, CompareTaskOnSubmission> tasks_to_allocate;
 	std::priority_queue<Task*, std::vector<Task*>, CompareTaskOnDelete> tasks_to_delete;
-
-	std::shared_ptr<spdlog::logger> dc_logger   = spdlog::basic_logger_mt("dc_logger","logs/dc_log.txt");
-	std::shared_ptr<spdlog::logger> task_logger = spdlog::basic_logger_mt("task_logger","logs/task_log.txt");
-
 } scheduler_t;
 
 typedef struct total_resources_t : public main_resource_t {

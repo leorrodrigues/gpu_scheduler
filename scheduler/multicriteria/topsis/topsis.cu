@@ -5,8 +5,7 @@ cudaError_t checkCuda(cudaError_t result)
 {
 #if defined(DEBUG) || defined(_DEBUG)
 	if (result != cudaSuccess) {
-		fprintf(stderr, "CUDA Runtime Error: %s\n",
-		        cudaGetErrorString(result));
+		SPDLOG_ERROR("CUDA Runtime Error: {}", cudaGetErrorString(result));
 		assert(result == cudaSuccess);
 	}
 #endif
@@ -18,7 +17,7 @@ TOPSIS::TOPSIS(){
 	char* result;
 	result = getcwd(cwd, sizeof(cwd));
 	if(result == NULL) {
-		printf("TOPSIS Error get directory path\n");
+		spdlog::debug("TOPSIS Error get directory path");
 	}
 	char* sub_path = (strstr(cwd, "topsis"));
 	if(sub_path!=NULL) {
@@ -50,7 +49,13 @@ void TOPSIS::getWeights(float* weights, unsigned int* types, std::map<std::strin
 	strcpy(weights_data_path, path);
 
 	strcat(weights_schema_path, "topsis/json/weightsSchema.json");
-	strcat(weights_data_path, "topsis/json/weightsDataFrag.json");
+
+	if(this->type==0)
+		strcat(weights_data_path, "topsis/json/weightsData.json");
+	else if(this->type==1)
+		strcat(weights_data_path, "topsis/json/weightsDataFrag.json");
+	else
+		SPDLOG_ERROR("Weights data type error");
 
 	rapidjson::SchemaDocument weightsSchema = JSON::generateSchema(weights_schema_path);
 	rapidjson::Document weightsData = JSON::generateDocument(weights_data_path);
@@ -69,7 +74,7 @@ void TOPSIS::getWeights(float* weights, unsigned int* types, std::map<std::strin
 }
 
 void TOPSIS::run(Host** alternatives, int alt_size){
-	// printf("Running topsis\n");
+	// spdlog::debug("Running topsis");
 	int devID;
 	cudaDeviceProp props;
 	cudaGetDevice(&devID);
@@ -90,10 +95,10 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	float *matrix = (float*) malloc (matrix_bytes);
 	float *weights= (float*) malloc (weights_bytes);
 	unsigned int * types = (unsigned int*) malloc (sizeof(unsigned int)*resources_size);
-	// printf("Allocating %d spaces for weights\n", resources_size);
+	// spdlog::debug("Allocating %d spaces for weights", resources_size);
 	std::map<std::string, float> a =allResources;
 	// for(std::map<std::string, float>::iterator it=a.begin(); it!=a.end(); it++) {
-	//      printf("%s %f\n",it->first.c_str(),it->second);
+	//      spdlog::debug("%s %f",it->first.c_str(),it->second);
 	// }
 
 	/*Create the pinned variables*/
@@ -125,7 +130,7 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	 */
 
 	/*Step 1 - Build the matrix*/
-	// printf("Step One\n");
+	// spdlog::debug("Step One");
 	{
 		int i=0,j=0;
 		for( i=0; i<alt_size; i++) {
@@ -138,28 +143,28 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 			}
 		}
 		// }
-		// printf("Matrix\n");
+		// spdlog::debug("Matrix");
 		// for(j=0; j<resources_size; j++) {
 		//      for(i=0; i<alt_size; i++) {
-		//              printf("%f\t",matrix[j*alt_size+i]);
+		//              spdlog::debug("%f\t",matrix[j*alt_size+i]);
 		//      }
-		//      printf("\n");
+		//      spdlog::debug("");
 		// }
 	}
-	// printf("Getting the weights\n");
+	// spdlog::debug("Getting the weights");
 	getWeights(weights, types, allResources);
 	/*copy the values to the pinned memory*/
 	memcpy(pinned_matrix, matrix, matrix_bytes);
 	memcpy(pinned_weights, weights, weights_bytes);
 
-	// printf("Free matrix\n");
+	// spdlog::debug("Free matrix");
 	free(matrix);
-	// printf("Free Weights\n");
+	// spdlog::debug("Free Weights");
 	free(weights);
-	// printf(" OK\n");
+	// spdlog::debug(" OK");
 	matrix =NULL;
 	weights=NULL;
-	// printf("NULL OK\n");
+	// spdlog::debug("NULL OK");
 	/*Need to free the host variables*/
 	/*Copy the pinned values to the device memory*/
 	checkCuda( cudaMemcpy(d_matrix, pinned_matrix, matrix_bytes, cudaMemcpyHostToDevice));
@@ -175,7 +180,7 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	dim3 grid_2d(ceil(alt_size/(float)block_2d.x), ceil(resources_size/(float)block_2d.y),1);
 
 	/*Step 2 - Calculate the normalized Matrix*/
-	// printf("Step Two\n");
+	// spdlog::debug("Step Two");
 	powKernel<<< grid_2d, block_2d>>> (d_matrix, d_aux_matrix, alt_size, resources_size);
 	cudaDeviceSynchronize();
 
@@ -260,16 +265,16 @@ unsigned int* TOPSIS::getResult(unsigned int& size){
 
 	std::priority_queue<std::pair<float, int> > alternativesPair;
 
-	// printf("VALUES\n");
+	// spdlog::debug("VALUES");
 	for (i = 0; i < size; i++) {
 		alternativesPair.push(std::make_pair(this->hosts_value[i], i));
-		// printf("%f - ",this->hosts_value[i]);
+		// spdlog::debug("%f - ",this->hosts_value[i]);
 	}
-	// printf("\n");
+	// spdlog::debug("");
 	i=0;
 
 	while(!alternativesPair.empty()) {
-		// printf("\t%f\t%d\n",alternativesPair.top().first,alternativesPair.top().second);
+		// spdlog::debug("\t%f\t%d",alternativesPair.top().first,alternativesPair.top().second);
 		result[i] = this->hosts_index[alternativesPair.top().second];
 		alternativesPair.pop();
 		i++;

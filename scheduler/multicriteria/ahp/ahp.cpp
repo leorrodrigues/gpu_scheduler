@@ -19,7 +19,7 @@ AHP::AHP() {
 	char* result;
 	result = getcwd(cwd, sizeof(cwd));
 	if(result == NULL) {
-		printf("AHP Error get directory path\n");
+		SPDLOG_ERROR("The directory path is not correct");
 	}
 	char* sub_path = (strstr(cwd, "ahp"));
 	if(sub_path!=NULL) {
@@ -81,10 +81,10 @@ void AHP::buildMatrix(Node* node) {
 
 	for (i = 0; i < size; i++) {
 		matrix[i*size+i] = 1;
-		weights = (node->getEdges())[i] -> getWeights();
-		for (j = i + 1; j < size; j ++) {
+		weights = (node->getEdges())[i]->getWeights();
+		for (j = i + 1; j < size; j++) {
 			if(weights == NULL ) {
-				printf("AHP(107): WEIGHT NULL\n");
+				SPDLOG_ERROR("WEIGHT NULL");
 				exit(0);
 			}
 			matrix[i*size+j] = weights[j];
@@ -221,9 +221,9 @@ void AHP::checkConsistency(Node* node) {
 		RC = (abs(lambda - size) / (1.7699 * size - 4.3513));
 	}
 	if (RC > 0.1) {
-		printf("ERROR: Criteria %s is inconsistent\n", node->getName());
-		printf("RC= %lf\n", RC);
-		printf("SIZE= %d\n", size);
+		SPDLOG_ERROR("Criteria {} is inconsistent", node->getName());
+		spdlog::debug("RC= {}", RC);
+		spdlog::debug("SIZE= {}", size);
 		printMatrix(node);
 		printNormalizedMatrix(node);
 		printPml(node);
@@ -237,14 +237,13 @@ void AHP::printMatrix(Node* node) {
 	float* matrix = node->getMatrix();
 	int tam = node->getSize();
 	if(tam==0) return;
-	printf("Matrix of %s\n", node->getName());
+	spdlog::debug("Matrix of {}", node->getName());
 	for (i = 0; i < tam; i++) {
 		for (j = 0; j < tam; j++) {
-			printf("%010lf\t", matrix[i*tam+j]);
+			spdlog::debug("{}\t", matrix[i*tam+j]);
 		}
-		printf("\n");
 	}
-	printf("\n");
+	spdlog::debug("");
 	iterateFunc(&AHP::printMatrix, node);
 }
 
@@ -253,14 +252,13 @@ void AHP::printNormalizedMatrix(Node* node) {
 	float* matrix = node->getNormalizedMatrix();
 	int tam = node->getSize();
 	if(tam==0) return;
-	printf("Normalized Matrix of %s\n", node->getName());
+	spdlog::debug("Normalized Matrix of {}", node->getName());
 	for (i = 0; i < tam; i++) {
 		for (j = 0; j < tam; j++) {
-			printf("%010lf\t", matrix[i*tam+j]);
+			spdlog::debug("{}\t", matrix[i*tam+j]);
 		}
-		printf("\n");
 	}
-	std::cout << "\n";
+	spdlog::debug("");
 	iterateFunc(&AHP::printNormalizedMatrix, node);
 }
 
@@ -269,11 +267,11 @@ void AHP::printPml(Node* node) {
 	float* pml = node->getPml();
 	int tam = node->getSize();
 	if(tam==0) return;
-	printf("PML of %s\n", node->getName());
+	spdlog::debug("PML of {}", node->getName());
 	for (i = 0; i < tam; i++) {
-		printf("%010lf\t", pml[i]);
+		spdlog::debug("{}\t", pml[i]);
 	}
-	printf("\n");
+	spdlog::debug("");
 	iterateFunc(&AHP::printPml, node);
 }
 
@@ -282,11 +280,11 @@ void AHP::printPg(Node* node) {
 	float* pg = node->getPg();
 	int tam = this->hierarchy->getAlternativesSize();
 	if(tam==0) return;
-	printf("PG of %s\n", node->getName());
+	spdlog::debug("PG of {}", node->getName());
 	for (i = 0; i < tam; i++) {
-		printf("%010lf\t",pg[i]);
+		spdlog::debug("{}\t",pg[i]);
 	}
-	printf("\n");
+	spdlog::debug("");
 }
 
 void AHP::hierarchyParser(const rapidjson::Value &hierarchyData) {
@@ -316,7 +314,13 @@ void AHP::conception() {
 	strcpy(hierarchy_data, path);
 
 	strcat(hierarchy_schema, "multicriteria/ahp/json/hierarchySchema.json");
-	strcat(hierarchy_data, "multicriteria/ahp/json/hierarchyData.json");
+
+	if(this->type==0)
+		strcat(hierarchy_data, "multicriteria/ahp/json/hierarchyData.json");
+	else if(this->type==1)
+		strcat(hierarchy_data, "multicriteria/ahp/json/hierarchyDataFrag.json");
+	else
+		SPDLOG_ERROR("Hierarchy data type error");
 
 	rapidjson::SchemaDocument hierarchySchema =
 		JSON::generateSchema(hierarchy_schema);

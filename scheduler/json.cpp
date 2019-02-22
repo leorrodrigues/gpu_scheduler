@@ -20,7 +20,7 @@ rapidjson::Document generateDocument(const char *path){
 	rapidjson::Document sd;
 	if(sd.Parse(buffer).HasParseError()) {
 		free(buffer);
-		printf("JSON::Erro in parsing the json %s\n", path);
+		SPDLOG_ERROR("JSON::Erro in parsing the json {}", path);
 	}
 	free( buffer );
 	return sd;
@@ -38,7 +38,7 @@ rapidjson::Document* generateDocumentP(const char *path){
 	rapidjson::Document* sd = new rapidjson::Document;
 	if(sd->Parse(buffer).HasParseError()) {
 		free(buffer);
-		std::cout<<"Erro in parsing the json";
+		SPDLOG_ERROR("Can't parse the json {}",path);
 	}
 	free(buffer);
 	return sd;
@@ -55,11 +55,11 @@ void jsonError(rapidjson::SchemaValidator* validator){
 // Output diagnostic information
 	rapidjson::StringBuffer sb;
 	validator->GetInvalidSchemaPointer().StringifyUriFragment(sb);
-	printf("Invalid schema: %s\n", sb.GetString());
-	printf("Invalid keyword: %s\n", validator->GetInvalidSchemaKeyword());
+	SPDLOG_ERROR("Invalid schema: {}", sb.GetString());
+	SPDLOG_ERROR("Invalid keyword: {}", validator->GetInvalidSchemaKeyword());
 	sb.Clear();
 	validator->GetInvalidDocumentPointer().StringifyUriFragment(sb);
-	printf("Invalid document: %s\n", sb.GetString());
+	SPDLOG_ERROR("Invalid document: {}", sb.GetString());
 	exit(0);
 }
 

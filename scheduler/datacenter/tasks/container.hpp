@@ -40,7 +40,7 @@ void setLink(unsigned int, float, float);
 void setHostId(unsigned int);
 void setHostIdg(unsigned int);
 
-friend std ::ostream& operator<<(std::ostream&, Container const&);
+void print();
 
 };
 

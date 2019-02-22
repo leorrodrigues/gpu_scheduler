@@ -77,7 +77,7 @@ std::string getTopology(){
 }
 
 void listTopology(){
-	std::cout<<"\n\nList Topology\n";
+	spdlog::debug("\n\nList Topology");
 	const char *nodeType[] ={"Host node","Switch node","Core switch node"};
 	std::vector<std::string> *varName = this->topology->get_var_node_str();
 	const char *varEdge[]={"Edge Capacity","Bandwidth"};
@@ -85,28 +85,28 @@ void listTopology(){
 	int nNodes=this->topology->get_num_nodes();
 	int nHosts=this->topology->get_hosts();
 	int nEdges=this->topology->get_num_edges();
-	std::cout<<std::setw(40)<<std::left<<"# Number of Nodes Variables: "<<std::setw(5)<<varName->size()<<"\n";
-	std::cout<<std::setw(40)<<std::left<<"# Number of Edges Variables: "<<std::setw(5)<<nVarEdg<<"\n";
-	std::cout<<std::setw(40)<<std::left<<"# Number of Nodes: "<<std::setw(5)<<nNodes<<"\n";
-	std::cout<<std::setw(40)<<std::left<<"# Number of Hosts: "<<std::setw(5)<<nHosts<<"\n";
-	std::cout<<std::setw(40)<<std::left<<"# Number of Edges: "<<std::setw(5)<<nEdges<<"\n";
-	std::cout<<"\t#Host#\n";
+	spdlog::debug("# Number of Nodes Variables: {}",varName->size());
+	spdlog::debug("# Number of Edges Variables: {}",nVarEdg);
+	spdlog::debug("# Number of Nodes: {}",nNodes);
+	spdlog::debug("# Number of Hosts: {}",nHosts);
+	spdlog::debug("# Number of Edges: {}",nEdges);
+	spdlog::debug("\t#Host#");
 	for(int i=0; i<nNodes; i++) {
-		std::cout<<"\t\tType: "<<nodeType[this->topology->get_node_type(i)]<<" has the id "<<i<<"\n";
+		spdlog::debug("\t\tType: {} has the id {}",nodeType[this->topology->get_node_type(i)], i);
 		if(this->topology->get_node_type(i)==0) {// if is a host node
 			for(int j=0; j<varName->size(); j++) {
-				std::cout<<"\t\t\t"<<std::setw(20)<<std::left<<(*varName)[j]<<std::setw(5)<<std::right<<this->topology->get_variable_node(j,i)<<"\n";
+				spdlog::debug("\t\t\t {} {}",(*varName)[j],this->topology->get_variable_node(j,i));
 			}
 		}
 	}
-	std::cout<<"\t#Edge#\n";
+	spdlog::debug("\t#Edge#");
 	for(int i=0; i<nEdges; i++) {
-		std::cout<<"\t\tEdge "<<i<<"\n";
+		spdlog::debug("\t\tEdge ", i);
 		for(int j=1; j<nVarEdg; j++) {
-			std::cout<<"\t\t\t"<<std::setw(20)<<std::left<<varEdge[j]<<std::setw(5)<<std::right<<this->topology->get_variable_edge(j,i)<<"\n";
+			spdlog::debug("\t\t\t {} {}", varEdge[j], this->topology->get_variable_edge(j,i));
 		}
 	}
-	std::cout<<"\n\n";
+	spdlog::debug("\n");
 }
 
 };

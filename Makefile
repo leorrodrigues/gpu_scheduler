@@ -196,3 +196,6 @@ clear:
 	rm -f $(GPUSCHEDULER_PATH)gpuscheduler.out
 	# $(shell rm -r scheduler/build/hierarchy)
 	$(shell rm -r scheduler/build)
+
+clear_logs:
+	rm -f $(GPUSCHEDULER_PATH)logs/*

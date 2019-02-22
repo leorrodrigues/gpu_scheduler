@@ -1,6 +1,9 @@
 #ifndef _TOPOLOGY_NOT_INCLUDED_
 #define _TOPOLOGY_NOT_INCLUDED_
 
+#include "../thirdparty/spdlog/spdlog.h"
+#include "../thirdparty/spdlog/sinks/stdout_color_sinks.h"
+
 #include <vnegpu/graph.cuh>
 #include <iostream>
 #include <iomanip>

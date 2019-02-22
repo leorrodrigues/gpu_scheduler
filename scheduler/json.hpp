@@ -10,6 +10,9 @@
 
 #include "thirdparty/rapidjson/filereadstream.h"
 
+#include "thirdparty/spdlog/spdlog.h"
+#include "thirdparty/spdlog/sinks/stdout_color_sinks.h"
+
 typedef rapidjson::GenericMember<rapidjson::UTF8<char>, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> > genericValue;
 
 namespace JSON {

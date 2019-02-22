@@ -58,21 +58,17 @@ void Container::setHostIdg(unsigned int id){
 	this->host_idg=id;
 }
 
-std::ostream& operator<<(std::ostream& os, const Container& c)  {
-	os<<"\t\t\t{\n";
-	os<<"\t\t\tName: "<<c.id<<"\n";
-	os<<"\t\t\tLinks:[\n";
-	for(size_t i=0; i<c.links_size; i++) {
-		os<<"\t\t\t\tDestination: "<<c.links[i].destination<<"\n";
-		os<<"\t\t\t\tBandwidth: "<<c.links[i].bandwidth_min<<" | "<<c.links[i].bandwidth_max<<"\n";
+void Container::print(){
+	spdlog::debug("\t\t\t{");
+	spdlog::debug("\t\t\tName: {}",this->id);
+	spdlog::debug("\t\t\tLinks:[");
+	for(size_t i=0; i<this->links_size; i++) {
+		spdlog::debug("\t\t\t\tDestination: {}", this->links[i].destination);
+		spdlog::debug("\t\t\t\tBandwidth: {} | {}", this->links[i].bandwidth_min, this->links[i].bandwidth_max);
 	}
-	os<<"\t\t\t]\n";
-	for(auto const& [key, val] : c.resources) {
-		os<<"\t\t\t"<<key<<"-";
-		os<<std::get<0>(val)<<";";
-		os<<std::get<1>(val);
-		os<<"\n";
+	spdlog::debug("\t\t\t]");
+	for(auto const& [key, val] : this->resources) {
+		spdlog::debug("\t\t\t{} - {}; {}", key, std::get<0>(val), std::get<1>(val));
 	}
-	os<<"\t\t\t}\n";
-	return os;
+	spdlog::debug("\t\t\t}");
 }

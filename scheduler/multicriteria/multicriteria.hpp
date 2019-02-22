@@ -8,7 +8,13 @@
 #include "../json.hpp"
 
 class Multicriteria {
+protected:
+unsigned int type=0;
 public:
+
+void setType(unsigned int type){
+	this->type=type;
+}
 
 virtual ~Multicriteria()=0;
 virtual unsigned int* getResult(unsigned int& size)=0;

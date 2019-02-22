@@ -9,19 +9,24 @@ namespace ObjectiveFunction {
 namespace Fragmentation {
 
 inline float datacenter(consumed_resource_t consumed,total_resources_t total){
-	return consumed.active_servers/ (float)total.servers;
+	float value = (consumed.active_servers/ (float)total.servers);
+	return (value >= 0.00000001) ? value : 0;
 }
 
 inline float datacenter(unsigned int active, unsigned int total){
-	return active/(float)total;
+	float value =  active/(float)total;
+	return (value >= 0.00000001) ? value : 0;
 }
 
 inline float link(consumed_resource_t consumed, total_resources_t total){
-	return consumed.active_links/ (float) total.links;
+	float value =  consumed.active_links/ (float) total.links;
+	return (value >= 0.00000001) ? value : 0;
+
 }
 
 inline float link(unsigned int active, unsigned int total){
-	return active/(float)total;
+	float value =  active/(float)total;
+	return (value >= 0.00000001) ? value : 0;
 }
 
 }

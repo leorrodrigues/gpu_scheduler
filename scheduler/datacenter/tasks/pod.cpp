@@ -71,22 +71,17 @@ void Pod::updateBandwidth(){
 	}
 }
 
-std::ostream& operator<<(std::ostream& os, const Pod& p)  {
-	os<<"\t\t{\n";
-	os<<"\t\tId: "<< p.id<<"\n";
-	os<<"\t\tContainers:[\n";
-	for(size_t i=0; i<p.containers_size; i++) {
-		os<<(*p.containers[i]);
+void Pod::print(){
+	spdlog::debug("\t\t{");
+	spdlog::debug("\t\tId: {}",this->id);
+	spdlog::debug("\t\tContainers:[");
+	for(size_t i=0; i<this->containers_size; i++) {
+		(this->containers[i])->print();
 	}
-	os<<"\t\t]\n";
-	os<<"\t\tTotal Resources\n";
-	for(auto const& [key, val] : p.resources) {
-		os<<"\t\t\t"<<key<<"-";
-		os<<std::get<0>(val)<<";";
-		os<<std::get<1>(val)<<";";
-		os<<std::get<2>(val);
-		os<<"\n";
+	spdlog::debug("\t\t]");
+	spdlog::debug("\t\tTotal Resources");
+	for(auto const& [key, val] : this->resources) {
+		spdlog::debug("\t\t\t{} - {}; {}; {}", key, std::get<0>(val),  std::get<1>(val), std::get<2>(val));
 	}
-	os<<"\t\t}\n";
-	return os;
+	spdlog::debug("\t\t}");
 }
