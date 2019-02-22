@@ -201,12 +201,12 @@ inline objective_function_t calculateObjectiveFunction(consumed_resource_t consu
 	return obj;
 }
 
-inline void logTask(scheduler_t *scheduler, Task* task, unsigned int time){
-	spdlog::get("task_logger")->info("{} {} {} {} {} {}",task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time);
+inline void logTask(scheduler_t *scheduler, Task* task, unsigned int time, std::string multicriteria){
+	spdlog::get("task_logger")->info("{} {} {} {} {} {} {}", multicriteria, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time);
 }
 
-inline void logDC(scheduler_t *scheduler, objective_function_t *objective){
-	spdlog::get("dc_logger")->info("{} {} {} {} {} {}", objective->time,    objective->dc_fragmentation,  objective->vcpu_footprint, objective->ram_footprint, objective->link_fragmentation, objective->link_footprint);
+inline void logDC(scheduler_t *scheduler, objective_function_t *objective,std::string multicriteria){
+	spdlog::get("dc_logger")->info("{} {} {} {} {} {} {}", multicriteria, objective->time,    objective->dc_fragmentation,  objective->vcpu_footprint, objective->ram_footprint, objective->link_fragmentation, objective->link_footprint);
 }
 
 inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed){
@@ -322,7 +322,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			current->setAllocatedTime(options->current_time);
 			scheduler->tasks_to_delete.push(current);
 		}
-		logTask(scheduler, current, options->current_time);
+		logTask(scheduler, current, options->current_time, options->multicriteria_method);
 	}
 	// printf("total_delay,%d,%d\n", options->current_time,total_delay);
 }
@@ -358,7 +358,7 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		objective=calculateObjectiveFunction(consumed_resources, total_resources);
 
 		if(options->test_type==2 || options->test_type==4) {
-			logDC(scheduler, &objective);
+			logDC(scheduler, &objective, options->multicriteria_method);
 		}
 		//************************************************//
 		//************************************************//
