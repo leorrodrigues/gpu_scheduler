@@ -52,13 +52,13 @@ void Task::setTask(const char* taskMessage){
 	/*********************************************************/
 	spdlog::debug("Getting the task variables");
 	//Duration
-	this->duration = task["duration"].GetDouble();
+	this->duration = task["duration"].GetFloat();
 
 	//ID
 	this->id = task["id"].GetInt();
 
 	//SUBMISSION
-	this->submission = task["submission"].GetDouble();
+	this->submission = task["submission"].GetFloat();
 
 	/**********************************************************/
 	/********              Pod   variables                    ********/
@@ -89,8 +89,8 @@ void Task::setTask(const char* taskMessage){
 
 				if(!containersArray[i].HasMember(max.c_str())) continue;
 
-				float vmin  = containersArray[i][max.c_str()].GetDouble();
-				float vmax = containersArray[i][min.c_str()].GetDouble();
+				float vmin  = containersArray[i][max.c_str()].GetFloat();
+				float vmax = containersArray[i][min.c_str()].GetFloat();
 
 				c->setValue(key, vmin, false);
 				c->setValue(key, vmax, true);
@@ -99,7 +99,6 @@ void Task::setTask(const char* taskMessage){
 			}
 			//POD
 			int pod_index = containersArray[i]["pod"].GetInt();
-
 			// The pod isn't already created, create a new pod and then set the container into it.
 			spdlog::debug("Searching if the pod exists");
 			if(temp_pods.find(pod_index) == temp_pods.end()) {
@@ -114,18 +113,34 @@ void Task::setTask(const char* taskMessage){
 			this->containers[i]=c;
 		}
 		spdlog::debug("Updating the last variables of the pod");
+		bool s_z=false;
+		if(temp_pods.find(0) != temp_pods.end()) {
+			s_z=true;
+		}
+
 		this->pods_size = temp_pods.size();
 		//Create the pods array
 		this->pods = (Pod**) malloc (sizeof(Pod*)*this->pods_size);
 
 		//Populate the pods array
 		spdlog::debug("Populating all the pods in the task array");
-		for(
-			std::map<unsigned int,Pod*>::iterator it=temp_pods.begin();
-			it!=temp_pods.end();
-			it++
-			) {
-			this->pods[it->first] = it->second;
+		if(s_z) {
+			for(
+				std::map<unsigned int,Pod*>::iterator it=temp_pods.begin();
+				it!=temp_pods.end();
+				it++
+				) {
+				this->pods[it->first] = it->second;
+			}
+		}else{
+			for(
+				std::map<unsigned int,Pod*>::iterator it=temp_pods.begin();
+				it!=temp_pods.end();
+				it++
+				) {
+				this->pods[it->first-1] = it->second;
+				this->pods[it->first-1]->subId();
+			}
 		}
 	}
 	//Now we have all te pods constructed and their respectives containers inside it.
@@ -142,17 +157,22 @@ void Task::setTask(const char* taskMessage){
 	if(this->links_size!=0) {
 		//Iterating through all the links in the request
 		for(size_t i=0; i < this->links_size; i++) {
+			spdlog::debug("\tGetting the link {}",i);
 			source = linksArray[i]["source"].GetInt();
+			spdlog::debug("\tsource get");
 			//Finding the respective container
 			this->containers[source-1]->setLink(
 				linksArray[i]["destination"].GetInt(),
-				linksArray[i]["bandwidth_min"].GetDouble(),
-				linksArray[i]["bandwidth_max"].GetDouble()
+				linksArray[i]["bandwidth_min"].GetFloat(),
+				linksArray[i]["bandwidth_max"].GetFloat()
 				);
+			spdlog::debug("\tlink set");
 		}
 	}
 	for(size_t i=0; i<pods_size; i++) {
+		spdlog::debug("Update de Bandwidth of the pod {}",i);
 		this->pods[i]->updateBandwidth();
+		spdlog::debug("\tUpdated");
 	}
 }
 

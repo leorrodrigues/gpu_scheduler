@@ -1,9 +1,10 @@
 #ifndef _TYPE_NOT_DEFINED_
 #define _TYPE_NOT_DEFINED_
 
+#include <chrono>
+#include <queue>
 #include <vector>
 #include <string>
-#include <queue>
 #include <map>
 
 #include "main_resources/main_resources_types.hpp"
@@ -33,16 +34,20 @@ typedef struct {
 	std::string multicriteria_method;
 	std::string clustering_method;
 	std::string topology_type;
+	std::string standard;
 	unsigned int topology_size=0;
 	unsigned int current_time=0;
 	unsigned int test_type=0;
 	unsigned int request_size=0;
-	unsigned int standard=0;
+	unsigned int bw=0;
 } options_t;
 
 typedef struct {
 	std::priority_queue<Task*, std::vector<Task*>, CompareTaskOnSubmission> tasks_to_allocate;
 	std::priority_queue<Task*, std::vector<Task*>, CompareTaskOnDelete> tasks_to_delete;
+
+	std::chrono::high_resolution_clock::time_point start;
+	std::chrono::high_resolution_clock::time_point end;
 } scheduler_t;
 
 typedef struct total_resources_t : public main_resource_t {

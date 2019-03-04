@@ -8,7 +8,7 @@ Pod::Pod() : Task_Resources(){
 	this->containers_size = 0;
 }
 
-Pod::Pod(unsigned int id){
+Pod::Pod(unsigned int id) : Task_Resources() {
 	this->containers=NULL;
 	this->id=id;
 	this->host=NULL;
@@ -63,11 +63,20 @@ void Pod::setHost(Host* host){
 	}
 }
 
+void Pod::subId(){
+	this->id--;
+}
+
 void Pod::updateBandwidth(){
-	this->resources["bandwidth"]=std::make_tuple(0,0,false);
+	spdlog::debug("\tUpdateBandwidth Function");
+	spdlog::debug("\tTuple made");
+	spdlog::debug("\tResources size {}",this->resources.size());
+	spdlog::debug("\tThe pod has {} containers", this->containers_size);
 	for(size_t i=0; i<this->containers_size; i++) {
+		spdlog::debug("\t\tGet the values of the container {}",i);
 		std::get<0>(this->resources["bandwidth"])+=this->containers[i]->getBandwidthMin();
 		std::get<1>(this->resources["bandwidth"])+=this->containers[i]->getBandwidthMax();
+		spdlog::debug("\t\tGet");
 	}
 }
 

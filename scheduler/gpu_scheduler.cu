@@ -37,6 +37,7 @@ void setup(int argc, char** argv, Builder* builder, options_t* options){
 	bool showHelp = false;
 	unsigned int test_type=0;
 	unsigned int request_size=0;
+	unsigned int bw = 0;
 	auto cli = clara::detail::Help(showHelp)
 	           | clara::detail::Opt( topology, "topology" )["-t"]["--topology"]("What is the topology type? [ (default) fat_tree | dcell | bcube ]")
 	           | clara::detail::Opt( topology_size, "topology size") ["-s"] ["--topology_size"] ("What is the size of the topology? ( default 10 )")
@@ -49,7 +50,8 @@ void setup(int argc, char** argv, Builder* builder, options_t* options){
 	           | clara::detail::Opt( request_size, "Request Size")["--request-size"]("Which is the request size?")
 	           | clara::detail::Opt( standard, "Standard Allocation")["--standard-allocation"]("What is the standard allocation method? [best_fit (bf) | worst_fit (wf) | first_fit (ff) ]")
 	           | clara::detail::Opt( debug, "Debug option")["--debug"]("info | warning | error | debug")
-	           | clara::detail::Opt( data_type, "Data Type")["--data-type"]("flat | frag");
+	           | clara::detail::Opt( data_type, "Data Type")["--data-type"]("flat | frag")
+	           | clara::detail::Opt( bw, "bandwidth")["--bw"]("Only used in test 4");
 
 	auto result = cli.parse( clara::detail::Args( argc, argv ) );
 
@@ -131,13 +133,8 @@ void setup(int argc, char** argv, Builder* builder, options_t* options){
 		options->request_size=request_size;
 	}
 
-	if(standard=="ff" || standard=="first_fit") {
-		options->standard=1;
-	}else if(standard=="bf" || standard=="best_fit") {
-		options->standard=2;
-	}else if(standard=="wf" || standard=="worst_fit") {
-		options->standard=3;
-	}else if(standard=="none") {
+	if(standard=="none" || standard=="ff" || standard=="first_fit" || standard=="bf" || standard=="best_fit"  || standard=="wf" || standard=="worst_fit") {
+		options->standard=standard;
 	}else{
 		SPDLOG_ERROR("Invalid Type of standard allocation");
 		exit(0);
@@ -171,6 +168,8 @@ void setup(int argc, char** argv, Builder* builder, options_t* options){
 		SPDLOG_ERROR("Invalid data type");
 	}
 
+	options->bw = bw;
+
 	options->current_time=0;
 	// Load the Topology
 	std::string path="datacenter/json/"+topology+"/"+std::to_string(topology_size)+".json";
@@ -201,12 +200,16 @@ inline objective_function_t calculateObjectiveFunction(consumed_resource_t consu
 	return obj;
 }
 
-inline void logTask(scheduler_t *scheduler, Task* task, unsigned int time, std::string multicriteria){
-	spdlog::get("task_logger")->info("{} {} {} {} {} {} {}", multicriteria, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time);
+inline void logTask(scheduler_t* scheduler,Task* task, std::string multicriteria){
+	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+
+	std::chrono::duration<double> time_span =  std::chrono::duration_cast<std::chrono::duration<double> >( now - scheduler->start);
+
+	spdlog::get("task_logger")->info("{} {} {} {} {} {} {}", multicriteria, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count());
 }
 
-inline void logDC(scheduler_t *scheduler, objective_function_t *objective,std::string multicriteria){
-	spdlog::get("dc_logger")->info("{} {} {} {} {} {} {}", multicriteria, objective->time,    objective->dc_fragmentation,  objective->vcpu_footprint, objective->ram_footprint, objective->link_fragmentation, objective->link_footprint);
+inline void logDC(objective_function_t *objective,std::string method){
+	spdlog::get("dc_logger")->info("{} {} {} {} {} {} {}", method, objective->time,    objective->dc_fragmentation,  objective->vcpu_footprint, objective->ram_footprint, objective->link_fragmentation, objective->link_footprint);
 }
 
 inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed){
@@ -268,7 +271,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
 		if(Allocator::checkFit(total_dc, consumed,current)!=0) {
 			// allocate the new task in the data center.
-			if(options->standard==0) {
+			if(options->standard=="none") {
 				if( options->clustering_method=="pure_mcl") {
 					allocation_success=Allocator::mcl_pure(builder);
 				} else if( options->clustering_method == "none") {
@@ -282,14 +285,14 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 					exit(1);
 				}
 			}else{
-				if(options->standard==1) {
+				if(options->standard=="ff" || options->standard=="first_fit") {
 					allocation_success=Allocator::firstFit(builder, current, consumed);
-				}else if(options->standard==2) {
+				}else if(options->standard=="bf" || options->standard=="best_fit") {
 					allocation_success=Allocator::bestFit(builder, current, consumed);
-				}else if(options->standard==3) {
+				}else if(options->standard=="wf" || options->standard=="worst_fit") {
 					allocation_success=Allocator::worstFit(builder, current, consumed);
 				}else{
-					std::cerr << "(gpu_scheduler) Invalid type of standard allocation method\n";
+					SPDLOG_ERROR("Invalid type of standard allocation method");
 					exit(1);
 				}
 			}
@@ -322,7 +325,10 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			current->setAllocatedTime(options->current_time);
 			scheduler->tasks_to_delete.push(current);
 		}
-		logTask(scheduler, current, options->current_time, options->multicriteria_method);
+		if(options->standard=="none")
+			logTask(scheduler, current, options->multicriteria_method);
+		else
+			logTask(scheduler, current, options->standard);
 	}
 	// printf("total_delay,%d,%d\n", options->current_time,total_delay);
 }
@@ -358,17 +364,27 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		objective=calculateObjectiveFunction(consumed_resources, total_resources);
 
 		if(options->test_type==2 || options->test_type==4) {
-			logDC(scheduler, &objective, options->multicriteria_method);
+			if(options->standard=="none")
+				logDC(&objective, options->multicriteria_method);
+			else
+				logDC(&objective, options->standard);
+
 		}
 		//************************************************//
 		//************************************************//
 		//************************************************//
 
+		spdlog::info("Scheduler Time {}", options->current_time);
 		options->current_time++;
 	}
 }
 
 int main(int argc, char **argv){
+	auto console = spdlog::stdout_color_mt("console");
+	console->set_pattern("[%-6l] %v");
+	spdlog::set_default_logger(console);
+
+	spdlog::info("Initialized");
 	// Options Struct
 	options_t options;
 	// Scheduler Struct
@@ -378,26 +394,33 @@ int main(int argc, char **argv){
 	Builder *builder= new Builder();
 	// Parse the command line arguments
 
+	spdlog::info("Build the setup");
 	setup(argc,argv,builder,&options);
 
-
-	std::string log_str(std::to_string(options.test_type));
-	log_str+="-size_";
-	log_str+=std::to_string(options.request_size);
-	log_str+="-tsize_";
-	log_str+=std::to_string(options.topology_size);
-	log_str+=".txt";
-
-	auto dc_logger = spdlog::basic_logger_mt("dc_logger","logs/dc-test_"+log_str);
-	auto task_logger =spdlog::basic_logger_mt("task_logger", "logs/task-test_"+log_str);
+	spdlog::debug("Build the log path");
+	std::string log_str;
+	log_str+=options.clustering_method;
+	log_str+="-";
+	if(options.test_type!=4) {
+		log_str+=std::to_string(options.test_type);
+		log_str+="-size_";
+		log_str+=std::to_string(options.request_size);
+		log_str+="-tsize_";
+		log_str+=std::to_string(options.topology_size);
+		log_str+=".log";
+	}
+	else{
+		log_str+="pod";
+		log_str+=std::to_string(options.request_size);
+		log_str+="-bw";
+		log_str+=std::to_string(options.bw);
+		log_str+=".json";
+	}
+	auto dc_logger = spdlog::basic_logger_mt("dc_logger","logs/dc-"+log_str);
+	auto task_logger =spdlog::basic_logger_mt("task_logger", "logs/request-"+log_str);
 
 	dc_logger->set_pattern("%v");
 	task_logger->set_pattern("%v");
-
-	auto console = spdlog::stdout_color_mt("console");
-	console->set_pattern("[%-6l] %v");
-	spdlog::set_default_logger(console);
-
 
 	Reader* reader = new Reader();
 	// parse all json
@@ -409,10 +432,16 @@ int main(int argc, char **argv){
 	} else if(options.test_type==3) {
 		path+="datacenter/data-";
 	} else if(options.test_type==4) {
-		path+="container_link/requests-";
+		path+="container_link/pod";
 	}
 	path+= std::to_string(options.request_size);
+	if(options.test_type==4) {
+		path+="-bw";
+		path+=std::to_string(options.bw);
+	}
 	path+=".json";
+
+	spdlog::debug("Reading the request json {}", path);
 	reader->openDocument(path.c_str());
 	std::string message;
 
@@ -444,14 +473,14 @@ int main(int argc, char **argv){
 	// force cout to not print in cientific notation
 	std::cout<<std::fixed;
 
-	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	scheduler.start = std::chrono::high_resolution_clock::now();
 
 	spdlog::info("Running the gpu scheduler");
 	schedule(builder, &scheduler, &options, 0);
 
-	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	scheduler.end = std::chrono::high_resolution_clock::now();
 
-	std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1);
+	std::chrono::duration<double> time_span =  std::chrono::duration_cast<std::chrono::duration<double> >(scheduler.end - scheduler.start);
 
 	spdlog::info("Finished the scheduler: method {}, topology size {}, seconds {}",options.multicriteria_method, options.topology_size, time_span.count());
 

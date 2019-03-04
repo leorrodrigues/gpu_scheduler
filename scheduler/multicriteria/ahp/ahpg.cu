@@ -567,10 +567,12 @@ void AHPG::consistencyG() {
 }
 
 void AHPG::run(Host** alternatives, int size) {
+	spdlog::debug("AHPG Init");
 	this->hierarchy->clearAlternatives();
 	this->hierarchy->clearResource();
 
 	std::map<std::string, float> resource = alternatives[0]->getResource();
+	spdlog::debug("Setting the alternatives values");
 	for (auto it : resource) {
 		this->hierarchy->addResource((char*)it.first.c_str());
 	}
@@ -581,12 +583,14 @@ void AHPG::run(Host** alternatives, int size) {
 		exit(0);
 	}
 
-	// spdlog::debug("Aquisition: ");
+	spdlog::debug("Aquisition: ");
 	this->acquisitionG();
 
-	// spdlog::debug("Synthesis\n");
+	spdlog::debug("Synthesis");
 	this->synthesisG();
 	// this->consistency();
+	spdlog::debug("AHPG End");
+
 }
 
 unsigned int* AHPG::getResult(unsigned int& size) {

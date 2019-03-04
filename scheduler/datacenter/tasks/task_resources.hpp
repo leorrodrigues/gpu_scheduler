@@ -21,6 +21,7 @@ explicit Task_Resources() : main_resource_t(){
 		this->total_allocated[it.first] = 0;
 	}
 	id=0;
+	spdlog::debug("\t\tTask Resource has {} members",this->resources.size());
 }
 
 std::map<std::string,std::tuple<float,float,bool> > getResources(){

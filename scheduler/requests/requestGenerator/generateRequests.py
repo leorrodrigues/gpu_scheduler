@@ -80,10 +80,11 @@ if __name__ == '__main__':
             max_memory = get_uniform_float(min_memory, args.RAM)
             pod = abs(cpods)
             cpods = cpods - 1
-
+                
             if cpods == 0:
                 pod_id = pod_id + 1
                 cpods = math.ceil(args.size * args.pod)
+
 
             c = Container(cont_id, min_cpu, max_cpu, min_memory, max_memory, 0, 0, pod)
             t.addContainer(c)

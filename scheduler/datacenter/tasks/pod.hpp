@@ -26,6 +26,8 @@ Host* getHost();
 void addContainer(Container*);
 void setHost(Host*);
 
+void subId();
+
 void updateBandwidth();
 
 void print();
