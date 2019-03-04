@@ -349,10 +349,6 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		) {
 
 		consumed_resources.time = options->current_time;
-		// if(options->current_time==options->end_time) break;
-		// std::cout<<"Scheduler Time "<< options->current_time<<"\n";
-		// std::cout<<"message_count "<<message_count<<"\n";
-
 		// Search the containers to delete
 		delete_tasks(scheduler, builder, options, &consumed_resources);
 		// Search the containers in the vector to allocate in the DC
@@ -458,7 +454,6 @@ int main(int argc, char **argv){
 		current->print();
 		// Put the container in the vector
 		scheduler.tasks_to_allocate.push(current);
-		// std::cout<<*current<<"\n";
 	}
 	message.clear();
 	delete(reader);
@@ -469,9 +464,6 @@ int main(int argc, char **argv){
 
 		builder->getClusteringResult();
 	}
-	// Scalability Test or Objective Function Test
-	// force cout to not print in cientific notation
-	std::cout<<std::fixed;
 
 	scheduler.start = std::chrono::high_resolution_clock::now();
 

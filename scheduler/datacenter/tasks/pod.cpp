@@ -69,8 +69,6 @@ void Pod::subId(){
 
 void Pod::updateBandwidth(){
 	spdlog::debug("\tUpdateBandwidth Function");
-	spdlog::debug("\tTuple made");
-	spdlog::debug("\tResources size {}",this->resources.size());
 	spdlog::debug("\tThe pod has {} containers", this->containers_size);
 	for(size_t i=0; i<this->containers_size; i++) {
 		spdlog::debug("\t\tGet the values of the container {}",i);

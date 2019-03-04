@@ -59,6 +59,11 @@ int** getLinkPathEdge();
 int* getLinkDestination();
 float* getLinkValues();
 
+float getBandwidthMax();
+float getBandwidthMin();
+
+void updateBandwidth();
+
 void print();
 
 };

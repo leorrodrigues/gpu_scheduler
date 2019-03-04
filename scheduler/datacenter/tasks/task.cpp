@@ -94,8 +94,8 @@ void Task::setTask(const char* taskMessage){
 
 				c->setValue(key, vmin, false);
 				c->setValue(key, vmax, true);
-				this->setValue(key, vmin, false);
-				this->setValue(key, vmax, true);
+				this->addValue(key, vmin, false);
+				this->addValue(key, vmax, true);
 			}
 			//POD
 			int pod_index = containersArray[i]["pod"].GetInt();
@@ -166,6 +166,9 @@ void Task::setTask(const char* taskMessage){
 				linksArray[i]["bandwidth_min"].GetFloat(),
 				linksArray[i]["bandwidth_max"].GetFloat()
 				);
+			// update the max bandwidth for the task
+			this->addValue("bandwidth", linksArray[i]["bandwidth_min"].GetFloat(),false);
+			this->addValue("bandwidth", linksArray[i]["bandwidth_max"].GetFloat(),true);
 			spdlog::debug("\tlink set");
 		}
 	}
