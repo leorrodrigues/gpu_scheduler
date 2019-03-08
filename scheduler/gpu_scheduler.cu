@@ -31,7 +31,7 @@ void setup(int argc, char** argv, Builder* builder, options_t* options){
 	std::string clustering_method = "mcl";
 	std::string standard = "none";
 	std::string debug="info";
-	std::string data_type="frag";
+	std::string data_type="flat";
 	int topology_size=10;
 	// dont show the help by default. Use `-h or `--help` to enable it.
 	bool showHelp = false;
@@ -50,7 +50,7 @@ void setup(int argc, char** argv, Builder* builder, options_t* options){
 	           | clara::detail::Opt( request_size, "Request Size")["--request-size"]("Which is the request size?")
 	           | clara::detail::Opt( standard, "Standard Allocation")["--standard-allocation"]("What is the standard allocation method? [best_fit (bf) | worst_fit (wf) | first_fit (ff) ]")
 	           | clara::detail::Opt( debug, "Debug option")["--debug"]("info | warning | error | debug")
-	           | clara::detail::Opt( data_type, "Data Type")["--data-type"]("flat | frag")
+	           | clara::detail::Opt( data_type, "Data Type")["--data-type"]("flat | frag | bw")
 	           | clara::detail::Opt( bw, "bandwidth")["--bw"]("Only used in test 4");
 
 	auto result = cli.parse( clara::detail::Args( argc, argv ) );
@@ -154,19 +154,28 @@ void setup(int argc, char** argv, Builder* builder, options_t* options){
 		exit(0);
 	}
 
-	if(data_type=="frag") {
-		if(builder->getMulticriteria()!=NULL)
-			builder->getMulticriteria()->setType(1);
-		if(builder->getMulticriteriaClustered()!=NULL)
-			builder->getMulticriteriaClustered()->setType(1);
-	}else if(data_type=="flat") {
+	if(data_type=="flat") {
 		if(builder->getMulticriteria()!=NULL)
 			builder->getMulticriteria()->setType(0);
 		if(builder->getMulticriteriaClustered()!=NULL)
 			builder->getMulticriteriaClustered()->setType(0);
+		options->data_type = 0;
+	}else if(data_type=="frag" | data_type=="fragmentation") {
+		if(builder->getMulticriteria()!=NULL)
+			builder->getMulticriteria()->setType(1);
+		if(builder->getMulticriteriaClustered()!=NULL)
+			builder->getMulticriteriaClustered()->setType(1);
+		options->data_type = 1;
+	}else if(data_type=="bw" | data_type=="bandwidth") {
+		if(builder->getMulticriteria()!=NULL)
+			builder->getMulticriteria()->setType(2);
+		if(builder->getMulticriteriaClustered()!=NULL)
+			builder->getMulticriteriaClustered()->setType(2);
+		options->data_type = 2;
 	}else{
 		SPDLOG_ERROR("Invalid data type");
 	}
+
 
 	options->bw = bw;
 
@@ -410,6 +419,8 @@ int main(int argc, char **argv){
 		log_str+=std::to_string(options.request_size);
 		log_str+="-bw";
 		log_str+=std::to_string(options.bw);
+		log_str+="-dt";
+		log_str+=std::to_string(options.data_type);
 		log_str+=".json";
 	}
 	auto dc_logger = spdlog::basic_logger_mt("dc_logger","logs/dc-"+log_str);

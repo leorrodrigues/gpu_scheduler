@@ -414,6 +414,8 @@ void AHPG::conceptionG() {
 		strcat(hierarchy_data, "multicriteria/ahp/json/hierarchyData.json");
 	else if(this->type==1)
 		strcat(hierarchy_data, "multicriteria/ahp/json/hierarchyDataFrag.json");
+	else if(this->type==2)
+		strcat(hierarchy_data, "multicriteria/ahp/json/hierarchyDataBW.json");
 	else
 		SPDLOG_ERROR("Hierarchy data type error");
 

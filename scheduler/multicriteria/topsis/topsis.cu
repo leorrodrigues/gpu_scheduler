@@ -54,6 +54,8 @@ void TOPSIS::getWeights(float* weights, unsigned int* types, std::map<std::strin
 		strcat(weights_data_path, "topsis/json/weightsData.json");
 	else if(this->type==1)
 		strcat(weights_data_path, "topsis/json/weightsDataFrag.json");
+	else if(this->type==2)
+		strcat(weights_data_path, "topsis/json/weightsDataBW.json");
 	else
 		SPDLOG_ERROR("Weights data type error");
 
