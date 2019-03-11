@@ -58,6 +58,8 @@ unsigned int* getResult(unsigned int&);
 
 void setAlternatives(Host** alternatives,int size);
 
+void readJson();
+
 char* strToLower(const char*);
 void hierarchyParser(const rapidjson::Value &hierarchyData);
 
