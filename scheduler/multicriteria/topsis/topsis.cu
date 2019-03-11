@@ -1,8 +1,7 @@
 #include "topsis.cuh"
 
 inline
-cudaError_t checkCuda(cudaError_t result)
-{
+cudaError_t checkCuda(cudaError_t result){
 #if defined(DEBUG) || defined(_DEBUG)
 	if (result != cudaSuccess) {
 		SPDLOG_ERROR("CUDA Runtime Error: {}", cudaGetErrorString(result));
@@ -285,4 +284,7 @@ unsigned int* TOPSIS::getResult(unsigned int& size){
 }
 
 void TOPSIS::setAlternatives(Host** host, int size){
+}
+
+void TOPSIS::readJson(){
 }

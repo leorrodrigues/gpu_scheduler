@@ -38,6 +38,7 @@ unsigned int* getResult(unsigned int&);
 
 void setAlternatives(Host** host, int size);
 
+void readJson();
 };
 
 #endif
