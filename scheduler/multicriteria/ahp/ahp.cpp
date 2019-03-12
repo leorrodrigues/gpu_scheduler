@@ -513,3 +513,6 @@ void AHP::setAlternatives(Host** alternatives, int size) {
 
 	this->hierarchy->addEdgeCriteriasAlternatives();
 }
+
+void AHP::readJson(){
+}

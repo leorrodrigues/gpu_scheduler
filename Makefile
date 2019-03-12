@@ -6,6 +6,7 @@ $(shell mkdir -p scheduler/build)
 $(shell mkdir -p scheduler/build/ahp)
 $(shell mkdir -p scheduler/build/ahp/hierarchy)
 $(shell mkdir -p scheduler/build/topsis)
+$(shell mkdir -p scheduler/logs)
 
 #Programs
 CXX = g++
@@ -198,4 +199,4 @@ clear:
 	$(shell rm -r scheduler/build)
 
 clear_logs:
-	rm -f $(GPUSCHEDULER_PATH)logs/*
+	$(shell rm -r scheduler/logs)

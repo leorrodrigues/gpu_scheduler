@@ -175,7 +175,10 @@ void setup(int argc, char** argv, Builder* builder, options_t* options){
 	}else{
 		SPDLOG_ERROR("Invalid data type");
 	}
-
+	if(builder->getMulticriteria()!=NULL)
+		builder->getMulticriteria()->readJson();
+	if(builder->getMulticriteriaClustered()!=NULL)
+		builder->getMulticriteriaClustered()->readJson();
 
 	options->bw = bw;
 
