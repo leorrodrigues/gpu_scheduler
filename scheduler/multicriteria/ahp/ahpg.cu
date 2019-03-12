@@ -134,56 +134,115 @@ void AHPG::run(Host** alternatives, int alt_size){
 	checkCuda(cudaFree(d_values));
 
 	size_t ahp_matrix_bytes = sizeof(float)*this->criteria_size*alt_size*alt_size;
-	float *d_temp_matrix;
-	checkCuda( cudaMalloc((void**)&d_temp_matrix, ahp_matrix_bytes));
+	float *d_pairwise;
+	checkCuda( cudaMalloc((void**)&d_pairwise, ahp_matrix_bytes));
 
 	// Now we make the pairwise comparison
 	{
-
 		dim3 block(block_size, block_size,1);
 		dim3 grid (ceil(alt_size/(float)block.x), ceil(alt_size/(float)block.y), ceil(this->criteria_size/(float)block.z));
 
 		// size_t smemSize = block_size * block_size * sizeof(float);
 
-		// pairwiseComparsionKernel<<<grid,block,smemSize>>>(d_matrix, d_temp_matrix, alt_size, this->criteria_size);
-		pairwiseComparsionKernel<<<grid,block>>>(d_matrix, d_temp_matrix, alt_size, this->criteria_size);
+		// pairwiseComparsionKernel<<<grid,block,smemSize>>>(d_matrix, d_pairwise, alt_size, this->criteria_size);
+		pairwiseComparsionKernel<<<grid,block>>>(d_matrix, d_pairwise, alt_size, this->criteria_size);
 		cudaDeviceSynchronize();
 
 		cudaError_t err = cudaGetLastError();
-		if (err != cudaSuccess)
-			printf("Error: %s\n", cudaGetErrorString(err));
+		if (err != cudaSuccess) {
+			printf("CUDA Error: %s\n", cudaGetErrorString(err));
+			checkCuda(cudaFree(d_matrix));
+			checkCuda(cudaFree(d_pairwise));
+			exit(0);
+		}
 	}
 	checkCuda(cudaFree(d_matrix));
 
-	float *temp = (float*) malloc(sizeof(float)* ahp_matrix_bytes);
+	// float *temp = (float*) malloc(sizeof(float)* ahp_matrix_bytes);
 
-	checkCuda(cudaMemcpy(temp, d_temp_matrix, ahp_matrix_bytes, cudaMemcpyDeviceToHost));
+	// checkCuda(cudaMemcpy(temp, d_pairwise, ahp_matrix_bytes, cudaMemcpyDeviceToHost));
 
-	checkCuda(cudaFree(d_temp_matrix));
-	std::cout<<"Starting\n";
-	for(size_t i=0; i<this->criteria_size; i++) {
-		for(size_t j=0; j<alt_size; j++) {
-			for(size_t k=0; k<alt_size; k++) {
-				std::cout<<temp[i*alt_size*alt_size+j*alt_size+k]<<" ";
-				if(temp[i*alt_size*alt_size+j*alt_size+k]==0) {
-					printf("Erro in the cuda acquisition\n");
-					free(temp);
-					exit(0);
-				}
-			}
-			std::cout<<"\n";
-		}
-		std::cout<<"\n";
-		std::cout<<"\n";
-	}
-	free(temp);
-	//ACQUISITION DONE
+	// for(size_t i=0; i<this->criteria_size; i++) {
+	//     for(size_t j=0; j<alt_size; j++) {
+	//         for(size_t k=0; k<alt_size; k++) {
+	//             std::cout<<temp[i*alt_size*alt_size+j*alt_size+k]<<" ";
+	//             if(temp[i*alt_size*alt_size+j*alt_size+k]==0) {
+	//                 printf("Erro in the cuda acquisition\n");
+	//                 free(temp);
+	//                 exit(0);
+	//             }
+	//         }
+	//         std::cout<<"\n";
+	//     }
+	//     std::cout<<"\n";
+	//     std::cout<<"\n";
+	// }
+
 	// NORMALIZE MATRIX
+	{
+		//The pairwise matrix is composed by Criterias X Alternatives X Alternatives
+		//To normalize the matrix, first we need the sum of each line in the pairwise matrix (remember that the pairwise is a 3D matrix, so we have a matrix os sum lines)
+		float *d_sum;
+		size_t sum_bytes = sizeof(float)*this->criteria_size*alt_size;
+		checkCuda( cudaMalloc((void**)&d_sum, sum_bytes));
+
+		{
+			dim3 block(block_size, block_size, 1);
+			dim3 grid (ceil(alt_size/(float)block.x), ceil(this->criteria_size/(float)block.y),1);
+
+			sumLinesKernel<<<grid,block>>>(d_pairwise, d_sum, alt_size, this->criteria_size);
+
+			cudaDeviceSynchronize();
+		}
+
+		//With the sum array made, we make a normalization on the pairwise matrix
+		{
+			dim3 block(block_size, block_size, 1);
+			dim3 grid (ceil(alt_size/(float)block.x), ceil(alt_size/(float)block.y),ceil(this->criteria_size)/(float)block.z);
+
+			normalizeMatrixKernel<<<grid,block>>>(d_pairwise, d_sum, alt_size, this->criteria_size);
+
+			cudaDeviceSynchronize();
+		}
+
+		// float *temp = (float*)malloc(sum_bytes);
+		// float *temp_p = (float*)malloc(ahp_matrix_bytes);
+		// checkCuda(cudaMemcpy(temp, d_sum, sum_bytes, cudaMemcpyDeviceToHost));
+		// checkCuda(cudaMemcpy(temp_p, d_pairwise, ahp_matrix_bytes, cudaMemcpyDeviceToHost));
+
+		// printf("Pairwise\n");
+		// for (size_t i=0; i<this->criteria_size; i++) {
+		//      for(size_t j=0; j<alt_size; j++) {
+		//              for(size_t k=0; k<alt_size; k++) {
+		//                      std::cout<<temp_p[i*alt_size*alt_size+j*alt_size+k]<<" ";
+		//              }
+		//              std::cout<<"\n";
+		//      }
+		//      std::cout<<"\n";
+		//      std::cout<<"\n";
+		// }
+		// printf("Sum Matrix\n");
+		// for(size_t i=0; i<this->criteria_size; i++) {
+		//      for(size_t j=0; j<alt_size; j++) {
+		//              std::cout<<temp[i*alt_size+j]<<" ";
+		//      }
+		//      printf("\n");
+		// }
+
+		checkCuda(cudaFree(d_sum));
+	}
+	checkCuda(cudaFree(d_pairwise));
+	exit(0);
 	// BUILD PML
+	{
+
+	}
 	// BUILD PG
+	{
+
+	}
 	//////////////////////////////
 
-	exit(0);
 
 }
 

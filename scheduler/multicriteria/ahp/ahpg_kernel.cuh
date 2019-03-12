@@ -38,40 +38,30 @@ void pairwiseComparsionKernel(float *matrix, float *result, size_t alt_size, siz
 }
 
 static __global__
-void calculateSUM_Row(float* data, float* sum, int size){
-	int i = blockIdx.x*blockDim.x+threadIdx.x;
-	if(i<size) {
-		float s = 0;
-		int j;
-		for(j=0; j<size; j++) {
-			s+= data[i*size+j];
-		}
-		sum[i] = s;
+void sumLinesKernel(float* matrix, float* sum, size_t alt_size, size_t criteria_size){
+	const unsigned int x = blockIdx.x*blockDim.x+threadIdx.x;
+	const unsigned int y = blockIdx.y*blockDim.y+threadIdx.y;
+
+	if(x>=alt_size || y>=criteria_size) return;
+
+	sum[y*alt_size+x] = 0;
+	for( size_t i=0; i<alt_size; i++) {
+		sum[y*alt_size+x] += matrix[y*alt_size*alt_size+x*alt_size+i];
 	}
 }
 
 static __global__
-void calculateSUM_Line(float* data, float* sum, int size){
-	int i = blockIdx.x*blockDim.x+threadIdx.x;
-	if(i<size) {
-		float s = 0;
-		int j;
-		for(j=0; j<size; j++) {
-			s+= data[j*size+i];
-		}
-		sum[i] = s;
-	}
-}
-
-static __global__
-void calculateNMatrix(float* data, float* sum, float* result, int size){
-	int i = blockIdx.x*blockDim.x+threadIdx.x;
-	int j = blockIdx.y*blockDim.y+threadIdx.y;
+void normalizeMatrixKernel(float* matrix, float* sum, size_t alt_size, size_t criteria_size){
+	const unsigned int x = blockIdx.x*blockDim.x+threadIdx.x;
+	const unsigned int y = blockIdx.y*blockDim.y+threadIdx.y;
+	const unsigned int z = blockIdx.z*blockDim.z+threadIdx.z;
 	// printf("Inside the kernel!!\n");
-	if( i < size && j < size) {
-		if(sum[i] == 0) result[j*size+i] = 0;
-		else result[j*size+i] = data[j*size+i] / sum[i];
-	}
+	if( x >= alt_size || y >= alt_size || z >= criteria_size) return;
+
+	const size_t index = z*alt_size*alt_size+y*alt_size+x;
+
+	if(sum[z*alt_size+y] == 0) matrix[index] = 0;
+	else matrix[index] = matrix[index] / sum[z*alt_size+y];
 }
 
 static __global__
