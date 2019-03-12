@@ -3,12 +3,11 @@
 
 static __global__
 void normalize19Kernel(float* matrix, float *values, size_t alt_size, size_t criteria_size){
-	int i = blockIdx.x*blockDim.x+threadIdx.x;
-	int j = blockIdx.y*blockDim.y+threadIdx.y;
-	if( i < alt_size && j < criteria_size) {
-		// if the min max difference is 0, all the elements in the matrix are equals and their values are set to 1, otherwise the division has to be made.
-		matrix[j*alt_size+i] = (values[j]!=0) ?  (matrix[j*alt_size+i]/values[j]) : 0;
-	}
+	int x = blockIdx.x*blockDim.x+threadIdx.x;
+	int y = blockIdx.y*blockDim.y+threadIdx.y;
+	if( x >= alt_size || y >= criteria_size) return;
+	// if the min max difference is 0, all the elements in the matrix are equals and their values are set to 1, otherwise the division has to be made.
+	matrix[y*alt_size+x] = (values[y]!=0) ?  (matrix[y*alt_size+x]/values[y]) : 0;
 }
 
 static __global__
@@ -38,7 +37,7 @@ void pairwiseComparsionKernel(float *matrix, float *result, size_t alt_size, siz
 }
 
 static __global__
-void sumLinesKernel(float* matrix, float* sum, size_t alt_size, size_t criteria_size){
+void sumColumnKernel(float* matrix, float* sum, size_t alt_size, size_t criteria_size){ // go through all the matrix making a sum of each row and inserting it into sum array
 	const unsigned int x = blockIdx.x*blockDim.x+threadIdx.x;
 	const unsigned int y = blockIdx.y*blockDim.y+threadIdx.y;
 
@@ -51,6 +50,19 @@ void sumLinesKernel(float* matrix, float* sum, size_t alt_size, size_t criteria_
 }
 
 static __global__
+void sumRowKernel(float* matrix, float* sum, size_t alt_size, size_t criteria_size){ // go through all the matrix making a sum of each column and inserting it into sum array
+	const unsigned int x = blockIdx.x*blockDim.x+threadIdx.x;
+	const unsigned int y = blockIdx.y*blockDim.y+threadIdx.y;
+
+	if(x>=alt_size || y>=criteria_size) return;
+
+	sum[y*alt_size+x]=0;
+	for( size_t i=0; i<alt_size; i++) {
+		sum[y*alt_size+x]+= matrix[y*alt_size*alt_size+i*alt_size+x];
+	}
+}
+
+static __global__
 void normalizeMatrixKernel(float* matrix, float* sum, size_t alt_size, size_t criteria_size){
 	const unsigned int x = blockIdx.x*blockDim.x+threadIdx.x;
 	const unsigned int y = blockIdx.y*blockDim.y+threadIdx.y;
@@ -58,24 +70,33 @@ void normalizeMatrixKernel(float* matrix, float* sum, size_t alt_size, size_t cr
 	// printf("Inside the kernel!!\n");
 	if( x >= alt_size || y >= alt_size || z >= criteria_size) return;
 
-	const size_t index = z*alt_size*alt_size+y*alt_size+x;
+	const size_t index = z*alt_size*alt_size+x*alt_size+y; // go through all elements in specified COLUMN of the ROW (z is the criteria analyzed, y represents the row and x the column)
 
 	if(sum[z*alt_size+y] == 0) matrix[index] = 0;
 	else matrix[index] = matrix[index] / sum[z*alt_size+y];
 }
 
 static __global__
-void calculateCPml(float* data, float* result, int size){
-	int i = blockIdx.x*blockDim.x+threadIdx.x;
+void pmlKernel(float *sum, float *pml, size_t alt_size, size_t criteria_size){
+	const unsigned int x = blockIdx.x*blockDim.x+threadIdx.x;
+	const unsigned int y = blockIdx.y*blockDim.y+threadIdx.y;
+	const unsigned int z = blockIdx.z*blockDim.z+threadIdx.z;
 	// printf("Inside the kernel!!\n");
-	if( i < size ) {
-		float sum=0;
-		int j;
-		for(j=0; j<size; j++) {
-			sum += data[i*size+j];
-		}
-		result[i] = sum / (float)size;
 
+	if( x>= alt_size || y>= alt_size || z>= criteria_size) return;
+
+	pml[z*alt_size+y] = sum[z*alt_size+y]/alt_size;
+}
+
+static __global__
+void pgKernel(float* pml_obj, float *pml, float *pg, size_t alt_size, size_t criteria_size){
+	const unsigned int x = blockIdx.x*blockDim.x+threadIdx.x;
+
+	if( x >= alt_size) return;
+
+	pg[x]=0;
+	for(size_t i=0; i< criteria_size; i++) {
+		pg[x] += pml_obj[i] * pml[i*alt_size+x];
 	}
 }
 

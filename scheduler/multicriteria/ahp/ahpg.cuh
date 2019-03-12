@@ -28,10 +28,10 @@ char path[1024];
 unsigned int hosts_size;
 // The total ammount of criterias (all the criterias are leaf, just one level of hierarchy)
 unsigned int criteria_size;
-// Weights of the edges between the objective function and all the criterias in level 1
-float *edges_values;
+// the DEVICE PML of the objective and L1 criterias
+float *d_pml_obj;
 // Final values
-float* hosts_value;
+float* pg;
 unsigned int* hosts_index;
 
 public:

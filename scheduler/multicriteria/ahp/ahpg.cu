@@ -40,9 +40,17 @@ AHPG::AHPG() {
 		strcpy(this->path, cwd);
 		strcat(this->path,"/");
 	}
+
+	this->hosts_size=0;
+
+	this->d_pml_obj=NULL;
+	this->pg=NULL;
 }
 
 AHPG::~AHPG(){
+	checkCuda(cudaFree(this->d_pml_obj));
+	this->d_pml_obj=NULL;
+	this->pg=NULL;
 }
 
 void AHPG::run(Host** alternatives, int alt_size){
@@ -53,6 +61,7 @@ void AHPG::run(Host** alternatives, int alt_size){
 	int block_size = (props.major <2) ? 16 : 32;
 
 	// Creating the array for the host index
+	this->hosts_size = alt_size;
 	this->hosts_index = (unsigned int*) malloc (sizeof(unsigned int)* alt_size);
 	std::map<std::string,float> allResources = alternatives[0]->getResource();
 
@@ -147,50 +156,42 @@ void AHPG::run(Host** alternatives, int alt_size){
 		// pairwiseComparsionKernel<<<grid,block,smemSize>>>(d_matrix, d_pairwise, alt_size, this->criteria_size);
 		pairwiseComparsionKernel<<<grid,block>>>(d_matrix, d_pairwise, alt_size, this->criteria_size);
 		cudaDeviceSynchronize();
-
-		cudaError_t err = cudaGetLastError();
-		if (err != cudaSuccess) {
-			printf("CUDA Error: %s\n", cudaGetErrorString(err));
-			checkCuda(cudaFree(d_matrix));
-			checkCuda(cudaFree(d_pairwise));
-			exit(0);
-		}
 	}
 	checkCuda(cudaFree(d_matrix));
 
-	// float *temp = (float*) malloc(sizeof(float)* ahp_matrix_bytes);
-
-	// checkCuda(cudaMemcpy(temp, d_pairwise, ahp_matrix_bytes, cudaMemcpyDeviceToHost));
-
-	// for(size_t i=0; i<this->criteria_size; i++) {
-	//     for(size_t j=0; j<alt_size; j++) {
-	//         for(size_t k=0; k<alt_size; k++) {
-	//             std::cout<<temp[i*alt_size*alt_size+j*alt_size+k]<<" ";
-	//             if(temp[i*alt_size*alt_size+j*alt_size+k]==0) {
-	//                 printf("Erro in the cuda acquisition\n");
-	//                 free(temp);
-	//                 exit(0);
-	//             }
-	//         }
-	//         std::cout<<"\n";
-	//     }
-	//     std::cout<<"\n";
-	//     std::cout<<"\n";
+	// {
+	//      float *temp = (float*) malloc(sizeof(float)* ahp_matrix_bytes);
+	//
+	//      checkCuda(cudaMemcpy(temp, d_pairwise, ahp_matrix_bytes, cudaMemcpyDeviceToHost));
+	//      for(size_t i=0; i<this->criteria_size; i++) {
+	//              for(size_t j=0; j<alt_size; j++) {
+	//                      for(size_t k=0; k<alt_size; k++) {
+	//                              std::cout<<temp[i*alt_size*alt_size+j*alt_size+k]<<" ";
+	//                              if(temp[i*alt_size*alt_size+j*alt_size+k]==0) {
+	//                                      printf("Erro in the cuda acquisition\n");
+	//                                      free(temp);
+	//                                      exit(0);
+	//                              }
+	//                      }
+	//                      std::cout<<"\n";
+	//              }
+	//              std::cout<<"\n\n\n";
+	//      }
+	//      free(temp);
 	// }
 
 	// NORMALIZE MATRIX
+	float *d_sum;
+	size_t sum_bytes = sizeof(float)*this->criteria_size*alt_size;
+	checkCuda( cudaMalloc((void**)&d_sum, sum_bytes));
+	//The pairwise matrix is composed by Criterias X Alternatives X Alternatives
+	//To normalize the matrix, first we need the sum of each line in the pairwise matrix (remember that the pairwise is a 3D matrix, so we have a matrix os sum lines)
 	{
-		//The pairwise matrix is composed by Criterias X Alternatives X Alternatives
-		//To normalize the matrix, first we need the sum of each line in the pairwise matrix (remember that the pairwise is a 3D matrix, so we have a matrix os sum lines)
-		float *d_sum;
-		size_t sum_bytes = sizeof(float)*this->criteria_size*alt_size;
-		checkCuda( cudaMalloc((void**)&d_sum, sum_bytes));
-
 		{
 			dim3 block(block_size, block_size, 1);
 			dim3 grid (ceil(alt_size/(float)block.x), ceil(this->criteria_size/(float)block.y),1);
 
-			sumLinesKernel<<<grid,block>>>(d_pairwise, d_sum, alt_size, this->criteria_size);
+			sumRowKernel<<<grid,block>>>(d_pairwise, d_sum, alt_size, this->criteria_size);
 
 			cudaDeviceSynchronize();
 		}
@@ -204,59 +205,118 @@ void AHPG::run(Host** alternatives, int alt_size){
 
 			cudaDeviceSynchronize();
 		}
-
-		// float *temp = (float*)malloc(sum_bytes);
-		// float *temp_p = (float*)malloc(ahp_matrix_bytes);
-		// checkCuda(cudaMemcpy(temp, d_sum, sum_bytes, cudaMemcpyDeviceToHost));
-		// checkCuda(cudaMemcpy(temp_p, d_pairwise, ahp_matrix_bytes, cudaMemcpyDeviceToHost));
-
-		// printf("Pairwise\n");
-		// for (size_t i=0; i<this->criteria_size; i++) {
-		//      for(size_t j=0; j<alt_size; j++) {
-		//              for(size_t k=0; k<alt_size; k++) {
-		//                      std::cout<<temp_p[i*alt_size*alt_size+j*alt_size+k]<<" ";
-		//              }
-		//              std::cout<<"\n";
-		//      }
-		//      std::cout<<"\n";
-		//      std::cout<<"\n";
-		// }
-		// printf("Sum Matrix\n");
-		// for(size_t i=0; i<this->criteria_size; i++) {
-		//      for(size_t j=0; j<alt_size; j++) {
-		//              std::cout<<temp[i*alt_size+j]<<" ";
-		//      }
-		//      printf("\n");
-		// }
-
-		checkCuda(cudaFree(d_sum));
 	}
-	checkCuda(cudaFree(d_pairwise));
-	exit(0);
-	// BUILD PML
+
+	// {
+	//      float *temp = (float*)malloc(sum_bytes);
+	//      float *temp_p = (float*)malloc(ahp_matrix_bytes);
+	//      checkCuda(cudaMemcpy(temp, d_sum, sum_bytes, cudaMemcpyDeviceToHost));
+	//      checkCuda(cudaMemcpy(temp_p, d_pairwise, ahp_matrix_bytes, cudaMemcpyDeviceToHost));
+	//
+	//      printf("Normalize Matrix\n");
+	//      for (size_t i=0; i<this->criteria_size; i++) {
+	//              for(size_t j=0; j<alt_size; j++) {
+	//                      for(size_t k=0; k<alt_size; k++) {
+	//                              std::cout<<temp_p[i*alt_size*alt_size+j*alt_size+k]<<" ";
+	//                      }
+	//                      std::cout<<"\n";
+	//              }
+	//              std::cout<<"\n";
+	//              std::cout<<"\n";
+	//      }
+	//      printf("Sum Matrix\n");
+	//      for(size_t i=0; i<this->criteria_size; i++) {
+	//              for(size_t j=0; j<alt_size; j++) {
+	//                      std::cout<<temp[i*alt_size+j]<<" ";
+	//              }
+	//              printf("\n");
+	//      }
+	// printf("\n\n\n");
+	// }
+
+	// Now the pairwise matrix is normalized.
+	// Generate the PML of each L1 criteria
+	float *d_pml;
 	{
+		{
+			dim3 block(block_size, block_size,1);
+			dim3 grid   (ceil(alt_size/(float)block.x),ceil(this->criteria_size/(float)block.y),1);
 
+			//reuse the SUM used in the last kernel call to this step, reducing the time by don't call again cudaMalloc and cudaFree
+			sumColumnKernel<<<grid,block>>>(d_pairwise, d_sum, alt_size, this->criteria_size);
+
+			cudaDeviceSynchronize();
+			checkCuda(cudaFree(d_pairwise));
+		}
+		{
+			size_t pml_bytes = sizeof(float)*this->criteria_size*alt_size;
+			checkCuda( cudaMalloc((void**)&d_pml, pml_bytes));
+
+			dim3 block(block_size, block_size,1);
+			dim3 grid (ceil(alt_size/(float)block.x), ceil(alt_size/(float)block.y),ceil(this->criteria_size/(float)block.z));
+
+			pmlKernel<<<grid,block>>>(d_sum, d_pml, alt_size, this->criteria_size);
+
+			cudaDeviceSynchronize();
+			checkCuda(cudaFree(d_sum));
+		}
 	}
-	// BUILD PG
+	// {
+	//      float *temp_p = (float*) malloc(sizeof(float)*alt_size*this->criteria_size);
+	//      checkCuda(cudaMemcpy(temp_p,d_pml,(sizeof(float)*alt_size*this->criteria_size), cudaMemcpyDeviceToHost));
+	//
+	//      printf("PML\n");
+	//      for(size_t i=0; i<this->criteria_size; i++) {
+	//              for(size_t j=0; j<alt_size; j++) {
+	//                      std::cout<<temp_p[i*alt_size+j]<<" ";
+	//              }
+	//              printf("\n");
+	//      }
+	//     printf("\n\n\n");
+	// }
+
+	// Now the PML were made, generate the PG
+	float *d_pg;
+	size_t pg_bytes = sizeof(float)*alt_size;
+	checkCuda( cudaMalloc((void**)&d_pg, pg_bytes));
 	{
+		//PG_A1 = (PML_OBJ_C1 * PML_C1_A1 + PML_OBJ_C2 * PML_C2_A1 ... + PML_OBJ_Cn * PML_Cn * A1)
+		dim3 block(block_size,1,1);
+		dim3 grid   (ceil(alt_size/(float)block.x), 1,1);
 
+		pgKernel<<<grid,block>>>(d_pml_obj, d_pml,d_pg, alt_size, this->criteria_size);
+		cudaDeviceSynchronize();
 	}
-	//////////////////////////////
+	checkCuda(cudaFree(d_pml));
+	// With the PG calculated, update the HOST
 
+	if(this->pg!=NULL)
+		free(pg);
+	this->pg = (float*)malloc(pg_bytes);
 
+	checkCuda(cudaMemcpy(this->pg, d_pg, pg_bytes, cudaMemcpyDeviceToHost));
+	checkCuda(cudaFree(d_pg));
+
+	{
+		// printf("PG\n");
+		// for(int i=0; i<alt_size; i++) {
+		//      std::cout<<pg[i]<<" ";
+		// }
+		// printf("\n");
+	}
 }
 
 unsigned int* AHPG::getResult(unsigned int& size){
 	size = this->hosts_size;
 
-	unsigned int* result = (unsigned int*) malloc (sizeof(unsigned int));
+	unsigned int* result = (unsigned int*) malloc (sizeof(unsigned int)*size);
 
 	unsigned int i;
 
 	std::priority_queue<std::pair<float, int> > alternativesPair;
 
 	for (i = 0; i < (unsigned int) this->hosts_size; i++) {
-		alternativesPair.push(std::make_pair(this->hosts_value[i], i));
+		alternativesPair.push(std::make_pair(this->pg[i], i));
 	}
 	i=0;
 
@@ -265,6 +325,8 @@ unsigned int* AHPG::getResult(unsigned int& size){
 		alternativesPair.pop();
 		i++;
 	};
+
+	// for(int i=0; i< result)
 	return result;
 }
 
@@ -299,25 +361,77 @@ void AHPG::readJson() {
 }
 
 void AHPG::parseAHPG(const rapidjson::Value &hierarchyData){
+	int devID;
+	cudaDeviceProp props;
+	cudaGetDevice(&devID);
+	cudaGetDeviceProperties(&props, devID);
+	int block_size = (props.major <2) ? 16 : 32;
+
 	// the hierarchy analysed is composed by just 1 level, so the criteria_size will be the criterias + 1 (the objective/focus node).
 	const rapidjson::Value &c_array = hierarchyData["childs"];
 	this->criteria_size = c_array.Size();
 
+	dim3 block_1d(block_size, 1, 1);
+	dim3 grid_1d   (ceil(this->criteria_size/(float)block_1d.x),  1, 1);
+
+	dim3 block_2d(block_size, block_size, 1);
+	dim3 grid_2d   (ceil(this->criteria_size/(float)block_2d.x), ceil(this->criteria_size/(float)block_2d.y),1);
+
 	// the edge values has the power of 2 of the criterias ammount due to the pairwise comparison.
-	this->edges_values = (float*) malloc (sizeof(float)*this->criteria_size*this->criteria_size);
+	float *d_pairwise;
+	{
+		size_t pair_bytes = sizeof(float)*this->criteria_size*this->criteria_size;
+		float *edges_values = (float*) malloc (pair_bytes);
 
-	// iterate through the edges values
-	// The array represents a Square Matrix
-	for(size_t i=0; i< this->criteria_size; i++) {
-		const rapidjson::Value & w_array = c_array[i]["weight"];
-		for(size_t j=0; j<w_array.Size(); j++) {
-			//according to the json, the edge_values will be composed by
-			// [[w1c1 w1c2 w1c3 w1c4]
-			//  [w2c1 w2c2 w3c3 w2c4]
-			//  [w3c1 w3c2 w3c3 w3c4]
-			//  [w4c1 w4c2 w4c3 w4c4]]
+		// iterate through the edges values
+		// The array represents a Square Matrix
+		for(size_t i=0; i< this->criteria_size; i++) {
+			const rapidjson::Value & w_array = c_array[i]["weight"];
+			for(size_t j=0; j<w_array.Size(); j++) {
+				//according to the json, the edge_values will be composed by
+				// [[w1c1 w1c2 w1c3 w1c4]
+				//  [w2c1 w2c2 w3c3 w2c4]
+				//  [w3c1 w3c2 w3c3 w3c4]
+				//  [w4c1 w4c2 w4c3 w4c4]]
 
-			this->edges_values[i*this->criteria_size+j] = w_array[j].GetFloat();
+				edges_values[i*this->criteria_size+j] = w_array[j].GetFloat();
+			}
+		}
+		// Now the edge has the pairwise comparison between the Objective and L1 Criterias. Copy the values to the GPU
+		checkCuda(cudaMalloc((void**)&d_pairwise, pair_bytes));
+		checkCuda(cudaMemcpy(d_pairwise, edges_values, pair_bytes, cudaMemcpyHostToDevice));
+		free(edges_values);
+	}
+	// Making the normalized matrix
+	float *d_sum;
+	size_t sum_bytes = sizeof(float)*this->criteria_size;
+	checkCuda( cudaMalloc((void**)&d_sum, sum_bytes));
+	{
+		{
+			sumRowKernel<<<grid_1d,block_1d>>>(d_pairwise, d_sum, this->criteria_size,1);
+
+			cudaDeviceSynchronize();
+		}
+		{
+			normalizeMatrixKernel<<<grid_2d,block_2d>>>(d_pairwise, d_sum, this->criteria_size, 1);
+
+			cudaDeviceSynchronize();
+		}
+	}
+	// Making the pml;
+	{
+		{
+			sumColumnKernel<<<grid_1d,block_1d>>>(d_pairwise, d_sum, this->criteria_size, 1);
+
+			cudaDeviceSynchronize();
+			checkCuda(cudaFree(d_pairwise));
+		}
+		{
+			checkCuda(cudaMalloc((void**)&this->d_pml_obj, sizeof(float)*this->criteria_size));
+
+			pmlKernel<<<grid_2d,block_2d>>>(d_sum, d_pml_obj, this->criteria_size, 1);
+
+			checkCuda(cudaFree(d_sum));
 		}
 	}
 }
