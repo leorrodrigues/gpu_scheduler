@@ -1,0 +1,4 @@
+Reuniao PASIN (21/03):
+	- X Hipercubo (codificacao de bits), utilizar a ideia na fat-tree para tentar melhorar a busca do node mais próximo
+	- X Trocar como a fragmentação é utilizada, até o momento a fragmentação representa a quantidade de jobs alocados em um único host. Trocar para a quantidade de RECURSOS que estão consumidos em determinado HOST, pois podemos ter 3 jobs que ocupam somente 20% do HOST enquanto em outro host um único job ocupa 60%. Na versão inicial, o algoritmo irá selecionar o primeiro host, sendo que na verdade, o host mais adequado para melhorar a consolidação seria o segundo host.
+	- X Implementar o max flow min path algorithm em cuda. A versão inicial está em CPU, portar para a GPU onde cada thread irá executar o algoritmo de modo sequencial, o ganho aqui está na execução paralela de cada thread montando o path específico para cada cada dois hosts (1 execução da GPU calcula N paths).
