@@ -39,3 +39,5 @@ Thumbs.db
 *~
 *.bak
 *.swp
+
+scheduler/container_link/*.json
