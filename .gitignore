@@ -40,4 +40,4 @@ Thumbs.db
 *.bak
 *.swp
 
-scheduler/container_link/*.json
+scheduler/requests/container_link/*.json
