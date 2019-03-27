@@ -41,3 +41,4 @@ Thumbs.db
 *.swp
 
 scheduler/requests/container_link/*.json
+scheduler/requests/container_link/compress/
