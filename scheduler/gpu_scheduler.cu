@@ -21,6 +21,7 @@
 #include "allocator/all.cuh"
 
 #include "allocator/links/links_allocator.hpp"
+#include "allocator/links/links_allocator.cuh"
 
 #include "objective_functions/fragmentation.hpp"
 #include "objective_functions/footprint.hpp"
@@ -283,6 +284,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
 		if(Allocator::checkFit(total_dc, consumed,current)!=0) {
 			// allocate the new task in the data center.
+			std::chrono::high_resolution_clock::time_point allocator_start = std::chrono::high_resolution_clock::now();
 			if(options->standard=="none") {
 				if( options->clustering_method=="pure_mcl") {
 					allocation_success=Allocator::mcl_pure(builder);
@@ -308,10 +310,23 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 					exit(1);
 				}
 			}
+			std::chrono::high_resolution_clock::time_point allocator_end = std::chrono::high_resolution_clock::now();
+
+			std::chrono::duration<double> time_span_allocator =  std::chrono::duration_cast<std::chrono::duration<double> >(allocator_end - allocator_start);
+
+			spdlog::info("Allocator seconds {}", time_span_allocator.count());
 			if(allocation_success) {
+				std::chrono::high_resolution_clock::time_point links_start = std::chrono::high_resolution_clock::now();
+
 				// builder->getTopology()->listTopology();
-				allocation_success=Allocator::links_allocator(builder, current, consumed);
+				// allocation_success=Allocator::links_allocator(builder, current, consumed);
+				allocation_success=Allocator::links_allocator_cuda(builder, current, consumed);
 				// builder->getTopology()->listTopology();
+				std::chrono::high_resolution_clock::time_point links_end = std::chrono::high_resolution_clock::now();
+
+				std::chrono::duration<double> time_span_links =  std::chrono::duration_cast<std::chrono::duration<double> >(links_end - links_start);
+
+				spdlog::info("Links seconds {}", time_span_links.count());
 			}
 		}else{
 			allocation_success=false;
@@ -426,13 +441,17 @@ int main(int argc, char **argv){
 		log_str+=std::to_string(options.data_type);
 		log_str+=".json";
 	}
+	spdlog::info("Generating the loggers");
 	auto dc_logger = spdlog::basic_logger_mt("dc_logger","logs/dc-"+log_str);
 	auto task_logger =spdlog::basic_logger_mt("task_logger", "logs/request-"+log_str);
 
 	dc_logger->set_pattern("%v");
 	task_logger->set_pattern("%v");
 
+	spdlog::info("Creating the reader");
 	Reader* reader = new Reader();
+
+	spdlog::info("Generate the path");
 	// parse all json
 	std::string path = "requests/";
 	if(options.test_type==1) {
@@ -451,7 +470,7 @@ int main(int argc, char **argv){
 	}
 	path+=".json";
 
-	spdlog::debug("Reading the request json {}", path);
+	spdlog::info("Reading the request json {}", path);
 	reader->openDocument(path.c_str());
 	std::string message;
 

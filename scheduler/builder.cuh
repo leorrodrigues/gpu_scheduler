@@ -46,6 +46,7 @@ void getClusteringResult();
 std::map<std::string,float> getResource();
 std::vector<Host*> getHosts();
 Host* getHost(unsigned int);
+size_t getHostsSize();
 std::vector<Host*> getClusterHosts();
 int getHostsMedianInGroup();
 std::vector<Host*> getHostsInGroup(unsigned int);

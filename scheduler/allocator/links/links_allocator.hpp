@@ -1,5 +1,5 @@
 #ifndef _LINKS_ALLOCATOR_NOT_DEFINED_
-#define _LINKS_ALLOCATOR__NOT_DEFINED_
+#define _LINKS_ALLOCATOR_NOT_DEFINED_
 
 #include <algorithm>
 #include <cfloat>

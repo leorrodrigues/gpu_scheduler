@@ -92,6 +92,7 @@ std::vector<Host*> Builder::getHosts(){
 	return this->hosts;
 }
 
+
 Host* Builder::getHost(unsigned int id){
 	// std::cout << "Looking for "<<name<<"\n";
 	for(Host* h : this->hosts) {
@@ -102,6 +103,10 @@ Host* Builder::getHost(unsigned int id){
 	}
 	// std::cout<<" Name Not Found!\n";
 	return NULL;
+}
+
+size_t Builder::getHostsSize(){
+	return this->hosts.size();
 }
 
 std::vector<Host*> Builder::getClusterHosts(){
