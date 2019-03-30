@@ -6,7 +6,20 @@
 #include "../../builder.cuh"
 #include "../../thirdparty/vnegpu/graph.cuh"
 
+
 namespace Allocator {
+
+__device__
+void getMaxIndex(float *array, size_t size, int *index){
+	float max=FLT_MIN;
+	for(int i=0; i<size; i++) {
+		if(max<array[i]) {
+			max=array[i];
+			*index=i;
+		}
+	}
+}
+
 /**
    Dijkstra function to find the shortest path between the all the hosts in the Data Center. This implementation aims to find the path with the bigger value.
    DC is the graph topology
@@ -20,14 +33,17 @@ namespace Allocator {
    Size is the total of host nodes in graph.
    Nodes_size is the total number of nodes in graph.
  */
-__device__
-void widestPathKernel(vnegpu::graph<float>*dc, int* path, int* path_edge, int* nodes_types, const unsigned int host_size, const unsigned int nodes_size, bool *visited, float *weights, int *discount){
+__global__
+void widestPathKernel(vnegpu::graph<float>*dc, int* path, int* path_edge, unsigned int hosts_size, unsigned int nodes_size, bool *visited, float *weights, int *discount, int *all_hosts_index, float* result){
 	int x = blockIdx.x*blockDim.x+threadIdx.x;
 	int y = blockIdx.y*blockDim.y+threadIdx.y;
-	if(x >= host_size-1 || y >= host_size-1 || x>=y) return;
-	//Need to find de source and the destination in the graph through the X and Y variables... HOW?
-	const int src = ?;
-	const int dst = ?;
+	if(x >= hosts_size-1 || y >= hosts_size || x>=y) return;
+	// printf("THREAD X:%d Y%d RUNNING\n",x,y);
+
+	int* nodes_types = dc->get_all_node_type();
+
+	int src = all_hosts_index[x];
+	int dst = all_hosts_index[y];
 	/*
 	    Exemple: 6 hosts -> The array is composed by :
 	    0-01 1-02 2-03 3-04 4-05
@@ -36,10 +52,10 @@ void widestPathKernel(vnegpu::graph<float>*dc, int* path, int* path_edge, int* n
 	    12-34 13-35
 	    14-45
 
-	   The matrix has [(|host_size|*(|host_size|-1))/2]*nodes_size
+	   The matrix has [(|hosts_size|*(|hosts_size|-1))/2]*nodes_size
 	 */
 
-	int initial_index = nodes_size*(x* host_size + y   - discount[x]);
+	int initial_index = nodes_size*(x* hosts_size + y   - discount[x]);
 
 	weights[initial_index+src]=FLT_MAX;
 	visited[initial_index+src]=false;
@@ -48,9 +64,8 @@ void widestPathKernel(vnegpu::graph<float>*dc, int* path, int* path_edge, int* n
 	int node_index, next_node;
 	size_t destination_index;
 	float next_node_weight, alt;
-	cublasHandle_t cublasHandle;
 	while(true) {
-		cublasIsamax(cublasHandle, nodes_size, weights, 1,&node_index);
+		getMaxIndex(weights, nodes_size, &node_index);
 
 		if(weights[initial_index+node_index]==FLT_MIN || node_index==dst) break; //simulate empty queue or we found the destination node
 
@@ -85,8 +100,9 @@ void widestPathKernel(vnegpu::graph<float>*dc, int* path, int* path_edge, int* n
 			}
 		}
 	}
-}
 
+	result[initial_index]=weights[initial_index+dst];
+}
 }
 
 #endif

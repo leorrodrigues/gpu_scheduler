@@ -702,9 +702,13 @@ inline void cpu_modified()
 	this->state = GRAPH_ON_CPU;
 }
 
-__host__
+__host__ __device__
 inline int* get_all_node_type(){
+    #ifdef __CUDA_ARCH__
+	return this->d_node_type;
+    #else
 	return this->node_type;
+    #endif
 }
 
 __host__ __device__
@@ -1248,6 +1252,7 @@ __host__
 void free_graph()
 {
 
+	CUDA_CHECK();
 	cudaFreeHost(source_offsets);
 	cudaFreeHost(destination_indices);
 	cudaFreeHost(edges_ids);

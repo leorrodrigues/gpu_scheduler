@@ -20,7 +20,6 @@
 #include "allocator/free.hpp"
 #include "allocator/all.cuh"
 
-#include "allocator/links/links_allocator.hpp"
 #include "allocator/links/links_allocator.cuh"
 
 #include "objective_functions/fragmentation.hpp"

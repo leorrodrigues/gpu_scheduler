@@ -195,16 +195,20 @@ void Task::setSubmission(unsigned int submission){
 	this->submission = submission;
 }
 
-void Task::setLinkPath(int** path){
+void Task::setLinkPath(int* path){
 	this->path=path;
 }
 
-void Task::setLinkPathEdge(int** path_edge){
+void Task::setLinkPathEdge(int* path_edge){
 	this->path_edge=path_edge;
 }
 
 void Task::setLinkDestination(int* destination){
 	this->destination=destination;
+}
+
+void Task::setLinkInit(int* init){
+	this->init=init;
 }
 
 void Task::setLinkValues(float* values){
@@ -247,16 +251,20 @@ unsigned int Task::getDelay(){
 	return this->delay;
 }
 
-int** Task::getLinkPath(){
+int* Task::getLinkPath(){
 	return this->path;
 }
 
-int** Task::getLinkPathEdge(){
+int* Task::getLinkPathEdge(){
 	return this->path_edge;
 }
 
 int* Task::getLinkDestination(){
 	return this->destination;
+}
+
+int* Task::getLinkInit(){
+	return this->init;
 }
 
 float* Task::getLinkValues(){
