@@ -61,7 +61,7 @@ NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas -O2 -use_fast_math -lineinfo
 GPUSCHEDULER_FLAG = -I "gpuScheduler"
 THIRDPARTY_FLAGS = -I "scheduler/thirdparty/"
 
-LDFLAGS = -lcublas -lboost_program_options
+LDFLAGS = -lcublas -lcusparse -lboost_program_options
 
 #Generate the object file
 CXX_OBJ = -c
@@ -122,7 +122,7 @@ NVCCFLAGS += $(DEFINES)
 all: scheduler;
 
 scheduler: .task .clustering .multicriteria .libs .json $(LIST_GPUSCHEDULER)
-	$(NVCC) $(NVCCFLAGS) $(LDFLAGS) $(BUILD_GPUSCHEDULER)*.o  $(BUILD_GPUSCHEDULER)ahp/*.o $(BUILD_GPUSCHEDULER)ahp/hierarchy/*.o $(BUILD_GPUSCHEDULER)topsis/*.o $(NVOUT) $(GPUSCHEDULER_PATH)gpuscheduler.out
+	$(NVCC) $(NVCCFLAGS) $(BUILD_GPUSCHEDULER)*.o  $(BUILD_GPUSCHEDULER)ahp/*.o $(BUILD_GPUSCHEDULER)ahp/hierarchy/*.o $(BUILD_GPUSCHEDULER)topsis/*.o $(NVOUT) $(GPUSCHEDULER_PATH)gpuscheduler.out $(LDFLAGS)
 
 ifeq ($(MAKECMDGOALS),scheduler)
 include $(LIST_CLUSTERING_DEP)
@@ -159,10 +159,10 @@ $(BUILD_GPUSCHEDULER)%.d : $(MULTICRITERIA_PATH)%.cpp
 	$(CXX) $(CXXFLAGS_W/BOOST) -M $< $(COUT) $@;
 
 $(BUILD_GPUSCHEDULER)%$(OBJ) : $(MULTICRITERIA_PATH)%.cu
-	$(NVCC) $(NVCCFLAGS) $(THIRDPARTY_FLAGS) $(NVCC_OBJ) $< $(NVOUT) $@;
+	$(NVCC) $(NVCCFLAGS) $(THIRDPARTY_FLAGS) $(NVCC_OBJ) $< $(NVOUT) $@ $(LDFLAGS);
 
 $(BUILD_GPUSCHEDULER)%.d : $(MULTICRITERIA_PATH)%.cu
-	$(NVCC) $(NVCCFLAGS) $(THIRDPARTY_FLAGS) -odir $(BUILD_GPUSCHEDULER) -M $< $(NVOUT) $@;
+	$(NVCC) $(NVCCFLAGS) $(THIRDPARTY_FLAGS) -odir $(BUILD_GPUSCHEDULER) -M $< $(NVOUT) $@ $(LDFLAGS);
 
 #Compile the tasks module
 $(BUILD_GPUSCHEDULER)%$(OBJ) : $(TASKS_PATH)%.cpp
@@ -173,17 +173,17 @@ $(BUILD_GPUSCHEDULER)%.d : $(TASKS_PATH)%.cpp
 
 #Compile the clustering module
 $(BUILD_GPUSCHEDULER)%$(OBJ) : $(CLUSTERING_PATH)%.cu
-	$(NVCC) $(NVCCFLAGS) $(THIRDPARTY_FLAGS) $(NVCC_OBJ) $< $(NVOUT) $@;
+	$(NVCC) $(NVCCFLAGS) $(THIRDPARTY_FLAGS) $(NVCC_OBJ) $< $(NVOUT) $@ $(LDFLAGS);
 
 $(BUILD_GPUSCHEDULER)%.d : $(CLUSTERING_PATH)%.cu
-	$(NVCC) $(NVCCFLAGS) $(THIRDPARTY_FLAGS) -odir $(BUILD_GPUSCHEDULER) -M $< $(NVOUT) $@;
+	$(NVCC) $(NVCCFLAGS) $(THIRDPARTY_FLAGS) -odir $(BUILD_GPUSCHEDULER) -M $< $(NVOUT) $@ $(LDFLAGS);
 
 #Compile GPUSCHEDULER module
 $(BUILD_GPUSCHEDULER)%$(OBJ) : $(GPUSCHEDULER_PATH)%.cu
-	$(NVCC) $(NVCCFLAGS)  $(THIRDPARTY_FLAGS) $(NVCC_OBJ) $< $(NVOUT) $@;
+	$(NVCC) $(NVCCFLAGS)  $(THIRDPARTY_FLAGS) $(NVCC_OBJ) $< $(NVOUT) $@ $(LDFLAGS);
 
 $(BUILD_GPUSCHEDULER)%.d : $(GPUSCHEDULER_PATH)%.cu
-	$(NVCC) $(NVCCFLAGS) $(THIRDPARTY_FLAGS) -odir $(BUILD_GPUSCHEDULER) -M $< $(NVOUT) $@;
+	$(NVCC) $(NVCCFLAGS) $(THIRDPARTY_FLAGS) -odir $(BUILD_GPUSCHEDULER) -M $< $(NVOUT) $@ $(LDFLAGS);
 
 .libs: $(BUILD_GPUSCHEDULER)pugixml$(OBJ);
 
