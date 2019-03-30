@@ -268,6 +268,8 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 	int total_delay = 0;
 	int delay=1;
 
+	std::chrono::duration<double> time_span_links;
+	std::chrono::duration<double> time_span_allocator;
 	while(true) {
 		if(scheduler->tasks_to_allocate.empty()) {
 			break;
@@ -311,9 +313,8 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			}
 			std::chrono::high_resolution_clock::time_point allocator_end = std::chrono::high_resolution_clock::now();
 
-			std::chrono::duration<double> time_span_allocator =  std::chrono::duration_cast<std::chrono::duration<double> >(allocator_end - allocator_start);
+			time_span_allocator =  std::chrono::duration_cast<std::chrono::duration<double> >(allocator_end - allocator_start);
 
-			spdlog::info("Allocator seconds {}", time_span_allocator.count());
 			if(allocation_success) {
 				std::chrono::high_resolution_clock::time_point links_start = std::chrono::high_resolution_clock::now();
 
@@ -323,9 +324,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				// builder->getTopology()->listTopology();
 				std::chrono::high_resolution_clock::time_point links_end = std::chrono::high_resolution_clock::now();
 
-				std::chrono::duration<double> time_span_links =  std::chrono::duration_cast<std::chrono::duration<double> >(links_end - links_start);
-
-				spdlog::info("Links seconds {}", time_span_links.count());
+				time_span_links =  std::chrono::duration_cast<std::chrono::duration<double> >(links_end - links_start);
 			}
 		}else{
 			allocation_success=false;
@@ -351,10 +350,14 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			current->setAllocatedTime(options->current_time);
 			scheduler->tasks_to_delete.push(current);
 		}
-		if(options->standard=="none")
-			logTask(scheduler, current, options->multicriteria_method);
-		else
+		if(options->standard=="none") {
+			spdlog::get("mb_logger")->info("ALLOCATOR {} {}",options->multicriteria_method,time_span_allocator.count());
+			spdlog::get("mb_logger")->info("LINKS {} {}",options->multicriteria_method,time_span_links.count());
+		}else{
+			spdlog::get("mb_logger")->info("ALLOCATOR {} {}",options->standard,time_span_allocator.count());
+			spdlog::get("mb_logger")->info("LINKS {} {}",options->standard,time_span_links.count());
 			logTask(scheduler, current, options->standard);
+		}
 	}
 	// printf("total_delay,%d,%d\n", options->current_time,total_delay);
 }
@@ -443,6 +446,7 @@ int main(int argc, char **argv){
 	spdlog::info("Generating the loggers");
 	auto dc_logger = spdlog::basic_logger_mt("dc_logger","logs/dc-"+log_str);
 	auto task_logger =spdlog::basic_logger_mt("task_logger", "logs/request-"+log_str);
+	auto micro_bench_logger = spdlog::basic_logger_mt("mb_logger", "logs/micro-bench"+log_str);
 
 	dc_logger->set_pattern("%v");
 	task_logger->set_pattern("%v");
