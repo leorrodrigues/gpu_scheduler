@@ -77,7 +77,7 @@ std::string getTopology(){
 }
 
 void listTopology(){
-	spdlog::debug("\n\nList Topology");
+	spdlog::error("\n\nList Topology");
 	const char *nodeType[] ={"Host node","Switch node","Core switch node"};
 	std::vector<std::string> *varName = this->topology->get_var_node_str();
 	const char *varEdge[]={"Edge Capacity","Bandwidth"};
@@ -85,28 +85,28 @@ void listTopology(){
 	int nNodes=this->topology->get_num_nodes();
 	int nHosts=this->topology->get_hosts();
 	int nEdges=this->topology->get_num_edges();
-	spdlog::debug("# Number of Nodes Variables: {}",varName->size());
-	spdlog::debug("# Number of Edges Variables: {}",nVarEdg);
-	spdlog::debug("# Number of Nodes: {}",nNodes);
-	spdlog::debug("# Number of Hosts: {}",nHosts);
-	spdlog::debug("# Number of Edges: {}",nEdges);
-	spdlog::debug("\t#Host#");
+	spdlog::error("# Number of Nodes Variables: {}",varName->size());
+	spdlog::error("# Number of Edges Variables: {}",nVarEdg);
+	spdlog::error("# Number of Nodes: {}",nNodes);
+	spdlog::error("# Number of Hosts: {}",nHosts);
+	spdlog::error("# Number of Edges: {}",nEdges);
+	spdlog::error("\t#Host#");
 	for(int i=0; i<nNodes; i++) {
-		spdlog::debug("\t\tType: {} has the id {}",nodeType[this->topology->get_node_type(i)], i);
+		spdlog::error("\t\tType: {} has the id {}",nodeType[this->topology->get_node_type(i)], i);
 		if(this->topology->get_node_type(i)==0) {// if is a host node
 			for(int j=0; j<varName->size(); j++) {
-				spdlog::debug("\t\t\t {} {}",(*varName)[j],this->topology->get_variable_node(j,i));
+				spdlog::error("\t\t\t {} {}",(*varName)[j],this->topology->get_variable_node(j,i));
 			}
 		}
 	}
-	spdlog::debug("\t#Edge#");
+	spdlog::error("\t#Edge#");
 	for(int i=0; i<nEdges; i++) {
-		spdlog::debug("\t\tEdge ", i);
+		spdlog::error("\t\tEdge ", i);
 		for(int j=1; j<nVarEdg; j++) {
-			spdlog::debug("\t\t\t {} {}", varEdge[j], this->topology->get_variable_edge(j,i));
+			spdlog::error("\t\t\t {} {}", varEdge[j], this->topology->get_variable_edge(j,i));
 		}
 	}
-	spdlog::debug("\n");
+	spdlog::error("\n");
 }
 
 };

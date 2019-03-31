@@ -476,6 +476,22 @@ inline T* get_variable_node_pointer(int var, int index)
  * \return the variable.
  */
 __host__ __device__
+inline T** get_all_variable_edges()
+{
+      #ifdef __CUDA_ARCH__
+	return this->d_var_edges;
+      #else
+	return this->var_edges;
+      #endif
+}
+
+/**
+ * \brief Get the value of a edge variable.
+ * \param var the id of variable array.
+ * \param index the index of the edge.
+ * \return the variable.
+ */
+__host__ __device__
 inline T get_variable_edge(int var, int index)
 {
       #ifdef __CUDA_ARCH__
@@ -532,6 +548,16 @@ inline void set_edges_ids(int index, T value)
 	this->d_edges_ids[index]=value;
       #else
 	this->edges_ids[index]=value;
+      #endif
+}
+
+__host__ __device__
+inline int* get_all_edges_ids()
+{
+      #ifdef __CUDA_ARCH__
+	return this->d_edges_ids;
+      #else
+	return this->edges_ids;
       #endif
 }
 
@@ -635,6 +661,9 @@ __host__ __device__
 inline int* get_source_offsets()
 {
       #ifdef __CUDA_ARCH__
+	if(this->d_source_offsets==NULL)
+		printf("OFFSETS NULO\n");
+	printf("PEGANDO OFFSETS]n");
 	return this->d_source_offsets;
       #else
 	return this->source_offsets;
@@ -652,6 +681,21 @@ inline int* get_destination_indices()
 	return this->d_destination_indices;
       #else
 	return this->destination_indices;
+      #endif
+}
+
+/**
+ * \brief Get the array of a node variable poiters.
+ * \param var the id of variable array.
+ * \return the array of variables poiters.
+ */
+__host__ __device__
+inline T** get_all_var_edges(int var)
+{
+      #ifdef __CUDA_ARCH__
+	return this->d_var_edges;
+      #else
+	return this->var_edges;
       #endif
 }
 

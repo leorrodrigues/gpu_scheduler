@@ -68,9 +68,10 @@ unsigned int widestPath(vnegpu::graph<float>*dc, int src, int dst, int* path, in
 
 			// printf("\tIf this node is a HOST ignore it\n");
 			if(visited[next_node]) continue; //if the node is another host, ignore it.
+			visited[next_node]=true;
 
 			// printf("Get the weight of this node\n");
-			next_node_weight = dc->get_variable_edge ( 1, dc->get_edges_ids(destination_index)); // get the value of the edge bettween U and V.
+			next_node_weight = dc->get_variable_edge ( 1, dc->get_edges_ids(destination_index));                     // get the value of the edge bettween U and V.
 
 			// printf("Get the value\n");
 			alt = std::max(weights[next_node], std::min(weights[node_index], next_node_weight));

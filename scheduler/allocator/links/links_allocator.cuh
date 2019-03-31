@@ -24,6 +24,7 @@ cudaError_t checkCuda(cudaError_t result){
 namespace Allocator {
 
 bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* consumed){
+	spdlog::debug("Init Links Allocator");
 	int devID;
 	cudaDeviceProp props;
 	cudaGetDevice(&devID);
@@ -49,13 +50,16 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 		std::map<int,int> pods_to_host;
 		//get all the hosts in the topology that need to be calculated
 		for(size_t i=0; i<containers_size; i++) {
-			pods_to_host[i]=containers[i]->getHostIdg();
+			pods_to_host[containers[i]->getHostIdg()]=i;
 		}
 		hosts_size = pods_to_host.size();
 		all_hosts_index = (int*) malloc (sizeof(int) * hosts_size );
 
+		int i=0;
 		for(std::map<int,int>::iterator it=pods_to_host.begin(); it!=pods_to_host.end(); it++) {
-			all_hosts_index[it->first]=it->second;
+			all_hosts_index[i]=it->first;
+			// spdlog::error("{} -> {}",i,it->first);
+			i++;
 		}
 	}
 
@@ -76,7 +80,7 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 	task->setLinkValues(values);
 
 	/*Result BW */
-	float *result = (float*) malloc (sizeof(float)*(hosts_size*(hosts_size-1))/2);
+	float *result = (float*) malloc (sizeof(float)*bytes_matrix);
 
 	//Create the device variables
 	int   *d_discount, *d_all_hosts_index, *d_path, *d_path_edge;
@@ -95,39 +99,47 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 	/*Set the values inside each variable*/
 	checkCuda( cudaMemcpy(d_discount, discount, discount_size*sizeof(int), cudaMemcpyHostToDevice));
 	checkCuda( cudaMemcpy(d_all_hosts_index, all_hosts_index, hosts_size*sizeof(int), cudaMemcpyHostToDevice));
-	checkCuda( cudaMemset(d_path,        -1, bytes_matrix*  sizeof(int)));
-	checkCuda( cudaMemset(d_path_edge,   -1, bytes_matrix*  sizeof(int)));
-	checkCuda( cudaMemset(d_result,       0, bytes_matrix*sizeof(float)));
-	checkCuda( cudaMemset(d_weights,FLT_MIN, bytes_matrix*sizeof(float)));
-
-	checkCuda( cudaMemset(d_visited,  false, ((hosts_size*(hosts_size-1))/2)* sizeof(bool)));
 
 	/*Free the host values*/
 	free(all_hosts_index);
 
+	spdlog::debug("Links Allocator - Kernel check Erros",cudaGetErrorString(cudaGetLastError()));
+	// spdlog::debug("Graph State {} - num_nodes {}", graph->get_state(), graph->get_num_nodes());
 	{
 		dim3 block(block_size,block_size,1);
 		dim3 grid(ceil(hosts_size/(float)block.x), ceil(hosts_size/(float)block.y),1);
 		/*Cuda Kernel Call*/
+		spdlog::error("VOU EXECUTAR O KERNEL");
 		widestPathKernel<<<grid,block>>>(
-			graph,
+			graph->get_source_offsets(),
+			graph->get_destination_indices(),
+			graph->get_all_edges_ids(),
+			graph->get_all_variable_edges(),
+			graph->get_all_node_type(),
 			d_path,
 			d_path_edge,
-			hosts_size,
-			nodes_size,
 			d_visited,
 			d_weights,
 			d_discount,
 			d_all_hosts_index,
-			d_result
-		                );
+			d_result,
+			hosts_size,
+			nodes_size);
 		cudaDeviceSynchronize();
+		spdlog::error("Executei o kernel digite ENTER para continuar");
+		// exit(0);
+		// getchar();
+	}
+	cudaError_t cuda_error = cudaGetLastError();
+	if(cuda_error!=0) {
+		SPDLOG_ERROR("Links Allocator - Kernel check Erros[x] !!!{}!!! Host Size: {} Node Size: {} Total: {}",cudaGetErrorString(cuda_error),hosts_size,nodes_size,((hosts_size*(hosts_size-1))/2)*nodes_size);
+		exit(0);
 	}
 
 	/*Get the path values from to device and copy to host*/
 	checkCuda( cudaMemcpy(path, d_path, bytes_matrix*  sizeof(int), cudaMemcpyDeviceToHost));
 	checkCuda( cudaMemcpy(path_edge, d_path_edge, bytes_matrix*  sizeof(int), cudaMemcpyDeviceToHost));
-	checkCuda( cudaMemcpy(result, d_result, ((hosts_size*(hosts_size-1))/2)* sizeof(float), cudaMemcpyDeviceToHost));
+	checkCuda( cudaMemcpy(result, d_result, bytes_matrix* sizeof(float), cudaMemcpyDeviceToHost));
 
 	/*Free all the device variables*/
 	checkCuda( cudaFree(d_path));
@@ -142,52 +154,57 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 	//Now we need to construct the path and update the graph values
 	unsigned int link_index = 0;
 	Link* links = NULL;
-	int walk_index=0;
+	int walk_index=0, same_host=0;
 	//Walk through all the containers
 	//printf("Starting iterate the containers\n");
-
+	spdlog::error("\n\nInitializing the graph update");
 	for(size_t container_index=0; container_index<containers_size; container_index++) {
 		//For each container get their links
+		spdlog::error("Running through container {} -> {}",container_index,containers[container_index]->getLinksSize());
 		for(size_t i=0; i<containers[container_index]->getLinksSize(); i++) {
+			int initial_index = nodes_size*(container_index* hosts_size + (container_index+i+1-same_host) - discount[container_index]);
+			spdlog::error("!# {}x{}+{}-{}-{} -> {} #!",container_index,hosts_size,i+1,same_host, discount[container_index],initial_index);
+
 			links=containers[container_index]->getLinks();
 			//walk through all the links of the specified container
 			//check if the link between the container and the destination is in the same host, if is, do nothing.
 			if(containers[links[i].destination-1]->getHostId() == containers[container_index]->getHostId()) {
 				destination[link_index]=-1;      //no need to calculate
 				link_index++;
+				same_host++;
 				continue;
 			}
+			spdlog::error("Running through link {}",i);
+
 			//If the containers are in different hosts, calculate the widestPath between them.
 			//printf("Update the destination index\n");
 			destination[link_index] = containers[links[i].destination-1]->getHostIdg();
 
 			//Need to make the path and check if the path can support the bandwidth
-			if(result[link_index]>=links[i].bandwidth_max) {
-				result[link_index]=2;
-			}else if(result[link_index]>=links[i].bandwidth_min) {
-				result[link_index]=1;
+			spdlog::error("RESULT[{}]={}",initial_index,result[initial_index]);
+			if(result[initial_index]>=links[i].bandwidth_max) {
+				result[initial_index]=2;
+			}else if(result[initial_index]>=links[i].bandwidth_min) {
+				result[initial_index]=1;
 			}else{
-				result[link_index]=0;
-			}
-
-			//Now we have the shortest path between src and the destination. If the link can't be set between the [SRC, DST], the result value in the result[index] == 0, if the minimum can be allocated, the value is 1, if maximum, the value is 2.
-			if(result[link_index]==0) {
-				//free all the resources allocated
-				freeHostResource(task,consumed,builder);
-				//free the link allocated
-				freeLinks(task,consumed,builder, link_index);
-
+				spdlog::error("The link {} cant be allocated result[{}]={}",link_index,initial_index,result[initial_index]);
+				spdlog::error("End Links Allocator with 1");
+				exit(0);
 				return false;
 			}
+
 			//allocate the link
-			values[link_index] = (result[link_index]==2) ? links[i].bandwidth_max : links[i].bandwidth_min;
+			values[link_index] = (result[initial_index]==2) ? links[i].bandwidth_max : links[i].bandwidth_min;
 
 			walk_index = destination[link_index];
-			// //printf("Walink in the path and reducing the value inside the topology\n");
-			int initial_index = nodes_size*(container_index* hosts_size + i - discount[container_index]);
+			//printf("Walink in the path and reducing the value inside the topology\n");
+
 			init[link_index]=initial_index;
 
+			spdlog::error("Path[{}]={}",initial_index+walk_index,path[initial_index+walk_index]);
+
 			while(path[initial_index+walk_index]!=-1) {
+				spdlog::error("Updating the edge {}",initial_index+walk_index);
 				graph->set_variable_edge(
 					1,      //to refer to the bandwidth
 					path_edge[initial_index+walk_index],      //to refer to the specific edge
@@ -200,11 +217,14 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 
 				walk_index = path[initial_index+walk_index];
 			}
+			spdlog::error("Add link index");
 			//update the link_index
 			link_index++;
+			printf("\n\n--------------------\n\n");
 		}
 	}
 	consumed->active_links = graph->get_num_active_edges();
+	spdlog::debug("End Links Allocator with 0");
 	return true;
 }
 

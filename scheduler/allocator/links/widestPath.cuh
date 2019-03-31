@@ -10,12 +10,12 @@
 namespace Allocator {
 
 __device__
-void getMaxIndex(float *array, size_t size, int *index){
+void getMaxIndex(float *array, bool *visited, size_t start, size_t size, int *index){
 	float max=FLT_MIN;
 	for(int i=0; i<size; i++) {
-		if(max<array[i]) {
-			max=array[i];
-			*index=i;
+		if(max<array[start+i] && visited[start+i]==false) {
+			max=array[start+i];
+			(*index)=i;
 		}
 	}
 }
@@ -34,13 +34,10 @@ void getMaxIndex(float *array, size_t size, int *index){
    Nodes_size is the total number of nodes in graph.
  */
 __global__
-void widestPathKernel(vnegpu::graph<float>*dc, int* path, int* path_edge, unsigned int hosts_size, unsigned int nodes_size, bool *visited, float *weights, int *discount, int *all_hosts_index, float* result){
+void widestPathKernel(int *offsets, int *destination_indices, int *edge_ids, float** variable_edges, int *nodes_types, int* path, int* path_edge, bool *visited, float *weights, int *discount, int *all_hosts_index, float* result, unsigned int hosts_size, unsigned int nodes_size){
 	int x = blockIdx.x*blockDim.x+threadIdx.x;
 	int y = blockIdx.y*blockDim.y+threadIdx.y;
 	if(x >= hosts_size-1 || y >= hosts_size || x>=y) return;
-	// printf("THREAD X:%d Y%d RUNNING\n",x,y);
-
-	int* nodes_types = dc->get_all_node_type();
 
 	int src = all_hosts_index[x];
 	int dst = all_hosts_index[y];
@@ -56,29 +53,54 @@ void widestPathKernel(vnegpu::graph<float>*dc, int* path, int* path_edge, unsign
 	 */
 
 	int initial_index = nodes_size*(x* hosts_size + y   - discount[x]);
+	printf("THREAD X:%d Y%d RUNNING WITH SRC: %d DST %d INITIAL INDEX %d\n",x,y,src,dst,initial_index);
+
+	int node_index, next_node=0;
+	size_t destination_index=0;
+	float next_node_weight=0, alt=0;
+
+	for(size_t i=0; i<nodes_size; i++) {
+		weights[initial_index+i]=-1;
+		path[initial_index+i]=-1;
+		path_edge[initial_index+i]=-1;
+		result[initial_index+i]=-1;
+		visited[initial_index+i]=false;
+	}
 
 	weights[initial_index+src]=FLT_MAX;
 	visited[initial_index+src]=false;
 	visited[initial_index+dst]=false;
 
-	int node_index, next_node;
-	size_t destination_index;
-	float next_node_weight, alt;
 	while(true) {
-		getMaxIndex(weights, nodes_size, &node_index);
+		getMaxIndex(weights, visited, initial_index, nodes_size, &node_index);
+		// printf("THREAD %d %d - NEXT NODE %d - %d - %d\n",x,y,next_node, initial_index+next_node,node_index);
+		// printf("Node %d has Highest Weight %f\n",node_index, weights[node_index]);
+		if(visited[initial_index+node_index]==true || node_index==dst) {
+			// printf("Encerrei Cheguei ao Destino\n");
+			break; //simulate empty queue or we found the destination node
+		}
+		visited[initial_index+node_index]=true;
 
-		if(weights[initial_index+node_index]==FLT_MIN || node_index==dst) break; //simulate empty queue or we found the destination node
+		// actual_weight = weights[initial_index+next_node];
+		// weights[initial_index+next_node]=FLT_MIN;
 
-		//need to run through all the edges of the Node_index
-		for(destination_index= dc->get_source_offset(node_index);
-		    destination_index< dc->get_source_offset(node_index+1);
+
+		// printf("Offset %d\n",offsets[node_index]);
+		// need to run through all the edges of the Node_index
+		for(destination_index= offsets[node_index];
+		    destination_index< offsets[node_index+1];
 		    destination_index++) {
 
-			next_node = dc->get_destination_indice(destination_index);
+			next_node = destination_indices[destination_index];
+			if(visited[initial_index+next_node]) {
+				// printf("PULEI ESSE NODE %d\n",initial_index+next_node);
+				continue; //if the node is another host, ignore it.
+			}
+			// else printf("CONTINUANDO\n");
 
-			if(visited[initial_index+next_node]) continue; //if the node is another host, ignore it.
+			next_node_weight = variable_edges[1][edge_ids[destination_index]]; // get the value of the edge bettween U and V.
 
-			next_node_weight = dc->get_variable_edge ( 1, dc->get_edges_ids(destination_index)); // get the value of the edge bettween U and V.
+			// printf("Agora vou olhar o NI %f E NN %f\n",weights[initial_index+node_index] < next_node_weight);
 
 			alt = weights[initial_index+node_index] < next_node_weight ?
 			      (
@@ -90,18 +112,21 @@ void widestPathKernel(vnegpu::graph<float>*dc, int* path, int* path_edge, unsign
 				weights[initial_index+next_node] > next_node_weight ?
 				weights[initial_index+next_node] : next_node_weight
 			      );
-
-
+			// printf("FIQUEI COM %f\n",alt);
+			// printf("ALT: %f WEIGHTS %f\n",alt,weights[initial_index+next_node]);
 			if(alt> weights[initial_index+next_node]) {
+				// printf("TROCANDO %f -> %f\n",weights[initial_index+next_node],alt);
 				weights[initial_index+next_node] = alt;
 				path[initial_index+next_node] = node_index;
-				path_edge[initial_index+next_node] = dc->get_edges_ids(destination_index);
-				weights[initial_index+next_node]=next_node;
+				path_edge[initial_index+next_node] = edge_ids[destination_index];
+			}else{
+				// printf("Nao troquei o valor %f %f\n",alt, weights[initial_index+next_node]);
 			}
 		}
 	}
-
 	result[initial_index]=weights[initial_index+dst];
+	printf("Kernel Result[%d]=%f\n\n",initial_index, result[initial_index]);
+	printf("END KERNEL\n");
 }
 }
 
