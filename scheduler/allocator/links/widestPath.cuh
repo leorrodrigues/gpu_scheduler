@@ -53,7 +53,7 @@ void widestPathKernel(int *offsets, int *destination_indices, int *edge_ids, flo
 	 */
 
 	int initial_index = nodes_size*(x* hosts_size + y   - discount[x]);
-	printf("THREAD X:%d Y%d RUNNING WITH SRC: %d DST %d INITIAL INDEX %d\n",x,y,src,dst,initial_index);
+	// printf("THREAD X:%d Y%d RUNNING WITH SRC: %d DST %d INITIAL INDEX %d\n",x,y,src,dst,initial_index);
 
 	int node_index, next_node=0;
 	size_t destination_index=0;
@@ -125,8 +125,8 @@ void widestPathKernel(int *offsets, int *destination_indices, int *edge_ids, flo
 		}
 	}
 	result[initial_index]=weights[initial_index+dst];
-	printf("Kernel Result[%d]=%f\n\n",initial_index, result[initial_index]);
-	printf("END KERNEL\n");
+	// printf("Kernel Result[%d]=%f\n\n",initial_index, result[initial_index]);
+	// printf("END KERNEL\n");
 }
 }
 

@@ -358,20 +358,20 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
 			total_delay+=current->getDelay();
 
-			// printf("\tTask %d Added Delay in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
+			spdlog::info("\tTask {} can't be allocated, added delay of {} in scheduler time {}", current->getId(), delay, current->getSubmission()+current->getDelay() );
 		}else{
 			// printf("\tTask %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
 			current->setAllocatedTime(options->current_time);
 			scheduler->tasks_to_delete.push(current);
-		}
-		if(options->standard=="none") {
-			spdlog::get("mb_logger")->info("ALLOCATOR {} {}",options->multicriteria_method,time_span_allocator.count());
-			spdlog::get("mb_logger")->info("LINKS {} {}",options->multicriteria_method,time_span_links.count());
-			logTask(scheduler, current, options->multicriteria_method);
-		}else{
-			spdlog::get("mb_logger")->info("ALLOCATOR {} {}",options->standard,time_span_allocator.count());
-			spdlog::get("mb_logger")->info("LINKS {} {}",options->standard,time_span_links.count());
-			logTask(scheduler, current, options->standard);
+			if(options->standard=="none") {
+				spdlog::get("mb_logger")->info("ALLOCATOR {} {}",options->multicriteria_method,time_span_allocator.count());
+				spdlog::get("mb_logger")->info("LINKS {} {}",options->multicriteria_method,time_span_links.count());
+				logTask(scheduler, current, options->multicriteria_method);
+			}else{
+				spdlog::get("mb_logger")->info("ALLOCATOR {} {}",options->standard,time_span_allocator.count());
+				spdlog::get("mb_logger")->info("LINKS {} {}",options->standard,time_span_links.count());
+				logTask(scheduler, current, options->standard);
+			}
 		}
 	}
 	spdlog::debug("allocate task[x]");
