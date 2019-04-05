@@ -42,3 +42,4 @@ Thumbs.db
 
 scheduler/requests/container_link/*.json
 scheduler/requests/container_link/compress/
+scheduler/requests/container_link/*old*/
