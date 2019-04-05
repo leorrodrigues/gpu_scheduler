@@ -335,12 +335,15 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				std::chrono::high_resolution_clock::time_point links_end = std::chrono::high_resolution_clock::now();
 
 				time_span_links =  std::chrono::duration_cast<std::chrono::duration<double> >(links_end - links_start);
+				if(!allocation_success){
+					spdlog::info("\tRequest dont fit in links");
+				}
 			}else{
-				spdlog::debug("request dont fit - inside loop");
+				spdlog::info("\trequest dont fit in allocation");
 			}
 		}else{
 			allocation_success=false;
-			spdlog::debug("request dont fit");
+			spdlog::info("\trequest dont fit in DC");
 		}
 
 		if(!allocation_success) {
@@ -462,6 +465,8 @@ int main(int argc, char **argv){
 	auto dc_logger = spdlog::basic_logger_mt("dc_logger","logs/dc-"+log_str);
 	auto task_logger =spdlog::basic_logger_mt("task_logger", "logs/request-"+log_str);
 	auto micro_bench_logger = spdlog::basic_logger_mt("mb_logger", "logs/micro-bench"+log_str);
+
+	spdlog::flush_every(std::chrono::seconds(30));
 
 	dc_logger->set_pattern("%v");
 	task_logger->set_pattern("%v");
