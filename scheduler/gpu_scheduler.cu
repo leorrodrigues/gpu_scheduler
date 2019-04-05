@@ -335,8 +335,9 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				std::chrono::high_resolution_clock::time_point links_end = std::chrono::high_resolution_clock::now();
 
 				time_span_links =  std::chrono::duration_cast<std::chrono::duration<double> >(links_end - links_start);
-				if(!allocation_success){
+				if(!allocation_success) {
 					spdlog::info("\tRequest dont fit in links");
+					getchar();
 				}
 			}else{
 				spdlog::info("\trequest dont fit in allocation");

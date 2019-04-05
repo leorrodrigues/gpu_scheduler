@@ -60,9 +60,12 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 		for(std::map<int,int>::iterator it=pods_to_host.begin(); it!=pods_to_host.end(); it++) {
 			all_hosts_index[i]=it->first;
 			container_to_host[it->first]=i;
-			// spdlog::error("{} -> {}",i,it->first);
+			spdlog::debug("-----------");
+			spdlog::debug("{} -> {}",it->first,i);
+			spdlog::debug("-----------");
 			i++;
 		}
+		// printf("Total different hosts that need to calculate path %d\n", hosts_size);
 	}
 
 	size_t bytes_matrix = ((hosts_size*(hosts_size-1))/2)*nodes_size;
@@ -83,11 +86,13 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 
 	/*Result BW */
 	float *result = (float*) malloc (sizeof(float)*bytes_matrix);
+	bool result_min_max[links_size];
 
 	//Create the device variables
 	int   *d_discount, *d_all_hosts_index, *d_path, *d_path_edge;
 	float *d_weights, *d_result;
 	bool  *d_visited;
+
 
 	/*Malloc the device memory*/
 	checkCuda( cudaMalloc((void**)&d_discount,    discount_size* sizeof(int)));
@@ -157,7 +162,7 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 	int walk_index=0, same_host=0;
 	//Walk through all the containers
 	//printf("Starting iterate the containers\n");
-	// spdlog::error("\n\nInitializing the graph update");
+	// spdlog::info("\n\nInitializing the graph update, container_size {}",containers_size);
 	for(size_t container_index=0; container_index<containers_size; container_index++) {
 		//For each container get their links
 		// spdlog::error("Running through container {} -> {}",container_index,containers[container_index]->getLinksSize());
@@ -168,8 +173,20 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 			{
 				int temp_src = container_to_host[containers[container_index]->getHostIdg()];
 				int temp_dst = container_to_host[containers[links[i].destination-1]->getHostIdg()];
-				initial_index = nodes_size*( temp_src*hosts_size+ temp_dst -discount[temp_src]);
-				// spdlog::error("!# {}x{}+{}-{}-{} -> {} #!",temp_src,hosts_size,temp_dst,discount[temp_src], initial_index);
+				if(temp_src < temp_dst) {
+					initial_index=nodes_size*( temp_src*hosts_size+ temp_dst -discount[temp_src]);
+				}else if(temp_src > temp_dst) {
+					initial_index=nodes_size*( temp_dst*hosts_size+ temp_src -discount[temp_dst]);
+				}else{
+					destination[link_index]=-1; //no need to calculate
+					link_index++;
+					same_host++;
+					continue;
+				}
+
+				// printf("!!%d!!\n", initial_index);
+
+				// spdlog::info("CI {} | CSRC {} | SRC {} | I {} | CD {} | CDST {}\n",container_index, containers[container_index]->getHostIdg(), temp_src, i, containers[links[i].destination-1]->getHostIdg(), temp_dst);
 			}
 			// int initial_index = nodes_size*(container_index* hosts_size + (container_index+i+1-same_host) - discount[container_index]);
 
@@ -188,20 +205,34 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 			destination[link_index] = containers[links[i].destination-1]->getHostIdg();
 
 			//Need to make the path and check if the path can support the bandwidth
-			// spdlog::error("RESULT[{}]={}",initial_index,result[initial_index]);
+			// spdlog::info("RESULT[{}]={}",initial_index,result[initial_index]);
 			if(result[initial_index]>=links[i].bandwidth_max) {
-				result[initial_index]=2;
+				result_min_max[link_index]=true;
+				result[initial_index]-=links[i].bandwidth_max;
 			}else if(result[initial_index]>=links[i].bandwidth_min) {
-				result[initial_index]=1;
+				result_min_max[link_index]=false;
+				result[initial_index]=links[i].bandwidth_min;
 			}else{
-				// spdlog::error("The link {} cant be allocated result[{}]={}",link_index,initial_index,result[initial_index]);
-				// spdlog::error("End Links Allocator with 1");
+				// printf("CI %d CCI %d\n",initial_index, container_to_host[initial_index]);
+				//
+				// printf("R %f CR %f\n",result[initial_index], result[container_to_host[initial_index]]);
+				//
+				// printf("ID HOSTS %f -> %f\n",containers[container_index]->getHostId(), containers[links[i].destination-1]->getHostId());
+				//
+				// printf("IDG HOSTS %f -> %f\n",containers[container_index]->getHostIdg(), containers[links[i].destination-1]->getHostIdg());
+
+				// spdlog::info("End Links Allocator with 1");
+				// for(int i=0; i<bytes_matrix; i++) {
+				//      if(result[i]!=-1)
+				//              printf("%f;%d -> ",result[i],i);
+				// }
+				// printf("\n");
 				// exit(0);
 				return false;
 			}
 
 			//allocate the link
-			values[link_index] = (result[initial_index]==2) ? links[i].bandwidth_max : links[i].bandwidth_min;
+			values[link_index] = (result_min_max[link_index]) ? links[i].bandwidth_max : links[i].bandwidth_min;
 
 			walk_index = destination[link_index];
 			//printf("Walink in the path and reducing the value inside the topology\n");
@@ -230,7 +261,7 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 		}
 	}
 	consumed->active_links = graph->get_num_active_edges();
-	// spdlog::debug("End Links Allocator with 0");
+	spdlog::debug("End Links Allocator with 0");
 	return true;
 }
 
