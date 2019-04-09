@@ -278,7 +278,6 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 		if( current->getSubmission()+current->getDelay() != options->current_time) {
 			break;
 		}
-
 		scheduler->tasks_to_allocate.pop();
 
 		if(Allocator::checkFit(total_dc, consumed,current)!=0) {
@@ -336,11 +335,12 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			// printf("\tTask %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
 			current->setAllocatedTime(options->current_time);
 			scheduler->tasks_to_delete.push(current);
+
+			if(options->standard=="none")
+				logTask(scheduler, current, options->multicriteria_method);
+			else
+				logTask(scheduler, current, options->standard);
 		}
-		if(options->standard=="none")
-			logTask(scheduler, current, options->multicriteria_method);
-		else
-			logTask(scheduler, current, options->standard);
 	}
 	// printf("total_delay,%d,%d\n", options->current_time,total_delay);
 }

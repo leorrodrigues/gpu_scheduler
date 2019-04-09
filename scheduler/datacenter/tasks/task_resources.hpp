@@ -89,7 +89,6 @@ float taskUtility(){
 		if(it.first!="bandwidth") {
 			allocated+=it.second;
 			max+=this->total_max[it.first];
-			// std::cout<<"A "<<allocated<<" M "<<max<<"\n";
 		}
 	}
 	return max!=0 ? allocated/max : 0;

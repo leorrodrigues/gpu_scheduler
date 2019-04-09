@@ -5,7 +5,6 @@ namespace Allocator {
 
 inline bool checkFit(Host* host, Pod* pod){
 	std::map<std::string, float> h_r = host->getResource();
-
 	for(auto r : pod->getResources()) {
 		if(h_r[r.first]>=std::get<1>(r.second)) {
 			pod->setFit(r.first, true);

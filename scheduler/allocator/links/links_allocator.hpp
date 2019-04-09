@@ -60,6 +60,11 @@ bool links_allocator(Builder* builder,  Task* task, consumed_resource_t* consume
 			if(containers[links[i].destination-1]->getHostId() == containers[container_index]->getHostId()) {
 				//printf("\t\t\t!!!!!!!!!The containers are in the same host\n");
 				destination[link_index]=-1;         //no need to calculate
+
+				//the link is max allocated
+				values[link_index] = links[i].bandwidth_max;
+				consumed->resource["bandwidth"] += links[i].bandwidth_max;
+
 				link_index++;
 				continue;
 			}
