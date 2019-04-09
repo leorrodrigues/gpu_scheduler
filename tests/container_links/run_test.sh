@@ -1,8 +1,8 @@
 #echo "Multicriteria method;Fat Tree Size;Number of containers;Time" >> times.txt
 #for m in ahp_clusterized; do
 cd ./../../scheduler/;
-ft=44
-for g in none mcl; do
+ft=38
+for g in none; do # mcl none; do
 	for dt in bw frag flat; do
 		for m in ahpg topsis; do
 			echo "Fat Tree k=$ft Algoritmo $m Cluster $g"
