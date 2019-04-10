@@ -3,7 +3,7 @@ library(RColorBrewer)
 
 pallet <- c("#006A40FF","#75B41EFF","#95828DFF","#708C98FF","#8AB8CFFF","#358359FF","#8BA1BCFF","#5A5895FF","#F2990CFF","#E5BA3AFF","#D86C4FFF" )
 
-file_names <- c("ahp","ahpg","mcl_ahp","mcl_ahpg","mcl","ahpg_clusterized")
+file_names <- c("ahp","ahpg","mcl","ahpg_clusterized")
 
 plot_names <- c("AHP CPU","AHP CUDA","MCL CUDA + AHP CPU","MCL CUDA + AHP CUDA","MCL CUDA","AHP CUDA CLUSTERIZED")
 
