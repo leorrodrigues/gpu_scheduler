@@ -89,8 +89,8 @@ void Task::setTask(const char* taskMessage){
 
 				if(!containersArray[i].HasMember(max.c_str())) continue;
 
-				float vmin  = containersArray[i][max.c_str()].GetFloat();
-				float vmax = containersArray[i][min.c_str()].GetFloat();
+				float vmax  = containersArray[i][max.c_str()].GetFloat();
+				float vmin = containersArray[i][min.c_str()].GetFloat();
 
 				c->setValue(key, vmin, false);
 				c->setValue(key, vmax, true);
