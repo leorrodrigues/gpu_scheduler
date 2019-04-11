@@ -6,41 +6,53 @@
 #include "../free.hpp"
 #include "../utils.hpp"
 
-struct CompareWF {
-	bool operator()(Host* lhs, Host* rhs) const {
-		std::map<std::string,float> l_r = lhs->getResource();
-		std::map<std::string,float> r_r = rhs->getResource();
-		float r1=0, r2=0;
-		for(std::map<std::string,float>::iterator it_1 = l_r.begin(), it_2 = r_r.begin(); it_1!=l_r.end(); it_1++, it_2++) {
-			r1+=it_1->second;
-			r2+=it_2->second;
-		}
-		if(r1>r2) return true;
-		else return false;
+// struct CompareWF {
+//      bool operator()(Host* lhs, Host* rhs) const {
+//              std::map<std::string,float> l_r = lhs->getResource();
+//              std::map<std::string,float> r_r = rhs->getResource();
+//              float r1=0, r2=0;
+//              for(std::map<std::string,float>::iterator it_1 = l_r.begin(), it_2 = r_r.begin(); it_1!=l_r.end(); it_1++, it_2++) {
+//                      r1+=it_1->second;
+//                      r2+=it_2->second;
+//              }
+//              if(r1>r2) return true;
+//              else return false;
+//      }
+// };
+
+static bool host_wf_compare(Host *lhs, Host *rhs){
+	std::map<std::string,float> l_r = lhs->getResource();
+	std::map<std::string,float> r_r = rhs->getResource();
+	float r1=0, r2=0;
+	for(std::map<std::string,float>::iterator it_1 = l_r.begin(), it_2 = r_r.begin(); it_1!=l_r.end(); it_1++, it_2++) {
+		r1+=it_1->second;
+		r2+=it_2->second;
 	}
-};
+	return r1>r2;
+}
 
 namespace Allocator {
 bool worstFit(Builder* builder,  Task* task, consumed_resource_t* consumed){
-	std::vector<Host*> aux = builder->getHosts();
-	std::priority_queue<Host*, std::vector<Host*>, CompareWF> hosts;
+	std::vector<Host*> aux;
 
-
-	Host* host=NULL;
+	std::vector<Host*>::iterator host_iterator;
+	Host* host;
 	// printf("Get Task Pods\n");
 	Pod** pods = task->getPods();
 	unsigned int pods_size = task->getPodsSize();
 	bool pod_allocated;
 
+
 	for(size_t pod_index=0; pod_index < pods_size; pod_index++) {
-		hosts = std::priority_queue<Host*, std::vector<Host*>, CompareWF>  (aux.begin(), aux.end());
+		aux = builder->getHosts();
 
 		pod_allocated = false;
 		host=NULL;
+		while(!aux.empty()) {
+			host_iterator = std::max_element(aux.begin(), aux.end(),host_wf_compare);
 
-		while(!hosts.empty()) {
-			host =  hosts.top();
-			hosts.pop();
+			host =  (*host_iterator); //get the iterator element
+			aux.erase(host_iterator); //remove the element from vector
 
 			if(!checkFit(host,pods[pod_index])) continue;
 
@@ -59,8 +71,6 @@ bool worstFit(Builder* builder,  Task* task, consumed_resource_t* consumed){
 			pod_allocated=true;
 			break;
 		}
-
-		hosts = std::priority_queue<Host*, std::vector<Host*>, CompareWF> ();
 
 		if(!pod_allocated) {
 			//need to desalocate all the allocated pods.
