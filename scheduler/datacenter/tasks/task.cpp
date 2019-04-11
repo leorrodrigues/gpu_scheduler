@@ -287,3 +287,30 @@ void Task::print() {
 	}
 	spdlog::debug("}");
 }
+
+float Task::taskUtility(){
+	float max=0, allocated=0;
+
+	for(auto const&it : this->total_allocated) {
+		for(size_t i=0; i<pods_size; i++) {
+			allocated+=pods[i]->getTotalAllocated(it.first);
+			max+=pods[i]->getMaxResource(it.first);
+		}
+	}
+	if(max<allocated)
+		SPDLOG_ERROR("DC UTILITY MAX < ALLOCATED");
+	return max!=0 ? allocated/max : 0;
+}
+
+float Task::linkUtility(){
+	float max=0, allocated=0;
+
+	for(size_t i=0; i<pods_size; i++) {
+		allocated+=pods[i]->getTotalAllocated("bandwidth");
+		max+=pods[i]->getMaxResource("bandwidth");
+	}
+	if(max<allocated) {
+		SPDLOG_ERROR("LINK UTILITY MAX < ALLOCATED");
+	}
+	return max!=0 ? allocated/max : 0;
+}

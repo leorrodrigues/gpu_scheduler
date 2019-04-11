@@ -69,6 +69,9 @@ void updateBandwidth();
 
 void print();
 
+float taskUtility();
+float linkUtility();
+
 };
 
 #endif

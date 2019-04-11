@@ -44,7 +44,7 @@ unsigned int getId(){
 }
 
 float getMaxResource(std::string key){
-	return this->total_max[key];
+	return std::get<1>(this->resources[key]);
 }
 
 float getTotalAllocated(std::string key){
@@ -69,7 +69,6 @@ void addValue(std::string key, float value, bool type){
 	}
 }
 
-
 void setFit(std::string key, bool fit){
 	std::get<2>(this->resources[key])=fit;
 	if(fit) {
@@ -81,22 +80,6 @@ void setFit(std::string key, bool fit){
 
 void setId(unsigned int id){
 	this->id=id;
-}
-
-float taskUtility(){
-	float max=0, allocated=0;
-	for(auto const&it : this->total_allocated) {
-		if(it.first!="bandwidth") {
-			allocated+=it.second;
-			max+=this->total_max[it.first];
-			// std::cout<<"A "<<allocated<<" M "<<max<<"\n";
-		}
-	}
-	return max!=0 ? allocated/max : 0;
-}
-
-float linkUtility(){
-	return (this->total_max["bandwidth"]!=0) ? this->total_allocated["bandwidth"]/this->total_max["bandwidth"] : 0;
 }
 
 };

@@ -289,7 +289,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 		scheduler->tasks_to_allocate.pop();
 
 		spdlog::debug("Check if request fit in DC");
-		if(Allocator::checkFit(builder->getHosts(),current)!=0) {
+		if(Allocator::checkFit(total_dc,consumed,current)!=0) {
 			// allocate the new task in the data center.
 			std::chrono::high_resolution_clock::time_point allocator_start = std::chrono::high_resolution_clock::now();
 			if(options->standard=="none") {
@@ -352,7 +352,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			if(!scheduler->tasks_to_delete.empty()) {
 				Task* first_to_delete = scheduler->tasks_to_delete.top();
 
-				delay = ((first_to_delete->getDuration() + first_to_delete->getAllocatedTime()) - ( current->getSubmission() + current->getDelay() ))*2;
+				delay = ((first_to_delete->getDuration() + first_to_delete->getAllocatedTime()) - ( current->getSubmission() + current->getDelay() ))*3;
 			}
 
 			spdlog::debug("added delay {} in request",delay);
