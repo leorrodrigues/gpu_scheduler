@@ -28,7 +28,7 @@ static bool host_bf_compare(Host *lhs, Host *rhs){
 		r1+=it_1->second;
 		r2+=it_2->second;
 	}
-	return r1<r2;
+	return (r2<r1) ? r2 : r1;
 }
 
 namespace Allocator {

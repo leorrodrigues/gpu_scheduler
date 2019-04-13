@@ -56,8 +56,6 @@ bool worstFit(Builder* builder,  Task* task, consumed_resource_t* consumed){
 
 			if(!checkFit(host,pods[pod_index])) continue;
 
-            std::cout<<"SELECTED HOST "<<host->getId()<<"\n";
-
 			std::map<std::string,std::tuple<float,float,bool> > p_r = pods[pod_index]->getResources();
 			host->addPod(p_r);
 
