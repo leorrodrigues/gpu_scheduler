@@ -28,7 +28,7 @@ static bool host_wf_compare(Host *lhs, Host *rhs){
 		r1+=it_1->second;
 		r2+=it_2->second;
 	}
-	return r1>r2;
+	return r1<r2;
 }
 
 namespace Allocator {
@@ -55,6 +55,8 @@ bool worstFit(Builder* builder,  Task* task, consumed_resource_t* consumed){
 			aux.erase(host_iterator); //remove the element from vector
 
 			if(!checkFit(host,pods[pod_index])) continue;
+
+            std::cout<<"SELECTED HOST "<<host->getId()<<"\n";
 
 			std::map<std::string,std::tuple<float,float,bool> > p_r = pods[pod_index]->getResources();
 			host->addPod(p_r);

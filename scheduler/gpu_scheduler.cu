@@ -256,6 +256,7 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 			);
 
 		delete(current);
+
 		// builder->getTopology()->listTopology();
 	}
 
@@ -353,6 +354,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				Task* first_to_delete = scheduler->tasks_to_delete.top();
 
 				delay = ((first_to_delete->getDuration() + first_to_delete->getAllocatedTime()) - ( current->getSubmission() + current->getDelay() ))*3;
+				if(delay<50) delay=50;
 			}
 
 			spdlog::debug("added delay {} in request",delay);

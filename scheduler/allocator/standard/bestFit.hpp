@@ -49,7 +49,7 @@ bool bestFit(Builder* builder,  Task* task, consumed_resource_t* consumed){
 		host=NULL;
 
 		while(!aux.empty()) {
-			host_iterator = std::max_element(aux.begin(), aux.end(),host_bf_compare);
+			host_iterator = std::min_element(aux.begin(), aux.end(),host_bf_compare);
 
 			host =  (*host_iterator); //get the iterator element
 			aux.erase(host_iterator); //remove the element from vector
