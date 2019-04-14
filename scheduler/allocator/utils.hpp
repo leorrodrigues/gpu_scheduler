@@ -12,7 +12,6 @@ inline bool checkFit(Host* host, Pod* pod){
 		}else if(h_r[r.first]>=std::get<0>(r.second)) {
 			pod->setFit(r.first, false);
 		}else{
-            std::cout<<"O POD "<<pod->getId()<<" NAO PODE SER ALOCADO PORQUE "<<r.first<<": MAX="<<std::get<1>(r.second)<<"; MIN="<<std::get<0>(r.second)<<"; MAS HOST TINHA="<<h_r[r.first]<<"\n";
 			return false;
 		}
 	}
