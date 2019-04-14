@@ -244,8 +244,10 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 
 		// if(  [ current->getId() ]!=NULL ) {
 		//Iterate through the PODs of the TASK, and erase each of one.
-		// printf("Scheduler Time %d\n\tDeleting task %d\n", options->current_time, current->getId());
-		// builder->getTopology()->listTopology();
+		spdlog::debug("Scheduler Time %d\n\tDeleting task %d", options->current_time, current->getId());
+		//builder->getTopology()->listTopology();
+
+
 
 		Allocator::freeAllResources(
 			/* The task to be removed*/
@@ -257,7 +259,7 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 
 		delete(current);
 
-		// builder->getTopology()->listTopology();
+		//builder->getTopology()->listTopology();
 	}
 
 
@@ -289,7 +291,8 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
 		scheduler->tasks_to_allocate.pop();
 
-		spdlog::debug("Check if request fit in DC");
+		spdlog::debug("Check if request {} fit in DC",current->getId());
+        // getchar();
 		if(Allocator::checkFit(total_dc,consumed,current)!=0) {
 			// allocate the new task in the data center.
 			std::chrono::high_resolution_clock::time_point allocator_start = std::chrono::high_resolution_clock::now();
@@ -380,6 +383,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				logTask(scheduler, current, options->standard);
 			}
 		}
+        spdlog::debug("ending the while loop");
 	}
 	spdlog::debug("allocate task[x]");
 }

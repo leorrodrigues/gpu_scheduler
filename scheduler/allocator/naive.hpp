@@ -65,6 +65,7 @@ bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed){
 		}
 
 		if(!pod_allocated) {
+            printf("POD %d CANT BE ALLOCATED\n",pod_index);
 			//need to desalocate all the allocated pods.
 			for(size_t i=0; i< pod_index; i++)
 				freeHostResource(pods[i],consumed,builder);
