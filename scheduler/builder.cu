@@ -231,12 +231,11 @@ void Builder::setDataCenterResources(total_resources_t* resource){
 	for(size_t i=0; i<this->hosts.size(); i++) {
 		std::map<std::string,float> h_r = this->hosts[i]->getResource();
 		for(auto it = resource->resource.begin(); it!=resource->resource.end(); it++) {
-            // if(it->first!="bandwidth")
-        	resource->resource[it->first] += h_r[it->first];
-
-		}
+            resource->resource[it->first] += h_r[it->first];
+        }
 	}
-    // resource->resource["bandwidth"] += 1000*resource->links;
+    //As the DC is configured to have 1GB in all links, only multiply by the links bandwidth by the total ammount
+    resource->total_bandwidth = 1000*resource->links;
 }
 
 void Builder::runMulticriteria(std::vector<Host*> alt){

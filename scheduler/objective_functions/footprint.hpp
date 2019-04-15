@@ -32,7 +32,7 @@ inline float ram(consumed_resource_t alocado, total_resources_t total){
 }
 
 inline float link(consumed_resource_t alocado, total_resources_t total){
-	float value =  alocado.resource["bandwidth"] /total.resource["bandwidth"];
+	float value =  alocado.total_bandwidth_consumed /total.total_bandwidth;
 	return (value > 0.0000000001) ? value : 0;
 }
 

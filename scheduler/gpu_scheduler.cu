@@ -212,12 +212,12 @@ inline objective_function_t calculateObjectiveFunction(consumed_resource_t consu
 	return obj;
 }
 
-inline void logTask(scheduler_t* scheduler,Task* task, std::string multicriteria){
+inline void logTask(scheduler_t* scheduler,Task* task, std::string multicriteria, total_resources_t* total_resources){
 	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
 
 	std::chrono::duration<double> time_span =  std::chrono::duration_cast<std::chrono::duration<double> >( now - scheduler->start);
 
-	spdlog::get("task_logger")->info("{} {} {} {} {} {} {} {} {}", multicriteria, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count(), task->getDelayDC(), task->getDelayLink());
+	spdlog::get("task_logger")->info("{} {} {} {} {} {} {} {} {} {}", multicriteria, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count(), task->getDelayDC(), task->getDelayLink(),task->getBandwidthAllocated()/total_resources->total_bandwidth);
 }
 
 inline void logDC(objective_function_t *objective,std::string method){
@@ -226,7 +226,6 @@ inline void logDC(objective_function_t *objective,std::string method){
 
 inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed){
 	Task* current = NULL;
-
 
 	while(true) {
 
@@ -247,8 +246,6 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 		spdlog::debug("Scheduler Time %d\n\tDeleting task %d", options->current_time, current->getId());
 		//builder->getTopology()->listTopology();
 
-
-
 		Allocator::freeAllResources(
 			/* The task to be removed*/
 			current,
@@ -261,7 +258,6 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 
 		//builder->getTopology()->listTopology();
 	}
-
 
 	current = NULL;
 }
@@ -384,11 +380,11 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			if(options->standard=="none") {
 				spdlog::get("mb_logger")->info("ALLOCATOR {} {}",options->multicriteria_method,time_span_allocator.count());
 				spdlog::get("mb_logger")->info("LINKS {} {}",options->multicriteria_method,time_span_links.count());
-				logTask(scheduler, current, options->multicriteria_method);
+				logTask(scheduler, current, options->multicriteria_method,total_dc);
 			}else{
 				spdlog::get("mb_logger")->info("ALLOCATOR {} {}",options->standard,time_span_allocator.count());
 				spdlog::get("mb_logger")->info("LINKS {} {}",options->standard,time_span_links.count());
-				logTask(scheduler, current, options->standard);
+				logTask(scheduler, current, options->standard,total_dc);
 			}
 		}
         spdlog::debug("ending the while loop");

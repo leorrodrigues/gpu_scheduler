@@ -222,25 +222,11 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 				result_min_max[link_index]=false;
 				result[initial_index]=links[i].bandwidth_min;
 			}else{
-				// printf("CI %d CCI %d\n",initial_index, container_to_host[initial_index]);
-				//
-				// printf("R %f CR %f\n",result[initial_index], result[container_to_host[initial_index]]);
-				//
-				// printf("ID HOSTS %f -> %f\n",containers[container_index]->getHostId(), containers[links[i].destination-1]->getHostId());
-				//
-				// printf("IDG HOSTS %f -> %f\n",containers[container_index]->getHostIdg(), containers[links[i].destination-1]->getHostIdg());
-
-				// spdlog::info("End Links Allocator with 1");
-				// for(int i=0; i<bytes_matrix; i++) {
-				//      if(result[i]!=-1)
-				//              printf("%f;%d -> ",result[i],i);
-				// }
-				// printf("\n");
-				// exit(0);
                 spdlog::debug("Link dont set, free the allocated links");
                 freeHostResource(task, consumed, builder);
                 freeLinks(task, consumed, builder, link_index);
                 spdlog::debug("Links removed\n");
+                spdlog::info("Link has less resources than pod asked");
 				return false;
 			}
 
@@ -262,7 +248,7 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 					(graph->get_variable_edge( 1, path_edge[initial_index+walk_index ] ) - values[link_index])
 					);
 
-				// consumed->resource["bandwidth"] += values[link_index];
+                consumed->total_bandwidth_consumed += values[link_index];
 
 				graph->add_connection_edge( path_edge[initial_index + walk_index] );
 

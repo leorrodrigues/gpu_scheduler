@@ -70,6 +70,7 @@ float* getLinkValues();
 
 float getBandwidthMax();
 float getBandwidthMin();
+float getBandwidthAllocated();
 
 void updateBandwidth();
 

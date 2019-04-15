@@ -68,7 +68,7 @@ inline void freeLinks(Task* task, consumed_resource_t* consumed, Builder* builde
 				(graph->get_variable_edge( 1, path_edge[init[p]+walk_index]) + values[p])
 				);
 
-			// consumed->resource["bandwidth"] -= values[p];
+			consumed->total_bandwidth_consumed -= values[p];
 
 			graph->sub_connection_edge( path_edge [init[p]+walk_index] );
 

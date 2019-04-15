@@ -289,6 +289,15 @@ float* Task::getLinkValues(){
 	return this->values;
 }
 
+float Task::getBandwidthAllocated(){
+    float allocated=0;
+
+    for(size_t i=0; i<pods_size; i++){
+        allocated+=pods[i]->getTotalAllocated("bandwidth");
+    }
+    return allocated;
+}
+
 void Task::print() {
 	spdlog::debug("Task:{");
 	spdlog::debug("Duration {}",this->duration);
