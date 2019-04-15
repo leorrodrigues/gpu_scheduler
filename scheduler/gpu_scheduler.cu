@@ -217,7 +217,7 @@ inline void logTask(scheduler_t* scheduler,Task* task, std::string multicriteria
 
 	std::chrono::duration<double> time_span =  std::chrono::duration_cast<std::chrono::duration<double> >( now - scheduler->start);
 
-	spdlog::get("task_logger")->info("{} {} {} {} {} {} {}", multicriteria, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count(), task->getDelayDC(), task->getDelayLink());
+	spdlog::get("task_logger")->info("{} {} {} {} {} {} {} {} {}", multicriteria, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count(), task->getDelayDC(), task->getDelayLink());
 }
 
 inline void logDC(objective_function_t *objective,std::string method){
