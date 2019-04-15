@@ -262,7 +262,7 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 					(graph->get_variable_edge( 1, path_edge[initial_index+walk_index ] ) - values[link_index])
 					);
 
-				consumed->resource["bandwidth"] += values[link_index];
+				// consumed->resource["bandwidth"] += values[link_index];
 
 				graph->add_connection_edge( path_edge[initial_index + walk_index] );
 
