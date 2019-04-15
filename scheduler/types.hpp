@@ -85,6 +85,7 @@ typedef struct {
 	float vcpu_footprint = 0;
 	float ram_footprint = 0;
 	float link_footprint=0;
+    float fail_bandwidth=0;
 	unsigned int time=0;
 
 } objective_function_t;

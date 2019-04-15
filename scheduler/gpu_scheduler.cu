@@ -219,11 +219,11 @@ inline void logTask(scheduler_t* scheduler,Task* task, std::string multicriteria
 	spdlog::get("task_logger")->info("{} {} {} {} {} {} {} {} {} {}", multicriteria, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count(), task->getDelayDC(), task->getDelayLink(),task->getBandwidthAllocated()/total_resources->total_bandwidth);
 }
 
-inline void logDC(objective_function_t *objective,std::string method){
-	spdlog::get("dc_logger")->info("{} {} {} {} {} {} {}", method, objective->time,    objective->dc_fragmentation,  objective->vcpu_footprint, objective->ram_footprint, objective->link_fragmentation, objective->link_footprint);
+inline void logDC(objective_function_t *objective,std::string method, float total_bandwidth){
+	spdlog::get("dc_logger")->info("{} {} {} {} {} {} {} {}", method, objective->time,    objective->dc_fragmentation,  objective->vcpu_footprint, objective->ram_footprint, objective->link_fragmentation, objective->link_footprint, (objective->fail_bandwidth/total_bandwidth));
 }
 
-inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed){
+inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed, objective_function_t* objective){
 	Task* current = NULL;
 
 	while(true) {
@@ -244,7 +244,7 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 		//Iterate through the PODs of the TASK, and erase each of one.
 		spdlog::debug("Scheduler Time %d\n\tDeleting task %d", options->current_time, current->getId());
 		//builder->getTopology()->listTopology();
-
+        objective->fail_bandwidth-=current->getBandwidthAllocated();
         if(options->standard=="none") {
     		Allocator::freeAllResources(
     			/* The task to be removed*/
@@ -268,7 +268,7 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 	current = NULL;
 }
 
-inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed, total_resources_t* total_dc){
+inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed, total_resources_t* total_dc, objective_function_t* objective){
 	spdlog::debug("allocate task");
 	bool allocation_success = false;
     bool allocation_link_success = false;
@@ -383,7 +383,8 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 		}else{
 			current->setAllocatedTime(options->current_time);
 			scheduler->tasks_to_delete.push(current);
-			if(options->standard=="none") {
+            objective->fail_bandwidth+=current->getBandwidthAllocated();
+            if(options->standard=="none") {
 				spdlog::get("mb_logger")->info("ALLOCATOR {} {}",options->multicriteria_method,time_span_allocator.count());
 				spdlog::get("mb_logger")->info("LINKS {} {}",options->multicriteria_method,time_span_links.count());
 				logTask(scheduler, current, options->multicriteria_method,total_dc);
@@ -415,9 +416,9 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 
 		consumed_resources.time = options->current_time;
 		// Search the containers to delete
-		delete_tasks(scheduler, builder, options, &consumed_resources);
+		delete_tasks(scheduler, builder, options, &consumed_resources, &objective);
 		// Search the containers in the vector to allocate in the DC
-		allocate_tasks(scheduler, builder, options, &consumed_resources, &total_resources);
+		allocate_tasks(scheduler, builder, options, &consumed_resources, &total_resources, &objective);
 
 		//************************************************//
 		//       Print All the metrics information        //
@@ -425,11 +426,11 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		objective=calculateObjectiveFunction(consumed_resources, total_resources);
 
 		if(options->test_type==2 || options->test_type==4) {
-			if(options->standard=="none")
-				logDC(&objective, options->multicriteria_method);
-			else
-				logDC(&objective, options->standard);
-
+			if(options->standard=="none"){
+				logDC(&objective, options->multicriteria_method, total_resources.total_bandwidth);
+			}else{
+				logDC(&objective, options->standard, total_resources.total_bandwidth);
+            }
 		}
 		//************************************************//
 		//************************************************//
