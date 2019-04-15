@@ -216,7 +216,6 @@ inline void logTask(scheduler_t* scheduler,Task* task, std::string multicriteria
 	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
 
 	std::chrono::duration<double> time_span =  std::chrono::duration_cast<std::chrono::duration<double> >( now - scheduler->start);
-
 	spdlog::get("task_logger")->info("{} {} {} {} {} {} {} {} {} {}", multicriteria, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count(), task->getDelayDC(), task->getDelayLink(),task->getBandwidthAllocated()/total_resources->total_bandwidth);
 }
 
@@ -246,14 +245,21 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 		spdlog::debug("Scheduler Time %d\n\tDeleting task %d", options->current_time, current->getId());
 		//builder->getTopology()->listTopology();
 
-		Allocator::freeAllResources(
-			/* The task to be removed*/
-			current,
-			/* The consumed DC status*/
-			consumed,
-			builder
-			);
-
+        if(options->standard=="none") {
+    		Allocator::freeAllResources(
+    			/* The task to be removed*/
+    			current,
+    			/* The consumed DC status*/
+    			consumed,
+    			builder
+    			);
+        }else{
+            Allocator::freeHostResource(
+                current,
+                consumed,
+                builder
+            );
+        }
 		delete(current);
 
 		//builder->getTopology()->listTopology();
@@ -342,7 +348,8 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 					spdlog::info("\tRequest dont fit in links");
 					//getchar();
 				}
-			}else{
+			}
+            if(!allocation_success){
 				spdlog::info("\trequest dont fit in allocation");
 			}
 		}else{
@@ -374,7 +381,6 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			spdlog::info("\tTask {} can't be allocated, added delay of {} next try in scheduler time {}", current->getId(), delay, current->getSubmission()+current->getDelay() );
 			// getchar();
 		}else{
-			// printf("\tTask %d Allocated in time %d\n", current->getId(), current->getSubmission()+current->getDelay() );
 			current->setAllocatedTime(options->current_time);
 			scheduler->tasks_to_delete.push(current);
 			if(options->standard=="none") {
