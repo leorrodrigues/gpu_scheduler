@@ -18,6 +18,8 @@ unsigned int containers_size;
 unsigned int links_size;
 unsigned int allocated_time;
 unsigned int delay;
+unsigned int delay_dc;
+unsigned int delay_link;
 
 //Link management variables
 // This variables are used during the allocation and desalocation of links
@@ -37,6 +39,8 @@ void setTask(const char*);
 
 void addDelay();
 void addDelay(unsigned int);
+void addDelayDC(unsigned int);
+void addDelayLink(unsigned int);
 void setAllocatedTime(unsigned int);
 void setSubmission(unsigned int);
 
@@ -55,6 +59,8 @@ unsigned int getContainersSize();
 unsigned int getLinksSize();
 unsigned int getAllocatedTime();
 unsigned int getDelay();
+unsigned int getDelayDC();
+unsigned int getDelayLink();
 
 int* getLinkPath();
 int* getLinkPathEdge();

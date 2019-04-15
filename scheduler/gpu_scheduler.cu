@@ -217,7 +217,7 @@ inline void logTask(scheduler_t* scheduler,Task* task, std::string multicriteria
 
 	std::chrono::duration<double> time_span =  std::chrono::duration_cast<std::chrono::duration<double> >( now - scheduler->start);
 
-	spdlog::get("task_logger")->info("{} {} {} {} {} {} {}", multicriteria, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count());
+	spdlog::get("task_logger")->info("{} {} {} {} {} {} {}", multicriteria, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count(), task->getDelayDC(), task->getDelayLink());
 }
 
 inline void logDC(objective_function_t *objective,std::string method){
@@ -269,6 +269,7 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed, total_resources_t* total_dc){
 	spdlog::debug("allocate task");
 	bool allocation_success = false;
+    bool allocation_link_success = false;
 	Task* current = NULL;
 	int total_delay = 0;
 	int delay=1;
@@ -276,6 +277,8 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 	std::chrono::duration<double> time_span_links;
 	std::chrono::duration<double> time_span_allocator;
 	while(true) {
+        allocation_success=false;
+        allocation_link_success=false;
 		if(scheduler->tasks_to_allocate.empty()) {
 			spdlog::debug("empty allocate queue");
 			break;
@@ -333,13 +336,13 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				// builder->getTopology()->listTopology();
 				// allocation_success=Allocator::links_allocator(builder, current, consumed);
 				spdlog::debug("links allocator");
-				allocation_success=Allocator::links_allocator_cuda(builder, current, consumed);
+				allocation_link_success=Allocator::links_allocator_cuda(builder, current, consumed);
 				spdlog::debug("links allocator [x]");
 				// builder->getTopology()->listTopology();
 				std::chrono::high_resolution_clock::time_point links_end = std::chrono::high_resolution_clock::now();
 
 				time_span_links =  std::chrono::duration_cast<std::chrono::duration<double> >(links_end - links_start);
-				if(!allocation_success) {
+				if(!allocation_link_success) {
 					spdlog::info("\tRequest dont fit in links");
 					//getchar();
 				}
@@ -348,11 +351,11 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			}
 		}else{
 			allocation_success=false;
+            allocation_link_success=false;
 			spdlog::info("\trequest dont fit in DC");
 		}
 
-		if(!allocation_success) {
-
+		if(!allocation_success || !allocation_link_success) {
 			if(!scheduler->tasks_to_delete.empty()) {
 				Task* first_to_delete = scheduler->tasks_to_delete.top();
 
@@ -363,6 +366,12 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			current->addDelay(delay);
 
 			scheduler->tasks_to_allocate.push(current);
+
+            if(!allocation_success) {
+                current->addDelayDC(delay);
+            }else if(!allocation_link_success){
+              current->addDelayLink(delay);
+            }
 
 			total_delay+=current->getDelay();
 

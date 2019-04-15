@@ -11,6 +11,8 @@ Task::Task() : Task_Resources(){
 	this->links_size=0;
 	this->allocated_time=0;
 	this->delay=0;
+    this->delay_dc=0;
+    this->delay_link=0;
 
 	this->path = NULL;
 	this->path_edge = NULL;
@@ -187,6 +189,14 @@ void Task::addDelay(unsigned int delay){
 	this->delay+=delay;
 }
 
+void Task::addDelayDC(unsigned int delay){
+    this->delay_dc+=delay;
+}
+
+void Task::addDelayLink(unsigned int delay){
+    this->delay_link+=delay;
+}
+
 void Task::setAllocatedTime(unsigned int allocatedTime){
 	this->allocated_time = allocatedTime;
 }
@@ -249,6 +259,14 @@ unsigned int Task::getAllocatedTime(){
 
 unsigned int Task::getDelay(){
 	return this->delay;
+}
+
+unsigned int Task::getDelayDC(){
+	return this->delay_dc;
+}
+
+unsigned int Task::getDelayLink(){
+	return this->delay_link;
 }
 
 int* Task::getLinkPath(){
