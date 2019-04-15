@@ -330,7 +330,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
 			time_span_allocator =  std::chrono::duration_cast<std::chrono::duration<double> >(allocator_end - allocator_start);
 
-			if(allocation_success) {
+			if(allocation_success && options->standard=="none") {
 				std::chrono::high_resolution_clock::time_point links_start = std::chrono::high_resolution_clock::now();
 
 				// builder->getTopology()->listTopology();
@@ -355,7 +355,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			spdlog::info("\trequest dont fit in DC");
 		}
 
-		if(!allocation_success || !allocation_link_success) {
+		if(!allocation_success || (!allocation_link_success && options->standard=="none")) {
 			if(!scheduler->tasks_to_delete.empty()) {
 				Task* first_to_delete = scheduler->tasks_to_delete.top();
 
@@ -369,7 +369,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
             if(!allocation_success) {
                 current->addDelayDC(delay);
-            }else if(!allocation_link_success){
+            }else if(!allocation_link_success && options->standard=="none"){
               current->addDelayLink(delay);
             }
 
