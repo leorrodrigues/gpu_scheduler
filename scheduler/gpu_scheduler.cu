@@ -188,28 +188,14 @@ void setup(int argc, char** argv, Builder* builder, options_t* options){
 	builder->parser(path.c_str());
 }
 
-inline objective_function_t calculateObjectiveFunction(consumed_resource_t consumed, total_resources_t total){
-	// printf("Started Calculate Objective Function\n");
-	objective_function_t obj;
-	// printf("Updating time\n");
-	obj.time = consumed.time;
-
-	// printf("Fragmentation\n");
-	obj.dc_fragmentation = ObjectiveFunction::Fragmentation::datacenter(consumed, total);
-
-	obj.link_fragmentation = ObjectiveFunction::Fragmentation::link(consumed,total);
-
-	// printf("vcpu footprint\n");
-	obj.vcpu_footprint = ObjectiveFunction::Footprint::vcpu(consumed, total);
-
-	// printf("ram footprint\n");
-	obj.ram_footprint = ObjectiveFunction::Footprint::ram(consumed, total);
-
-	obj.link_footprint = ObjectiveFunction::Footprint::link(consumed,total);
-
-	// printf("footprint\n");
-	obj.footprint = ObjectiveFunction::Footprint::footprint(consumed, total);
-	return obj;
+inline void calculateObjectiveFunction(objective_function_t *obj, consumed_resource_t consumed, total_resources_t total){
+	obj->time = consumed.time;
+	obj->dc_fragmentation = ObjectiveFunction::Fragmentation::datacenter( consumed, total);
+	obj->link_fragmentation = ObjectiveFunction::Fragmentation::link(consumed, total);
+	obj->vcpu_footprint = ObjectiveFunction::Footprint::vcpu(consumed, total);
+	obj->ram_footprint = ObjectiveFunction::Footprint::ram(consumed, total);
+	obj->link_footprint = ObjectiveFunction::Footprint::link(consumed,total);
+	obj->footprint = ObjectiveFunction::Footprint::footprint(consumed, total);
 }
 
 inline void logTask(scheduler_t* scheduler,Task* task, std::string multicriteria, total_resources_t* total_resources){
@@ -423,7 +409,7 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		//************************************************//
 		//       Print All the metrics information        //
 		//************************************************//
-		objective=calculateObjectiveFunction(consumed_resources, total_resources);
+		calculateObjectiveFunction(&objective,consumed_resources, total_resources);
 
 		if(options->test_type==2 || options->test_type==4) {
 			if(options->standard=="none"){
