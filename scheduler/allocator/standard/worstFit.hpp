@@ -28,8 +28,9 @@ static size_t get_max_element(std::vector<Host*> hosts, bool *visited){
 
 namespace Allocator {
 bool worstFit(Builder* builder,  Task* task, consumed_resource_t* consumed){
-	std::vector<Host*> aux = builder->getHosts();
-
+    std::vector<Host*> aux = builder->getHosts();
+    size_t hosts_size = aux.size();
+    size_t visited_qnt=0;
 	size_t host_index;
 	Host* host;
 	// printf("Get Task Pods\n");
@@ -42,11 +43,12 @@ bool worstFit(Builder* builder,  Task* task, consumed_resource_t* consumed){
         bool visited [aux.size()];
 		pod_allocated = false;
 		host=NULL;
-		while(!aux.empty()) {
+        while(visited_qnt<hosts_size) {
 			host_index = get_max_element(aux,visited);
 
 			host =  aux[host_index]; //get the iterator element
 			visited[host_index]=true; //remove the element from vector
+            visited_qnt++;
 
 			if(!checkFit(host,pods[pod_index])) continue;
 
