@@ -13,10 +13,13 @@ static size_t get_max_element(std::vector<Host*> hosts, bool *visited){
     std::map<std::string,float> l_r;
     for(size_t i=0; i<hosts.size();i++){
         if(!visited[i]){
+            temp=0;
             l_r = hosts[i]->getResource();
-            for(std::map<std::string,float>::iterator it = l_r.begin(); it!=l_r.end(); it++) {
-        		temp+=it->second;
-        	}
+            // for(std::map<std::string,float>::iterator it = l_r.begin(); it!=l_r.end(); it++) {
+        		// temp+=it->second;
+        	// }
+            temp+=l_r["vcpu"];
+            temp+=l_r["ram"];
             if(max < temp){
                 max=temp;
                 index=i;

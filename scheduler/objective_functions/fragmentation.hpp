@@ -20,7 +20,7 @@ inline float datacenter(unsigned int active, unsigned int total){
 
 inline float link(consumed_resource_t consumed, total_resources_t total){
 	float value =  consumed.active_links/ (float) total.links;
-	return (value >= 0.0000000001) ? value : 0;
+    return (value >= 0.0000000001) ? value : 0;
 
 }
 

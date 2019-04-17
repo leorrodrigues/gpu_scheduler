@@ -56,6 +56,7 @@ void widestPathKernel(int *offsets, int *destination_indices, int *edge_ids, flo
 	// printf("THREAD X:%d Y%d RUNNING WITH SRC: %d DST %d INITIAL INDEX %d\n",x,y,src,dst,initial_index);
 
 	int node_index, next_node=0;
+    int total_visited=0;
 	size_t destination_index=0;
 	float next_node_weight=0, alt=0;
 
@@ -64,22 +65,29 @@ void widestPathKernel(int *offsets, int *destination_indices, int *edge_ids, flo
 		path[initial_index+i]=-1;
 		path_edge[initial_index+i]=-1;
 		result[initial_index+i]=-1;
-		visited[initial_index+i]=false;
+        if(nodes_types!=0)
+		    visited[initial_index+i]= false;
+        else{
+            visited[initial_index+1]=true;
+            total_visited++;
+        }
 	}
 
 	weights[initial_index+src]=FLT_MAX;
 	visited[initial_index+src]=false;
 	visited[initial_index+dst]=false;
 
-	while(true) {
+	while(total_visited<nodes_size) {
 		getMaxIndex(weights, visited, initial_index, nodes_size, &node_index);
 		// printf("THREAD %d %d - NEXT NODE %d - %d - %d\n",x,y,next_node, initial_index+next_node,node_index);
 		// printf("Node %d has Highest Weight %f\n",node_index, weights[node_index]);
-		if(visited[initial_index+node_index]==true || node_index==dst) {
-			// printf("Encerrei Cheguei ao Destino\n");
-			break; //simulate empty queue or we found the destination node
-		}
-		visited[initial_index+node_index]=true;
+        if(!visited[initial_index+node_index]){
+            total_visited++;
+            visited[initial_index+node_index]=true;
+        }else{
+            // printf("ALL ELEMENTS ARE ALREADY BEEN VISITED %d\n",total_visited);
+            break;
+        }
 
 		// actual_weight = weights[initial_index+next_node];
 		// weights[initial_index+next_node]=FLT_MIN;
@@ -119,8 +127,6 @@ void widestPathKernel(int *offsets, int *destination_indices, int *edge_ids, flo
 				weights[initial_index+next_node] = alt;
 				path[initial_index+next_node] = node_index;
 				path_edge[initial_index+next_node] = edge_ids[destination_index];
-			}else{
-				// printf("Nao troquei o valor %f %f\n",alt, weights[initial_index+next_node]);
 			}
 		}
 	}

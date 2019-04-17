@@ -140,7 +140,7 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
         SPDLOG_ERROR("Links kernel error");
         exit(0);
     }
-    	if(cuda_error!=0) {
+    if(cuda_error!=0) {
 		SPDLOG_ERROR("Links Allocator - Kernel check Erros[x] !!!{}!!! Host Size: {} Node Size: {} Total: {}",cudaGetErrorString(cuda_error),hosts_size,nodes_size,((hosts_size*(hosts_size-1))/2)*nodes_size);
 		exit(0);
 	}
@@ -212,7 +212,6 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 			destination[link_index] = containers[links[i].destination-1]->getHostIdg();
 
 			//Need to make the path and check if the path can support the bandwidth
-			// spdlog::info("RESULT[{}]={}",initial_index,result[initial_index]);
 			if(result[initial_index]>=links[i].bandwidth_max) {
                 spdlog::debug("Link set with max band of {} the path has {}",links[i].bandwidth_max, result[initial_index]);
 				result_min_max[link_index]=true;
@@ -239,9 +238,8 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 			init[link_index]=initial_index;
 
 			// spdlog::error("Path[{}]={}",initial_index+walk_index,path[initial_index+walk_index]);
-
 			while(path[initial_index+walk_index]!=-1) {
-				// spdlog::error("Updating the edge {}",initial_index+walk_index);
+				spdlog::debug("Updating the edge {}",initial_index+walk_index);
 				graph->set_variable_edge(
 					1,      //to refer to the bandwidth
 					path_edge[initial_index+walk_index],      //to refer to the specific edge
@@ -254,7 +252,7 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 
 				walk_index = path[initial_index+walk_index];
 			}
-			// spdlog::error("Add link index");
+			spdlog::debug("Add link index");
 			//update the link_index
 			link_index++;
 		}
