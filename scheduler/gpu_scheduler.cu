@@ -231,7 +231,7 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 		spdlog::debug("Scheduler Time %d\n\tDeleting task %d", options->current_time, current->getId());
 		//builder->getTopology()->listTopology();
         objective->fail_bandwidth-=current->getBandwidthAllocated();
-        if(options->standard=="none") {
+        // if(options->standard=="none") {
     		Allocator::freeAllResources(
     			/* The task to be removed*/
     			current,
@@ -239,13 +239,14 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
     			consumed,
     			builder
     			);
-        }else{
-            Allocator::freeHostResource(
-                current,
-                consumed,
-                builder
-            );
-        }
+        // }
+        // else{
+        //     Allocator::freeHostResource(
+        //         current,
+        //         consumed,
+        //         builder
+        //     );
+        // }
 		delete(current);
 
 		//builder->getTopology()->listTopology();
