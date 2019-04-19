@@ -231,7 +231,7 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 		spdlog::debug("Scheduler Time %d\n\tDeleting task %d", options->current_time, current->getId());
 		//builder->getTopology()->listTopology();
         objective->fail_bandwidth-=current->getBandwidthAllocated();
-        if(options->standard=="none") {
+        // if(options->standard=="none") {
     		Allocator::freeAllResources(
     			/* The task to be removed*/
     			current,
@@ -239,13 +239,14 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
     			consumed,
     			builder
     			);
-        }else{
-            Allocator::freeHostResource(
-                current,
-                consumed,
-                builder
-            );
-        }
+        // }
+        // else{
+        //     Allocator::freeHostResource(
+        //         current,
+        //         consumed,
+        //         builder
+        //     );
+        // }
 		delete(current);
 
 		//builder->getTopology()->listTopology();
@@ -318,8 +319,9 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
 			time_span_allocator =  std::chrono::duration_cast<std::chrono::duration<double> >(allocator_end - allocator_start);
 
-			if(allocation_success && options->standard=="none") {
-				std::chrono::high_resolution_clock::time_point links_start = std::chrono::high_resolution_clock::now();
+            //if(allocation_success && options->standard=="none") {
+            if(allocation_success) {
+    				std::chrono::high_resolution_clock::time_point links_start = std::chrono::high_resolution_clock::now();
 
 				// builder->getTopology()->listTopology();
 				// allocation_success=Allocator::links_allocator(builder, current, consumed);
@@ -344,8 +346,9 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			spdlog::info("\trequest dont fit in DC");
 		}
 
-		if(!allocation_success || (!allocation_link_success && options->standard=="none")) {
-			if(!scheduler->tasks_to_delete.empty()) {
+        if(!allocation_success || !allocation_link_success) {
+        // if(!allocation_success || (!allocation_link_success && options->standard=="none")) {
+    		if(!scheduler->tasks_to_delete.empty()) {
 				Task* first_to_delete = scheduler->tasks_to_delete.top();
 
 				delay = ((first_to_delete->getDuration() + first_to_delete->getAllocatedTime()) - ( current->getSubmission() + current->getDelay() ));
@@ -358,8 +361,10 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
             if(!allocation_success) {
                 current->addDelayDC(delay);
-            }else if(!allocation_link_success && options->standard=="none"){
-              current->addDelayLink(delay);
+            }
+            // else if(!allocation_link_success && options->standard=="none"){
+            else if(!allocation_link_success){
+                  current->addDelayLink(delay);
             }
 
 			total_delay+=current->getDelay();
