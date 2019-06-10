@@ -228,25 +228,25 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 
 		// if(  [ current->getId() ]!=NULL ) {
 		//Iterate through the PODs of the TASK, and erase each of one.
-		spdlog::debug("Scheduler Time %d\n\tDeleting task %d", options->current_time, current->getId());
+		spdlog::debug("Scheduler Time {}\t\tDeleting task {}", options->current_time, current->getId());
 		//builder->getTopology()->listTopology();
-        objective->fail_bandwidth-=current->getBandwidthAllocated();
-        // if(options->standard=="none") {
-    		Allocator::freeAllResources(
-    			/* The task to be removed*/
-    			current,
-    			/* The consumed DC status*/
-    			consumed,
-    			builder
-    			);
-        // }
-        // else{
-        //     Allocator::freeHostResource(
-        //         current,
-        //         consumed,
-        //         builder
-        //     );
-        // }
+		objective->fail_bandwidth-=current->getBandwidthAllocated();
+		// if(options->standard=="none") {
+		if(options->test_type==4) {
+			Allocator::freeAllResources(
+				/* The task to be removed*/
+				current,
+				/* The consumed DC status*/
+				consumed,
+				builder
+				);
+		}else{
+			Allocator::freeHostResource(
+				current,
+				consumed,
+				builder
+				);
+		}
 		delete(current);
 
 		//builder->getTopology()->listTopology();
@@ -258,7 +258,7 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed, total_resources_t* total_dc, objective_function_t* objective){
 	spdlog::debug("allocate task");
 	bool allocation_success = false;
-    bool allocation_link_success = false;
+	bool allocation_link_success = false;
 	Task* current = NULL;
 	int total_delay = 0;
 	int delay=1;
@@ -266,8 +266,8 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 	std::chrono::duration<double> time_span_links;
 	std::chrono::duration<double> time_span_allocator;
 	while(true) {
-        allocation_success=false;
-        allocation_link_success=false;
+		allocation_success=false;
+		allocation_link_success=false;
 		if(scheduler->tasks_to_allocate.empty()) {
 			spdlog::debug("empty allocate queue");
 			break;
@@ -277,26 +277,28 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
 		if( current->getSubmission()+current->getDelay() != options->current_time) {
 			spdlog::debug("request in advance time submission {} delay {} scheduler time {}",current->getSubmission(), current->getDelay(),options->current_time);
-			//getchar();
 			break;
 		}
 
 		scheduler->tasks_to_allocate.pop();
 
 		spdlog::debug("Check if request {} fit in DC",current->getId());
-        // getchar();
 		if(Allocator::checkFit(total_dc,consumed,current)!=0) {
+			spdlog::debug("Request Fit in DC");
 			// allocate the new task in the data center.
 			std::chrono::high_resolution_clock::time_point allocator_start = std::chrono::high_resolution_clock::now();
 			if(options->standard=="none") {
 				if( options->clustering_method=="pure_mcl") {
+					spdlog::debug("Pure MCL");
 					allocation_success=Allocator::mcl_pure(builder);
 				} else if( options->clustering_method == "none") {
 					spdlog::debug("Naive");
 					allocation_success=Allocator::naive(builder,current, consumed);
 					spdlog::debug("Naive[x]");
 				} else if ( options->clustering_method == "mcl") {
+					spdlog::debug("MCL + MULTICRITERIA");
 					allocation_success=Allocator::multicriteria_clusterized(builder, current, consumed);
+					spdlog::debug("MCL + MULTICRITERIA [X]");
 				} else if ( options->clustering_method == "all") {
 					// allocation_success=Allocator::all();
 				} else {
@@ -319,9 +321,9 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
 			time_span_allocator =  std::chrono::duration_cast<std::chrono::duration<double> >(allocator_end - allocator_start);
 
-            //if(allocation_success && options->standard=="none") {
-            if(allocation_success) {
-    				std::chrono::high_resolution_clock::time_point links_start = std::chrono::high_resolution_clock::now();
+			//if(allocation_success && options->standard=="none") {
+			if(allocation_success && options->test_type==4) {
+				std::chrono::high_resolution_clock::time_point links_start = std::chrono::high_resolution_clock::now();
 
 				// builder->getTopology()->listTopology();
 				// allocation_success=Allocator::links_allocator(builder, current, consumed);
@@ -334,21 +336,21 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				time_span_links =  std::chrono::duration_cast<std::chrono::duration<double> >(links_end - links_start);
 				if(!allocation_link_success) {
 					spdlog::info("\tRequest dont fit in links");
-					//getchar();
 				}
 			}
-            if(!allocation_success){
+			if(!allocation_success) {
 				spdlog::info("\trequest dont fit in allocation");
 			}
 		}else{
-			allocation_success=false;
-            allocation_link_success=false;
 			spdlog::info("\trequest dont fit in DC");
+			allocation_success=false;
+			allocation_link_success=false;
 		}
-
-        if(!allocation_success || !allocation_link_success) {
-        // if(!allocation_success || (!allocation_link_success && options->standard=="none")) {
-    		if(!scheduler->tasks_to_delete.empty()) {
+		spdlog::debug("\t\tChecking the success of allocation");
+		if(!allocation_success || (!allocation_link_success && options->test_type==4)) {
+			spdlog::debug("\t\t\tAllocation not succeeded\n");
+			// if(!allocation_success || (!allocation_link_success && options->standard=="none")) {
+			if(!scheduler->tasks_to_delete.empty()) {
 				Task* first_to_delete = scheduler->tasks_to_delete.top();
 
 				delay = ((first_to_delete->getDuration() + first_to_delete->getAllocatedTime()) - ( current->getSubmission() + current->getDelay() ));
@@ -359,23 +361,23 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
 			scheduler->tasks_to_allocate.push(current);
 
-            if(!allocation_success) {
-                current->addDelayDC(delay);
-            }
-            // else if(!allocation_link_success && options->standard=="none"){
-            else if(!allocation_link_success){
-                  current->addDelayLink(delay);
-            }
+			if(!allocation_success) {
+				current->addDelayDC(delay);
+			}
+			// else if(!allocation_link_success && options->standard=="none"){
+			else if(!allocation_link_success) {
+				current->addDelayLink(delay);
+			}
 
 			total_delay+=current->getDelay();
 
 			spdlog::info("\tTask {} can't be allocated, added delay of {} next try in scheduler time {}", current->getId(), delay, current->getSubmission()+current->getDelay() );
-			// getchar();
 		}else{
+			spdlog::debug("\t\t\tAllocation with Success");
 			current->setAllocatedTime(options->current_time);
 			scheduler->tasks_to_delete.push(current);
-            objective->fail_bandwidth+=current->getBandwidthAllocated();
-            if(options->standard=="none") {
+			objective->fail_bandwidth+=current->getBandwidthAllocated();
+			if(options->standard=="none") {
 				spdlog::get("mb_logger")->info("ALLOCATOR {} {}",options->multicriteria_method,time_span_allocator.count());
 				spdlog::get("mb_logger")->info("LINKS {} {}",options->multicriteria_method,time_span_links.count());
 				logTask(scheduler, current, options->multicriteria_method,total_dc);
@@ -385,7 +387,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				logTask(scheduler, current, options->standard,total_dc);
 			}
 		}
-        spdlog::debug("ending the while loop");
+		spdlog::debug("ending the while loop");
 	}
 	spdlog::debug("allocate task[x]");
 }
@@ -404,6 +406,7 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		!scheduler->tasks_to_allocate.empty() ||
 		!scheduler->tasks_to_delete.empty()
 		) {
+		spdlog::info("Scheduler Time {}", options->current_time);
 
 		consumed_resources.time = options->current_time;
 		// Search the containers to delete
@@ -417,17 +420,16 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		calculateObjectiveFunction(&objective,consumed_resources, total_resources);
 
 		if(options->test_type==2 || options->test_type==4) {
-			if(options->standard=="none"){
+			if(options->standard=="none") {
 				logDC(&objective, options->multicriteria_method, total_resources.total_bandwidth);
 			}else{
 				logDC(&objective, options->standard, total_resources.total_bandwidth);
-            }
+			}
 		}
 		//************************************************//
 		//************************************************//
 		//************************************************//
 
-		spdlog::info("Scheduler Time {}", options->current_time);
 		options->current_time++;
 	}
 }
@@ -452,17 +454,12 @@ int main(int argc, char **argv){
 
 	spdlog::debug("Build the log path");
 	std::string log_str;
-	log_str+=options.clustering_method;
-	log_str+="-";
-	if(options.test_type!=4) {
-		log_str+=std::to_string(options.test_type);
-		log_str+="-size_";
-		log_str+=std::to_string(options.request_size);
-		log_str+="-tsize_";
-		log_str+=std::to_string(options.topology_size);
-		log_str+=".log";
+	if(options.test_type==1) {
+		log_str+="test1.log";
 	}
-	else{
+	else if(options.test_type==4) {
+		log_str+=options.clustering_method;
+		log_str+="-";
 		log_str+="pod";
 		log_str+=std::to_string(options.request_size);
 		log_str+="-bw";
@@ -470,11 +467,20 @@ int main(int argc, char **argv){
 		log_str+="-dt";
 		log_str+=std::to_string(options.data_type);
 		log_str+=".json";
+	}else{
+		log_str+=options.clustering_method;
+		log_str+="-";
+		log_str+=std::to_string(options.test_type);
+		log_str+="-size_";
+		log_str+=std::to_string(options.request_size);
+		log_str+="-tsize_";
+		log_str+=std::to_string(options.topology_size);
+		log_str+=".log";
 	}
 	spdlog::info("Generating the loggers");
-	auto dc_logger = spdlog::basic_logger_mt("dc_logger","logs/dc-"+log_str);
-	auto task_logger =spdlog::basic_logger_mt("task_logger", "logs/request-"+log_str);
-	auto micro_bench_logger = spdlog::basic_logger_mt("mb_logger", "logs/micro-bench"+log_str);
+	auto dc_logger = spdlog::basic_logger_mt("dc_logger","logs/test"+std::to_string(options.test_type)+"/dc-"+log_str);
+	auto task_logger =spdlog::basic_logger_mt("task_logger", "logs/test"+std::to_string(options.test_type)+"/request-"+log_str);
+	auto micro_bench_logger = spdlog::basic_logger_mt("mb_logger", "logs/test"+std::to_string(options.test_type)+"/micro-bench"+log_str);
 
 	spdlog::flush_every(std::chrono::seconds(30));
 
@@ -503,7 +509,6 @@ int main(int argc, char **argv){
 		path+=std::to_string(options.bw);
 	}
 	path+=".json";
-
 	spdlog::info("Reading the request json {}", path);
 	reader->openDocument(path.c_str());
 	std::string message;
@@ -525,11 +530,25 @@ int main(int argc, char **argv){
 	message.clear();
 	delete(reader);
 
+	std::chrono::duration<double> cluster_time_span;
+
 	if(options.clustering_method!="none") {
+		std::chrono::high_resolution_clock::time_point cluster_time_start = std::chrono::high_resolution_clock::now();
+
 		spdlog::info("Running the cluster method");
 		builder->runClustering(builder->getHosts());
 
+		std::chrono::high_resolution_clock::time_point cluster_time_end = std::chrono::high_resolution_clock::now();
+
+		cluster_time_span =  std::chrono::duration_cast<std::chrono::duration<double> >(cluster_time_end - cluster_time_start);
+
 		builder->getClusteringResult();
+	}
+
+	if(options.test_type==1 && options.clustering_method == "pure_mcl") {
+		spdlog::get("dc_logger")->info("pure_mcl;{};{};{}", options.topology_size, options.request_size, cluster_time_span.count());
+		delete(builder);
+		return 0;
 	}
 
 	scheduler.start = std::chrono::high_resolution_clock::now();
@@ -543,8 +562,10 @@ int main(int argc, char **argv){
 
 	spdlog::info("Finished the scheduler: method {}, topology size {}, seconds {}",options.multicriteria_method, options.topology_size, time_span.count());
 
+	if(options.test_type==1) {
+		spdlog::get("dc_logger")->info("{};{};{};{}", options.multicriteria_method,options.topology_size, options.request_size, time_span.count());
+	}
 	// Free the allocated pointers
-
 	delete(builder);
 	return 0;
 }

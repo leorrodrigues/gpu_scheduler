@@ -29,10 +29,9 @@ for(f_names in file_names){
     
     #corrplot(title="\n\n\n\n\n\n\nAHP\nCorrelation Matrix",as.matrix(t(wide)), method="square", is.corr=FALSE,tl.srt=0, tl.col="black", col=brewer.pal(n = 12, name = "info2"))
     
-    title_n <- "Correlation Matrix For "
-    title_n <- sprintf("Correlation Matrix For %s",plot_names[index])
+    title_n <- sprintf("Matrix de Correlação Para %s",plot_names[index])
 
-    files_save <- sprintf("correlation_matrix_of_%s_en.pdf",f_names)
+    files_save <- sprintf("correlation_matrix_of_%s_pt.pdf",f_names)
     pdf(files_save, width=8.2, height=4.2)
 
         corrplot(
@@ -52,9 +51,9 @@ for(f_names in file_names){
             addgrid.col="black"
             )+
             #title(title_n, font.main=4, cex.main=1.7)+
-            mtext("                                                                                                                             Time (s)", line=2.4 , cex=1.2)+
-            mtext("Request Size", side=2, line=2.5, cex=1.4)+
-            mtext("Fat Tree Size", side=3, line=2.7, cex=1.4)+
+            mtext("                                                                                                                            Tempo(s)", line=2.4 , cex=1.2)+
+            mtext("Tamanho da Requisição", side=2, line=2.5, cex=1.4)+
+            mtext("Tamanho da Fat-Tree", side=3, line=2.7, cex=1.4)+
             #mtext("X values corresponds to execution\nthat needs more than 10 minutes", side=1, line=1)
     dev.off()
 }

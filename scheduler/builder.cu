@@ -227,15 +227,15 @@ void Builder::setDcell(int nHosts,int nLevels){
 
 void Builder::setDataCenterResources(total_resources_t* resource){
 	resource->servers = this->hosts.size();
-    resource->links=this->topology->getGraph()->get_num_edges(); //to simulate the 1GB of each link
+	resource->links=this->topology->getGraph()->get_num_edges(); //to simulate the 1GB of each link
 	for(size_t i=0; i<this->hosts.size(); i++) {
 		std::map<std::string,float> h_r = this->hosts[i]->getResource();
 		for(auto it = resource->resource.begin(); it!=resource->resource.end(); it++) {
-            resource->resource[it->first] += h_r[it->first];
-        }
+			resource->resource[it->first] += h_r[it->first];
+		}
 	}
-    //As the DC is configured to have 1GB in all links, only multiply by the links bandwidth by the total ammount
-    resource->total_bandwidth = 1000*resource->links;
+	//As the DC is configured to have 1GB in all links, only multiply by the links bandwidth by the total ammount
+	resource->total_bandwidth = 1000*resource->links;
 }
 
 void Builder::runMulticriteria(std::vector<Host*> alt){
