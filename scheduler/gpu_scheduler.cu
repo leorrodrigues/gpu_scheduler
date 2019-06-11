@@ -563,7 +563,11 @@ int main(int argc, char **argv){
 	spdlog::info("Finished the scheduler: method {}, topology size {}, seconds {}",options.multicriteria_method, options.topology_size, time_span.count());
 
 	if(options.test_type==1) {
-		spdlog::get("dc_logger")->info("{};{};{};{}", options.multicriteria_method,options.topology_size, options.request_size, time_span.count());
+		std::chrono::high_resolution_clock::time_point cluster_time_end = std::chrono::high_resolution_clock::now();
+
+		cluster_time_span =  std::chrono::duration_cast<std::chrono::duration<double> >(cluster_time_end - cluster_time_start);
+
+		spdlog::get("dc_logger")->info("{};{};{};{};{}", options.multicriteria_method,options.topology_size, options.request_size, time_span.count(), cluster_time_span);
 	}
 	// Free the allocated pointers
 	delete(builder);
