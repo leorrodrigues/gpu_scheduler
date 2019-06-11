@@ -567,7 +567,7 @@ int main(int argc, char **argv){
 
 		cluster_time_span =  std::chrono::duration_cast<std::chrono::duration<double> >(cluster_time_end - cluster_time_start);
 
-		spdlog::get("dc_logger")->info("{};{};{};{};{}", options.multicriteria_method,options.topology_size, options.request_size, time_span.count(), cluster_time_span);
+		spdlog::get("dc_logger")->info("{};{};{};{};{}", options.multicriteria_method,options.topology_size, options.request_size, time_span.count(), cluster_time_span.count());
 	}
 	// Free the allocated pointers
 	delete(builder);
