@@ -6,19 +6,12 @@ cd ./../../scheduler/;
         for i in 1 2 4 8 16 32 64 128 256 512 1024 2048 4096 8192 16384 32768 65536 131072 262144; do
             for m in ahpg topsis ; do
                 echo "Fat Tree k=$k Container Size $i Algoritmo $m Request Size $rs round $round MCL"
-                timeout 15m ./gpuscheduler.out --test 1 -s $k -m $m --data-type flat -c mcl --request-size $i
+                timeout 15m ./gpuscheduler.out --test 1 -s $k -m $m --data-type flat -c none --request-size $i
                 if [ $? -eq 124 ]
                 then
-                    echo "$m;$k;$i;NA" >> ./logs/test1/dc-mcl.log
+                    echo "$m;$k;$i;NA" >> ./logs/test1/dc-test1.log
                 fi
             done;
-            echo "Fat Tree k=$k Container Size $i Algoritmo pure_mcl"
-            timeout 15m ./gpuscheduler.out --test 1 -s $k -m $m --data-type flat -c pure_mcl --request-size $i
-            if [ $? -eq 124 ]
-            then
-                echo "pure_mcl;$k;$i;NA" >> ./logs/test1/dc-mcl.log
-            fi
-
         done;
     done;
 #done;
