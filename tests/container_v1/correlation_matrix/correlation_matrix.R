@@ -1,5 +1,12 @@
-library(corrplot)
-library(RColorBrewer)
+packages<- c("corrplot","RColorBrewer")
+
+for(package in packages){
+    if (!require(package,character.only = TRUE)){
+        install.packages(package,dep=TRUE)
+        if(!require(package,character.only = TRUE)) stop("Package not found")
+    }
+    library(package,character.only=TRUE)
+}
 
 pallet <- c("#006A40FF","#75B41EFF","#95828DFF","#708C98FF","#8AB8CFFF","#358359FF","#8BA1BCFF","#5A5895FF","#F2990CFF","#E5BA3AFF","#D86C4FFF" )
 
@@ -29,7 +36,7 @@ for(f_names in file_names){
     
     #corrplot(title="\n\n\n\n\n\n\nAHP\nCorrelation Matrix",as.matrix(t(wide)), method="square", is.corr=FALSE,tl.srt=0, tl.col="black", col=brewer.pal(n = 12, name = "info2"))
     
-    title_n <- sprintf("Matrix de Correlação Para %s",plot_names[index])
+    title_n <- sprintf("Matrix de Correla??o Para %s",plot_names[index])
 
     files_save <- sprintf("correlation_matrix_of_%s_pt.pdf",f_names)
     pdf(files_save, width=8.2, height=4.2)
@@ -52,7 +59,7 @@ for(f_names in file_names){
             )+
             #title(title_n, font.main=4, cex.main=1.7)+
             mtext("                                                                                                                            Tempo(s)", line=2.4 , cex=1.2)+
-            mtext("Tamanho da Requisição", side=2, line=2.5, cex=1.4)+
+            mtext("Tamanho da Requisi??o", side=2, line=2.5, cex=1.4)+
             mtext("Tamanho da Fat-Tree", side=3, line=2.7, cex=1.4)+
             #mtext("X values corresponds to execution\nthat needs more than 10 minutes", side=1, line=1)
     dev.off()
