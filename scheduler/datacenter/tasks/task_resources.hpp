@@ -82,24 +82,6 @@ void setId(unsigned int id){
 	this->id=id;
 }
 
-<<<<<<< HEAD
-=======
-float taskUtility(){
-	float max=0, allocated=0;
-	for(auto const&it : this->total_allocated) {
-		if(it.first!="bandwidth") {
-			allocated+=it.second;
-			max+=this->total_max[it.first];
-		}
-	}
-	return max!=0 ? allocated/max : 0;
-}
-
-float linkUtility(){
-	return (this->total_max["bandwidth"]!=0) ? this->total_allocated["bandwidth"]/this->total_max["bandwidth"] : 0;
-}
-
->>>>>>> master
 };
 
 #endif

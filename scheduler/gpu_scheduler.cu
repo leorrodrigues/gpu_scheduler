@@ -279,6 +279,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			spdlog::debug("request in advance time submission {} delay {} scheduler time {}",current->getSubmission(), current->getDelay(),options->current_time);
 			break;
 		}
+
 		scheduler->tasks_to_allocate.pop();
 
 		spdlog::debug("Check if request {} fit in DC",current->getId());
@@ -375,7 +376,6 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			spdlog::debug("\t\t\tAllocation with Success");
 			current->setAllocatedTime(options->current_time);
 			scheduler->tasks_to_delete.push(current);
-<<<<<<< HEAD
 			objective->fail_bandwidth+=current->getBandwidthAllocated();
 			if(options->standard=="none") {
 				spdlog::get("mb_logger")->info("ALLOCATOR {} {}",options->multicriteria_method,time_span_allocator.count());
@@ -388,14 +388,6 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			}
 		}
 		spdlog::debug("ending the while loop");
-=======
-
-			if(options->standard=="none")
-				logTask(scheduler, current, options->multicriteria_method);
-			else
-				logTask(scheduler, current, options->standard);
-		}
->>>>>>> master
 	}
 	spdlog::debug("allocate task[x]");
 }
