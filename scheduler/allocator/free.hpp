@@ -58,7 +58,15 @@ inline void freeLinks(Task* task, consumed_resource_t* consumed, Builder* builde
 
 		walk_index = destination[p];
 		if(walk_index == -1 ) {
+<<<<<<< HEAD
 			continue; // the link is between two containers that are in the same host
+=======
+			// printf("\t\t\tThe containers are in the same host\n");
+			// remove the max value
+			consumed->resource["bandwidth"] -= values[p];
+
+			continue;                         // the link is between two containers that are in the same host
+>>>>>>> master
 		}
 
 		while(path[init[p]+walk_index]!=-1) {
