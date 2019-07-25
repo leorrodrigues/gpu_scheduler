@@ -73,7 +73,7 @@ bool multicriteria_clusterized(Builder* builder,  Task* task, consumed_resource_
 				// Check if the host can support the resource
 				if(!checkFit(host,pods[pod_index])) continue;
 
-				std::map<std::string,std::tuple<float,float,bool> > p_r = pods[pod_index]->getResources();
+				std::map<std::string,std::vector<float> > p_r = pods[pod_index]->getResources();
 				host->addPod(p_r);
 
 				if(!host->getActive()) {

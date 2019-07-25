@@ -79,21 +79,15 @@ Host& operator-= (Host& rhs){
 	return *this;
 }
 
-void  addPod(std::map<std::string,std::tuple<float,float,bool> > rhs){
+void  addPod(std::map<std::string,std::vector<float> > rhs){
 	for(auto const& r : rhs)
-		if(std::get<2>(r.second))
-			this->resource[r.first] -= std::get<1>(r.second);
-		else
-			this->resource[r.first] -= std::get<0>(r.second);
+		this->resource[r.first] -= r.second[2];
 	this->resource["allocated_resources"]++;
 }
 
-void removePod(std::map<std::string,std::tuple<float,float,bool> > rhs){
+void removePod(std::map<std::string,std::vector<float> > rhs){
 	for(auto const& r : rhs)
-		if(std::get<2>(r.second))
-			this->resource[r.first] += std::get<1>(r.second);
-		else
-			this->resource[r.first] += std::get<0>(r.second);
+		this->resource[r.first] += r.second[2];
 	this->resource["allocated_resources"]--;
 }
 

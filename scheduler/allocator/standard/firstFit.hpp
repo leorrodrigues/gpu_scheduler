@@ -20,7 +20,7 @@ bool firstFit (Builder* builder,  Task* task,consumed_resource_t* consumed){
 
 			if(!checkFit(hosts[i],pods[pod_index])) continue;
 
-			std::map<std::string,std::tuple<float,float,bool> > p_r = pods[pod_index]->getResources();
+			std::map<std::string,std::vector<float> > p_r = pods[pod_index]->getResources();
 			hosts[i]->addPod(p_r);
 
 			if(!hosts[i]->getActive()) {

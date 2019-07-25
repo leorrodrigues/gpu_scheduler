@@ -48,7 +48,7 @@ bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed){
 			if(!checkFit(host,pods[pod_index])) continue;
 			spdlog::debug("Naive - check if pod fit in host[x]");
 
-			std::map<std::string,std::tuple<float,float,bool> > p_r = pods[pod_index]->getResources();
+			std::map<std::string,std::vector<float> > p_r = pods[pod_index]->getResources();
 			host->addPod(p_r);
 
 			if(!host->getActive()) {
@@ -65,7 +65,7 @@ bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed){
 		}
 
 		if(!pod_allocated) {
-            //need to desalocate all the allocated pods.
+			//need to desalocate all the allocated pods.
 			for(size_t i=0; i< pod_index; i++)
 				freeHostResource(pods[i],consumed,builder);
 

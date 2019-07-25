@@ -42,14 +42,11 @@ void Pod::addContainer(Container* c){
 
 	this->containers[this->containers_size-1] = c;
 
-	std::map<std::string,std::tuple<float,float,bool> > c_r = c->getResources();
-
-	float min,max;
+	std::map<std::string,std::vector<float> > c_r = c->getResources();
 
 	for(auto & [key,val] : this->resources) {
-		std::tie(min,max,std::ignore) = c_r[key];
-		std::get<0>(val) += min;
-		std::get<1>(val) += max;
+		val[0] += c_r[key][0];
+		val[1] += c_r[key][1];
 	}
 }
 
@@ -72,8 +69,8 @@ void Pod::updateBandwidth(){
 	spdlog::debug("\tThe pod has {} containers", this->containers_size);
 	for(size_t i=0; i<this->containers_size; i++) {
 		spdlog::debug("\t\tGet the values of the container {}",i);
-		std::get<0>(this->resources["bandwidth"])+=this->containers[i]->getBandwidthMin();
-		std::get<1>(this->resources["bandwidth"])+=this->containers[i]->getBandwidthMax();
+		this->resources["bandwidth"][0]+=this->containers[i]->getBandwidthMin();
+		this->resources["bandwidth"][1]+=this->containers[i]->getBandwidthMax();
 		spdlog::debug("\t\tGet");
 	}
 }
@@ -88,7 +85,7 @@ void Pod::print(){
 	spdlog::debug("\t\t]");
 	spdlog::debug("\t\tTotal Resources");
 	for(auto const& [key, val] : this->resources) {
-		spdlog::debug("\t\t\t{} - {}; {}; {}", key, std::get<0>(val),  std::get<1>(val), std::get<2>(val));
+		spdlog::debug("\t\t\t{} - {}; {}; {}", key, val[0],  val[1], val[2]);
 	}
 	spdlog::debug("\t\t}");
 }
