@@ -68,7 +68,7 @@ void Container::print(){
 	}
 	spdlog::debug("\t\t\t]");
 	for(auto const& [key, val] : this->resources) {
-		spdlog::debug("\t\t\t{} - {}; {}", key, std::get<0>(val), std::get<1>(val));
+		spdlog::debug("\t\t\t{} - {}; {}; {}", key, val[0], val[1], val[2]);
 	}
 	spdlog::debug("\t\t\t}");
 }
