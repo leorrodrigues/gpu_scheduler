@@ -1289,7 +1289,7 @@ void save_to_gexf(const char* path)
 __host__ __device__
 ~graph()
 {
-	//TODO: Maybe Host Free all and Device do nothing?
+	//: Maybe Host Free all and Device do nothing?
 }
 
 __host__

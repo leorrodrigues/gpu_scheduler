@@ -11,8 +11,8 @@ Task::Task() : Task_Resources(){
 	this->links_size=0;
 	this->allocated_time=0;
 	this->delay=0;
-    this->delay_dc=0;
-    this->delay_link=0;
+	this->delay_dc=0;
+	this->delay_link=0;
 
 	this->path = NULL;
 	this->path_edge = NULL;
@@ -190,11 +190,11 @@ void Task::addDelay(unsigned int delay){
 }
 
 void Task::addDelayDC(unsigned int delay){
-    this->delay_dc+=delay;
+	this->delay_dc+=delay;
 }
 
 void Task::addDelayLink(unsigned int delay){
-    this->delay_link+=delay;
+	this->delay_link+=delay;
 }
 
 void Task::setAllocatedTime(unsigned int allocatedTime){
@@ -290,12 +290,12 @@ float* Task::getLinkValues(){
 }
 
 float Task::getBandwidthAllocated(){
-    float allocated=0;
+	float allocated=0;
 
-    for(size_t i=0; i<pods_size; i++){
-        allocated+=pods[i]->getTotalAllocated("bandwidth");
-    }
-    return allocated;
+	for(size_t i=0; i<pods_size; i++) {
+		allocated+=pods[i]->getTotalAllocated("bandwidth");
+	}
+	return allocated;
 }
 
 void Task::print() {
@@ -310,7 +310,7 @@ void Task::print() {
 	spdlog::debug("\tSubmission: {}",this->submission);
 	spdlog::debug("\tTotal Resources");
 	for(auto const& [key, val] : this->resources) {
-		spdlog::debug("\t\t\t{} - {}; {}; {}",key, std::get<0>(val), std::get<1>(val),  std::get<2>(val));
+		spdlog::debug("\t\t\t{} - {}; {}; {}",key, val[0], val[1], val[2]);
 	}
 	spdlog::debug("}");
 }
