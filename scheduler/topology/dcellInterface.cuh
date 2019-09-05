@@ -37,7 +37,7 @@ void setLevel(int level){
 	this->level=level;
 }
 
-void setResource(std::map<std::string, float> resource){
+void setResource(std::map<std::string, Interval_Tree::Interval_Tree*> resource){
 	int index;
 	for(auto it: resource) {
 		index=this->topology->add_node_variable(it.first);
@@ -50,9 +50,9 @@ void populateTopology(std::vector<Host*> hosts){
 	std::cout<<"Populate topology\n";
 	int i=0;
 	for(auto itHosts: hosts) {
-		std::map<std::string, float> res=itHosts->getResource();
+		std::map<std::string, Interval_Tree::Interval_Tree*> res=itHosts->getResource();
 		for(auto it: res) {
-			this->topology->set_variable_node(indices[it.first],i,it.second);
+			this->topology->set_variable_node(indices[it.first],i,it.second->getCapacity());
 		}
 		this->topology->set_node_type(i,vnegpu::TYPE_HOST);
 		i++;

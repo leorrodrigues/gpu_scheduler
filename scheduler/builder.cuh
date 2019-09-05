@@ -43,7 +43,7 @@ unsigned int* getMulticriteriaResult(unsigned int&);
 unsigned int* getMulticriteriaClusteredResult(unsigned int&);
 int getClusteringResultSize();
 void getClusteringResult();
-std::map<std::string,float> getResource();
+std::map<std::string,Interval_Tree::Interval_Tree*> getResource();
 std::vector<Host*> getHosts();
 Host* getHost(unsigned int);
 size_t getHostsSize();
@@ -54,7 +54,7 @@ bool findHostInGroup(unsigned int, unsigned int);
 int getTotalActiveHosts();
 
 
-void printClusterResult();
+void printClusterResult(int low, int high);
 void printTopologyType();
 //Multicriteria set functions
 void setAHP();

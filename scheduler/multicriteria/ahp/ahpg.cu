@@ -53,7 +53,7 @@ AHPG::~AHPG(){
 	this->pg=NULL;
 }
 
-void AHPG::run(Host** alternatives, int alt_size){
+void AHPG::run(Host** alternatives, int alt_size, int interval_low, int interval_high){
 	int devID;
 	cudaDeviceProp props;
 	cudaGetDevice(&devID);
@@ -63,7 +63,7 @@ void AHPG::run(Host** alternatives, int alt_size){
 	// Creating the array for the host index
 	this->hosts_size = alt_size;
 	this->hosts_index = (unsigned int*) malloc (sizeof(unsigned int)* alt_size);
-	std::map<std::string,float> allResources = alternatives[0]->getResource();
+	// std::map<std::string, Interval_Tree::Interval_Tree*> allResources = alternatives[0]->getResource();
 
 	//The first level of criteria was build in the edges values
 	//Now its needed to build the second level of hierarchy through the alt_values array
@@ -88,7 +88,8 @@ void AHPG::run(Host** alternatives, int alt_size){
 			this->hosts_index[i]=alternatives[i]->getId();
 			j=0;
 			for( auto it: alternatives[i]->getResource()) {
-				temp = (it.second>0.0000000001) ? it.second : 0;
+				temp = (interval_high - interval_low) * it.second->getMinValueAvailable( interval_low, interval_high);
+				if(temp<0.0000000001) temp = 0;
 				matrix[i+j*alt_size] = temp;
 				if(max[j]<temp) max[j] = temp;
 				if(min[j]>temp) min[j] = temp;
@@ -436,5 +437,5 @@ void AHPG::parseAHPG(const rapidjson::Value &hierarchyData){
 	}
 }
 
-void AHPG::setAlternatives(Host** host, int size){
+void AHPG::setAlternatives(Host** alternatives, int size, int low, int high){
 }

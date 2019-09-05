@@ -3,14 +3,16 @@
 
 namespace Allocator {
 
-inline bool checkFit(Host* host, Pod* pod){
-	std::map<std::string, float> h_r = host->getResource();
-
+//Check if the pod and its containers fit inside the host
+inline bool checkFit(Host* host, Pod* pod, int low, int high){
+	std::map<std::string, Interval_Tree::Interval_Tree*> h_r = host->getResource();
+	float capacity = 0;
 	for(auto r : pod->getResources()) {
-		if(h_r[r.first]>=r.second[1]) {
-			pod->setFit(r.first, r.second[1]);
-		}else if(h_r[r.first]>=r.second[0]) {
-			pod->setFit(r.first, h_r[r.first]);
+		capacity = h_r[r.first]->getMinValueAvailable(low,high);
+		if(capacity >= r.second[1]) {
+			pod->setFit(r.first, r.second[1]); // stores the maximum capacity asked by the pod
+		}else if(capacity >= r.second[0]) {
+			pod->setFit(r.first, capacity); //stores the tree capacity
 		}else{
 			return false;
 		}
@@ -18,13 +20,15 @@ inline bool checkFit(Host* host, Pod* pod){
 	return true;
 }
 
-
-inline bool checkFit(total_resources_t* dc, consumed_resource_t* consumed, Task* task){
+//Check if the hole task has less resources than the available
+inline bool checkFit(total_resources_t* dc, consumed_resource_t* consumed, Task* task, int low, int high){
+	float capacity = 0;
 	for(auto r : task->getResources()) {
-		if(dc->resource[r.first] - consumed->resource[r.first]>=r.second[1]) {
+		capacity = dc->resource[r.first]->getMinValueAvailable(low, high) - consumed->resource[r.first]->getMinValueAvailable(low, high);
+		if(capacity >= r.second[1]) {
 			task->setFit(r.first, r.second[1]);
-		}else if(dc->resource[r.first] - consumed->resource[r.first] >= r.second[0]) {
-			task->setFit(r.first, dc->resource[r.first] - consumed->resource[r.first]);
+		}else if(capacity >= r.second[0]) {
+			task->setFit(r.first, capacity);
 		}else{
 			return false;
 		}
@@ -32,21 +36,21 @@ inline bool checkFit(total_resources_t* dc, consumed_resource_t* consumed, Task*
 	return true;
 }
 
-inline void addToConsumed(consumed_resource_t* consumed,Pod* pod){
+inline void addToConsumed(consumed_resource_t* consumed,Pod* pod, int low, int high){
 	for(auto r : pod->getResources()) {
 		if(r.second[2]!=0)
-			consumed->resource[r.first] += r.second[1];
+			consumed->resource[r.first]->insert(low, high, r.second[1]);
 		else
-			consumed->resource[r.first] += r.second[0];
+			consumed->resource[r.first]->insert(low, high, r.second[0]);
 	}
 }
 
-inline void subToConsumed(consumed_resource_t* consumed,Pod* pod){
+inline void subToConsumed(consumed_resource_t* consumed,Pod* pod, int low, int high){
 	for(auto r : pod->getResources()) {
 		if(r.second[2])
-			consumed->resource[r.first] -= r.second[1];
+			consumed->resource[r.first]->remove(low, high, r.second[1]);
 		else
-			consumed->resource[r.first] -= r.second[0];
+			consumed->resource[r.first]->remove(low, high, r.second[0]);
 	}
 }
 

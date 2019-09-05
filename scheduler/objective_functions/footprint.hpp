@@ -11,23 +11,23 @@ namespace ObjectiveFunction {
 
 namespace Footprint {
 
-inline float footprint(consumed_resource_t alocado, total_resources_t total){
+inline float footprint(consumed_resource_t alocado, total_resources_t total, int interval_low, int interval_high){
 	float r_t =0, a_t=0;
-	for(std::map<std::string,float>::iterator it=alocado.resource.begin(); it!=alocado.resource.end(); it++ ) {
-		r_t += total.resource[it->first];
-		a_t+= it->second;
+	for(std::map<std::string,Interval_Tree::Interval_Tree*>::iterator it=alocado.resource.begin(); it!=alocado.resource.end(); it++ ) {
+		r_t += total.resource[it->first]->getMinValueAvailable(interval_low, interval_high);
+		a_t+= it->second->getMinValueAvailable(interval_low, interval_high);
 	}
 	float value =  a_t/r_t;
 	return (value > 0.0000000001) ? value : 0;
 }
 
-inline float vcpu(consumed_resource_t alocado, total_resources_t total){
-	float value =  alocado.resource["vcpu"]/total.resource["vcpu"];
+inline float vcpu(consumed_resource_t alocado, total_resources_t total, int interval_low, int interval_high){
+	float value =  alocado.resource["vcpu"]->getMinValueAvailable(interval_low, interval_high) / total.resource["vcpu"]->getMinValueAvailable(interval_low, interval_high);
 	return (value > 0.0000000001) ? value : 0;
 }
 
-inline float ram(consumed_resource_t alocado, total_resources_t total){
-	float value =  alocado.resource["ram"]/total.resource["ram"];
+inline float ram(consumed_resource_t alocado, total_resources_t total, int interval_low, int interval_high){
+	float value =  alocado.resource["ram"]->getMinValueAvailable(interval_low, interval_high) /total.resource["ram"]->getMinValueAvailable(interval_low, interval_high);
 	return (value > 0.0000000001) ? value : 0;
 }
 

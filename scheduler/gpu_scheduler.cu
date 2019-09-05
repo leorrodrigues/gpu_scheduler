@@ -188,14 +188,15 @@ void setup(int argc, char** argv, Builder* builder, options_t* options){
 	builder->parser(path.c_str());
 }
 
-inline void calculateObjectiveFunction(objective_function_t *obj, consumed_resource_t consumed, total_resources_t total){
+inline void calculateObjectiveFunction(objective_function_t *obj, consumed_resource_t consumed, total_resources_t total, int low){
+	int high = low+1;
 	obj->time = consumed.time;
 	obj->dc_fragmentation = ObjectiveFunction::Fragmentation::datacenter( consumed, total);
 	obj->link_fragmentation = ObjectiveFunction::Fragmentation::link(consumed, total);
-	obj->vcpu_footprint = ObjectiveFunction::Footprint::vcpu(consumed, total);
-	obj->ram_footprint = ObjectiveFunction::Footprint::ram(consumed, total);
+	obj->vcpu_footprint = ObjectiveFunction::Footprint::vcpu(consumed, total, low, high);
+	obj->ram_footprint = ObjectiveFunction::Footprint::ram(consumed, total, low, high);
 	obj->link_footprint = ObjectiveFunction::Footprint::link(consumed,total);
-	obj->footprint = ObjectiveFunction::Footprint::footprint(consumed, total);
+	obj->footprint = ObjectiveFunction::Footprint::footprint(consumed, total, low, high);
 }
 
 inline void logTask(scheduler_t* scheduler,Task* task, std::string multicriteria, total_resources_t* total_resources){
@@ -238,13 +239,17 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 				current,
 				/* The consumed DC status*/
 				consumed,
-				builder
+				builder,
+				current->getAllocatedTime(),
+				options->current_time
 				);
 		}else{
 			Allocator::freeHostResource(
 				current,
 				consumed,
-				builder
+				builder,
+				current->getAllocatedTime(),
+				options->current_time
 				);
 		}
 		delete(current);
@@ -283,69 +288,63 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 		scheduler->tasks_to_allocate.pop();
 
 		spdlog::debug("Check if request {} fit in DC",current->getId());
-		if(Allocator::checkFit(total_dc,consumed,current)!=0) {
-			spdlog::debug("Request Fit in DC");
-			// allocate the new task in the data center.
-			std::chrono::high_resolution_clock::time_point allocator_start = std::chrono::high_resolution_clock::now();
-			if(options->standard=="none") {
-				if( options->clustering_method=="pure_mcl") {
-					spdlog::debug("Pure MCL");
-					allocation_success=Allocator::mcl_pure(builder);
-				} else if( options->clustering_method == "none") {
-					spdlog::debug("Naive");
-					allocation_success=Allocator::naive(builder,current, consumed);
-					spdlog::debug("Naive[x]");
-				} else if ( options->clustering_method == "mcl") {
-					spdlog::debug("MCL + MULTICRITERIA");
-					allocation_success=Allocator::multicriteria_clusterized(builder, current, consumed);
-					spdlog::debug("MCL + MULTICRITERIA [X]");
-				} else if ( options->clustering_method == "all") {
-					// allocation_success=Allocator::all();
-				} else {
-					SPDLOG_ERROR("Invalid type of allocation method");
-					exit(1);
-				}
-			}else{
-				if(options->standard=="ff" || options->standard=="first_fit") {
-					allocation_success=Allocator::firstFit(builder, current, consumed);
-				}else if(options->standard=="bf" || options->standard=="best_fit") {
-					allocation_success=Allocator::bestFit(builder, current, consumed);
-				}else if(options->standard=="wf" || options->standard=="worst_fit") {
-					allocation_success=Allocator::worstFit(builder, current, consumed);
-				}else{
-					SPDLOG_ERROR("Invalid type of standard allocation method");
-					exit(1);
-				}
-			}
-			std::chrono::high_resolution_clock::time_point allocator_end = std::chrono::high_resolution_clock::now();
-
-			time_span_allocator =  std::chrono::duration_cast<std::chrono::duration<double> >(allocator_end - allocator_start);
-
-			//if(allocation_success && options->standard=="none") {
-			if(allocation_success && options->test_type==4) {
-				std::chrono::high_resolution_clock::time_point links_start = std::chrono::high_resolution_clock::now();
-
-				// builder->getTopology()->listTopology();
-				// allocation_success=Allocator::links_allocator(builder, current, consumed);
-				spdlog::debug("links allocator");
-				allocation_link_success=Allocator::links_allocator_cuda(builder, current, consumed);
-				spdlog::debug("links allocator [x]");
-				// builder->getTopology()->listTopology();
-				std::chrono::high_resolution_clock::time_point links_end = std::chrono::high_resolution_clock::now();
-
-				time_span_links =  std::chrono::duration_cast<std::chrono::duration<double> >(links_end - links_start);
-				if(!allocation_link_success) {
-					spdlog::info("\tRequest dont fit in links");
-				}
-			}
-			if(!allocation_success) {
-				spdlog::info("\trequest dont fit in allocation");
+		// allocate the new task in the data center.
+		std::chrono::high_resolution_clock::time_point allocator_start = std::chrono::high_resolution_clock::now();
+		if(options->standard=="none") {
+			if( options->clustering_method=="pure_mcl") {
+				spdlog::debug("Pure MCL");
+				allocation_success=Allocator::mcl_pure(builder);
+			} else if( options->clustering_method == "none") {
+				spdlog::debug("Naive");
+				allocation_success=Allocator::naive(builder, current, consumed, options->current_time);
+				spdlog::debug("Naive[x]");
+			} else if ( options->clustering_method == "mcl") {
+				spdlog::debug("MCL + MULTICRITERIA");
+				allocation_success=Allocator::multicriteria_clusterized(builder, current, consumed, options->current_time);
+				spdlog::debug("MCL + MULTICRITERIA [X]");
+			} else if ( options->clustering_method == "all") {
+				// allocation_success=Allocator::all();
+			} else {
+				SPDLOG_ERROR("Invalid type of allocation method");
+				exit(1);
 			}
 		}else{
-			spdlog::info("\trequest dont fit in DC");
-			allocation_success=false;
-			allocation_link_success=false;
+			if(options->standard=="ff" || options->standard=="first_fit") {
+				allocation_success=Allocator::firstFit(builder, current, consumed, options->current_time);
+			}else if(options->standard=="bf" || options->standard=="best_fit") {
+				allocation_success=Allocator::bestFit(builder, current, consumed, options->current_time);
+			}else if(options->standard=="wf" || options->standard=="worst_fit") {
+				allocation_success=Allocator::worstFit(builder, current, consumed, options->current_time);
+			}else{
+				SPDLOG_ERROR("Invalid type of standard allocation method");
+				exit(1);
+			}
 		}
+		std::chrono::high_resolution_clock::time_point allocator_end = std::chrono::high_resolution_clock::now();
+
+		time_span_allocator =  std::chrono::duration_cast<std::chrono::duration<double> >(allocator_end - allocator_start);
+
+		//if(allocation_success && options->standard=="none") {
+		if(allocation_success && options->test_type==4) {
+			std::chrono::high_resolution_clock::time_point links_start = std::chrono::high_resolution_clock::now();
+
+			// builder->getTopology()->listTopology();
+			// allocation_success=Allocator::links_allocator(builder, current, consumed);
+			spdlog::debug("links allocator");
+			allocation_link_success=Allocator::links_allocator_cuda(builder, current, consumed, options->current_time, options->current_time + current->getDuration());
+			spdlog::debug("links allocator [x]");
+			// builder->getTopology()->listTopology();
+			std::chrono::high_resolution_clock::time_point links_end = std::chrono::high_resolution_clock::now();
+
+			time_span_links =  std::chrono::duration_cast<std::chrono::duration<double> >(links_end - links_start);
+			if(!allocation_link_success) {
+				spdlog::info("\tRequest dont fit in links");
+			}
+		}
+		if(!allocation_success) {
+			spdlog::info("\trequest dont fit in allocation");
+		}
+
 		spdlog::debug("\t\tChecking the success of allocation");
 		if(!allocation_success || (!allocation_link_success && options->test_type==4)) {
 			spdlog::debug("\t\t\tAllocation not succeeded\n");
@@ -417,7 +416,7 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		//************************************************//
 		//       Print All the metrics information        //
 		//************************************************//
-		calculateObjectiveFunction(&objective,consumed_resources, total_resources);
+		calculateObjectiveFunction(&objective,consumed_resources, total_resources, options->current_time);
 
 		if(options->test_type==2 || options->test_type==4) {
 			if(options->standard=="none") {

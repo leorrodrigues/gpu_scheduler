@@ -5,9 +5,10 @@
 #include <map>
 
 #include "../json.hpp"
+#include "interval_tree.hpp"
 
 typedef struct main_resource_t {
-	std::map<std::string,float> resource;
+	std::map<std::string, Interval_Tree::Interval_Tree*> resource;
 
 	explicit main_resource_t(){
 		rapidjson::SchemaDocument resourceSchema =
@@ -21,7 +22,7 @@ typedef struct main_resource_t {
 		const rapidjson::Value &r_array = resourceData["resources"];
 
 		for(size_t i=0; i<r_array.Size(); i++) {
-			resource[r_array[i]["name"].GetString()]=0;
+			resource[r_array[i]["name"].GetString()]= new Interval_Tree::Interval_Tree();
 		}
 	}
 

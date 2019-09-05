@@ -20,6 +20,7 @@ unsigned int allocated_time;
 unsigned int delay;
 unsigned int delay_dc;
 unsigned int delay_link;
+unsigned int deadline;
 
 //Link management variables
 // This variables are used during the allocation and desalocation of links
@@ -61,6 +62,7 @@ unsigned int getAllocatedTime();
 unsigned int getDelay();
 unsigned int getDelayDC();
 unsigned int getDelayLink();
+unsigned int getDeadLine();
 
 int* getLinkPath();
 int* getLinkPathEdge();

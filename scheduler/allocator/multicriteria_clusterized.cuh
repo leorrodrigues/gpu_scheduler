@@ -7,7 +7,7 @@
 namespace Allocator {
 
 // Run the group one time and all the others executions are only with the MULTICRITERIA
-bool multicriteria_clusterized(Builder* builder,  Task* task, consumed_resource_t* consumed){
+bool multicriteria_clusterized(Builder* builder,  Task* task, consumed_resource_t* consumed, int interval_low){
 
 	// Create the result variables
 	unsigned int* result = NULL;
@@ -35,6 +35,9 @@ bool multicriteria_clusterized(Builder* builder,  Task* task, consumed_resource_
 
 	std::vector<Host*> groups = builder->getClusterHosts();
 
+	int interval_high = 0;
+	bool fit = false;
+
 	for(size_t pod_index=0; pod_index < pods_size; pod_index++) {
 
 		for( i=0; i<resultSize; i++) {
@@ -55,7 +58,14 @@ bool multicriteria_clusterized(Builder* builder,  Task* task, consumed_resource_
 			}
 
 			//If the group can't contain the pod, search the next group
-			if(!checkFit(groups[group_index], pods[pod_index])) continue;
+			for(interval_high = interval_low+1; interval_high < task->getDeadLine(); interval_high++) {
+				if(checkFit(groups[group_index], pods[pod_index], interval_low, interval_high)) {
+					fit = true;
+					break;
+				}
+
+			}
+			if(!fit) continue;
 
 			std::vector<Host*> hostsInGroup = builder->getHostsInGroup(result[i]);
 
@@ -68,20 +78,27 @@ bool multicriteria_clusterized(Builder* builder,  Task* task, consumed_resource_
 
 			// Iterate through all the hosts in the selected group
 			for( j=0; j<ranked_hosts_size; j++) {
+				fit = false;
 				// Get the host pointer
 				host=builder->getHost(ranked_hosts[j]);
 				// Check if the host can support the resource
-				if(!checkFit(host,pods[pod_index])) continue;
+				for(interval_high = interval_low+1; interval_high < task->getDeadLine(); interval_high++) {
+					if(checkFit(host,pods[pod_index], interval_low, interval_high)) {
+						fit = true;
+						break;
+					}
+				}
+				if(!fit) continue;
 
 				std::map<std::string,std::vector<float> > p_r = pods[pod_index]->getResources();
-				host->addPod(p_r);
+				host->addPod(interval_low, interval_high, p_r);
 
 				if(!host->getActive()) {
 					host->setActive(true);
 					consumed->active_servers++;
 				}
 
-				addToConsumed(consumed,pods[pod_index]);
+				addToConsumed(consumed,pods[pod_index],interval_low, interval_high);
 
 				// Update the allocated tasks map
 				pods[pod_index]->setHost(host);
@@ -99,7 +116,7 @@ bool multicriteria_clusterized(Builder* builder,  Task* task, consumed_resource_
 		if(!pod_allocated) {
 			//need to desalocate all the allocated pods.
 			for(size_t i=0; i< pod_index; i++)
-				freeHostResource(pods[i],consumed,builder);
+				freeHostResource(pods[i],consumed,builder, interval_low, interval_high);
 
 			free(result);
 			result=NULL;

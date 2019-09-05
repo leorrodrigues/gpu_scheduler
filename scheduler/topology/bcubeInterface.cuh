@@ -37,7 +37,7 @@ void setLevel(int level){
 	this->level=level;
 }
 
-void setResource(std::map<std::string, float> resource){
+void setResource(std::map<std::string, Interval_Tree::Interval_Tree*> resource){
 }
 
 void populateTopology(std::vector<Host*> hosts){

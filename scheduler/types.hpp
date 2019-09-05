@@ -54,12 +54,12 @@ typedef struct {
 typedef struct total_resources_t : public main_resource_t {
 	unsigned int links;
 	unsigned int servers;
-    float total_bandwidth=0;
+	float total_bandwidth=0;
 
 	explicit total_resources_t() : main_resource_t(){
 		links = 0;
 		servers=0;
-        total_bandwidth=0;
+		total_bandwidth=0;
 	}
 } total_resources_t;
 
@@ -67,13 +67,13 @@ typedef struct consumed_resource_t : public main_resource_t {
 	unsigned int time;
 	unsigned int active_servers;
 	unsigned int active_links;
-    float total_bandwidth_consumed;
+	float total_bandwidth_consumed;
 
 	explicit consumed_resource_t() : main_resource_t(){
 		time=0;
 		active_servers=0;
 		active_links=0;
-        total_bandwidth_consumed=0;
+		total_bandwidth_consumed=0;
 	}
 
 } consumed_resource_t;
@@ -85,7 +85,7 @@ typedef struct {
 	float vcpu_footprint = 0;
 	float ram_footprint = 0;
 	float link_footprint=0;
-    float fail_bandwidth=0;
+	float fail_bandwidth=0;
 	unsigned int time=0;
 
 } objective_function_t;

@@ -40,7 +40,7 @@ TOPSIS::~TOPSIS(){
 	this->hosts_index=NULL;
 }
 
-void TOPSIS::getWeights(float* weights, unsigned int* types, std::map<std::string, float> resource){
+void TOPSIS::getWeights(float* weights, unsigned int* types, std::map<std::string, Interval_Tree::Interval_Tree*> resource){
 	char weights_schema_path [1024] = "\0";
 	char weights_data_path [1024] = "\0";
 
@@ -74,7 +74,7 @@ void TOPSIS::getWeights(float* weights, unsigned int* types, std::map<std::strin
 	}
 }
 
-void TOPSIS::run(Host** alternatives, int alt_size){
+void TOPSIS::run(Host** alternatives, int alt_size, int interval_low, int interval_high){
 	// spdlog::debug("Running topsis");
 	int devID;
 	cudaDeviceProp props;
@@ -84,7 +84,7 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 
 	this->hosts_index = (unsigned int*) malloc (sizeof(unsigned int)* alt_size);
 
-	std::map<std::string,float> allResources = alternatives[0]->getResource();
+	std::map<std::string, Interval_Tree::Interval_Tree*> allResources = alternatives[0]->getResource();
 
 	int resources_size = allResources.size();
 
@@ -97,7 +97,7 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	float *weights= (float*) malloc (weights_bytes);
 	unsigned int * types = (unsigned int*) malloc (sizeof(unsigned int)*resources_size);
 	// spdlog::debug("Allocating %d spaces for weights", resources_size);
-	std::map<std::string, float> a =allResources;
+	std::map<std::string, Interval_Tree::Interval_Tree*> a = allResources;
 	// for(std::map<std::string, float>::iterator it=a.begin(); it!=a.end(); it++) {
 	//      spdlog::debug("%s %f",it->first.c_str(),it->second);
 	// }
@@ -134,12 +134,14 @@ void TOPSIS::run(Host** alternatives, int alt_size){
 	// spdlog::debug("Step One");
 	{
 		int i=0,j=0;
+		float temp_capacity = 0;
 		for( i=0; i<alt_size; i++) {
 			//Take advantage of this loop to populate the host index
 			this->hosts_index[i]=alternatives[i]->getId();
 			j=0;
 			for( auto it: alternatives[i]->getResource()) {
-				matrix[j*alt_size+i]= it.second;
+				temp_capacity = (interval_high - interval_low) * it.second->getMinValueAvailable(interval_low, interval_high);
+				matrix[j*alt_size+i]= temp_capacity;
 				j++;
 			}
 		}
@@ -283,7 +285,7 @@ unsigned int* TOPSIS::getResult(unsigned int& size){
 	return result;
 }
 
-void TOPSIS::setAlternatives(Host** host, int size){
+void TOPSIS::setAlternatives(Host** alternatives, int size, int low, int high){
 }
 
 void TOPSIS::readJson(){

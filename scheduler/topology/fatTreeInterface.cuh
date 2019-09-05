@@ -34,7 +34,7 @@ void setSize(int size){
 void setLevel(int level){
 }
 
-void setResource(std::map<std::string, float> resource){
+void setResource(std::map<std::string, Interval_Tree::Interval_Tree*> resource){
 	int index=1;
 	for(auto it: resource) {
 		// for(auto it: resource->mInt) {
@@ -59,9 +59,9 @@ void populateTopology(std::vector<Host*> hosts){
 	for(size_t i=0, host_index=0; i< this->topology->get_num_nodes(); i++) {
 		if(this->topology->get_node_type(i)==0) {// if is a host node
 			hosts[host_index]->setIdg(i);
-			std::map<std::string, float> res = hosts[host_index]->getResource();
+			std::map<std::string, Interval_Tree::Interval_Tree*> res = hosts[host_index]->getResource();
 			for(auto it: res) {
-				this->topology->set_variable_node(indices[it.first], i,it.second);
+				this->topology->set_variable_node(indices[it.first], i,it.second->getCapacity());
 			}
 			host_index++;
 		}

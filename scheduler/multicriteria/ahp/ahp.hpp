@@ -52,11 +52,11 @@ void conception();
 void acquisition();
 void synthesis();
 void consistency();
-void run(Host** host={}, int size=0);
+void run(Host**host={}, int size=0, int interval_low = 0, int interval_high = 0);
 
 unsigned int* getResult(unsigned int&);
 
-void setAlternatives(Host** alternatives,int size);
+void setAlternatives(Host** alternatives,int size, int low, int high);
 
 void readJson();
 

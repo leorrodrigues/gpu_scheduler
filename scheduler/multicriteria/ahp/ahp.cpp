@@ -442,16 +442,19 @@ void AHP::consistency() {
 	iterateFunc( &AHP::checkConsistency, hierarchy->getFocus() );
 }
 
-void AHP::run(Host** alternatives, int size) {
+void AHP::run(Host** alternatives, int size, int interval_low, int interval_high) {
 	this->hierarchy->clearAlternatives();
 	this->hierarchy->clearResource();
 
-	std::map<std::string, float> resource = alternatives[0]->getResource();
+	//As the resource is the interval tree, it is considerable to think that each interval can be view as its area, multiplying the capacity that it consumes by the time it demands.
+	// float consimed = (high - low) * capacity (a area in 2D view)
+	std::map<std::string, Interval_Tree::Interval_Tree*> resource = alternatives[0]->getResource();
+
 	for (auto it : resource) {
 		this->hierarchy->addResource((char*)it.first.c_str());
 	}
 
-	this->setAlternatives(alternatives, size);
+	this->setAlternatives(alternatives, size, interval_low, interval_high);
 	if(this->hierarchy->getCriteriasSize()==0) {
 		std::cerr<<"AHP Hierarchy with no sheets\n";
 		exit(0);
@@ -491,9 +494,10 @@ unsigned int* AHP::getResult(unsigned int& size) {
 	return result;
 }
 
-void AHP::setAlternatives(Host** alternatives, int size) {
-	std::map<std::string, float> resource;
+void AHP::setAlternatives(Host** alternatives, int size, int low, int high) {
+	std::map<std::string, Interval_Tree::Interval_Tree*> resource;
 	Node* a = NULL;
+	float temp_capacity = 0;
 	for ( size_t i=0; i < (size_t)size; i++) {
 		resource = alternatives[i]->getResource(); // Host resource
 
@@ -505,7 +509,8 @@ void AHP::setAlternatives(Host** alternatives, int size) {
 
 		// Update the node h_resource values by the host resource values
 		for (auto it : resource) {
-			a->setResource((char*)it.first.c_str(), it.second);
+			temp_capacity = (high - low) * it.second->getMinValueAvailable(low, high);
+			a->setResource((char*)it.first.c_str(), temp_capacity);
 		}
 
 		this->hierarchy->addAlternative(a);

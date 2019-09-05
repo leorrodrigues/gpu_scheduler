@@ -7,25 +7,25 @@
 #include "utils.hpp"
 
 namespace Allocator {
-inline void  freeHostResource(Pod* pod, consumed_resource_t* consumed, Builder* builder){
+inline void  freeHostResource(Pod* pod, consumed_resource_t* consumed, Builder* builder, int low, int high){
 	Host* host=pod->getHost();
 
 	const bool active_status= host->getActive();
 
 	//Update the host resources
-	host->removePod(pod->getResources());
+	host->removePod(low, high, pod->getResources());
 	// host->removeAllocaredResource();
 
 	//Need to find the group that has this host and update their resource
 	std::vector<Host*> groups = builder->getClusterHosts();
 	for(size_t i=0; i<groups.size(); i++) {
 		if(builder->findHostInGroup(groups[i]->getId(),host->getId())) {
-			groups[i]->removePod(pod->getResources());
+			groups[i]->removePod(low, high, pod->getResources());
 			break;
 		}
 	}
 
-	subToConsumed(consumed, pod);
+	subToConsumed(consumed, pod, low, high);
 
 	if(host->getAllocatedResources()==0) {
 		host->setActive(false);
@@ -36,10 +36,10 @@ inline void  freeHostResource(Pod* pod, consumed_resource_t* consumed, Builder* 
 	}
 }
 
-inline void freeHostResource(Task* task, consumed_resource_t* consumed, Builder* builder){
+inline void freeHostResource(Task* task, consumed_resource_t* consumed, Builder* builder, int low, int high){
 	Pod** pods = task->getPods();
 	for(size_t i=0; i< task->getPodsSize(); i++)
-		freeHostResource(pods[i],consumed,builder);
+		freeHostResource(pods[i],consumed,builder, low, high);
 }
 
 inline void freeLinks(Task* task, consumed_resource_t* consumed, Builder* builder, size_t link_index){
@@ -90,8 +90,8 @@ inline void freeLinks(Task* task, consumed_resource_t* consumed, Builder* builde
 	consumed->active_links = graph->get_num_active_edges();
 }
 
-inline void freeAllResources(Task* task, consumed_resource_t* consumed, Builder* builder){
-	freeHostResource(task,consumed,builder);
+inline void freeAllResources(Task* task, consumed_resource_t* consumed, Builder* builder, int low, int high){
+	freeHostResource(task,consumed,builder, low, high);
 	freeLinks(task,consumed,builder,task->getLinksSize());
 }
 

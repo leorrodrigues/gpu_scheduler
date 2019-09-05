@@ -6,7 +6,7 @@
 
 namespace Allocator {
 
-bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed){
+bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed, int interval_low){
 	spdlog::debug("Naive - Init");
 	// printf("Try to allocate TASK %d\n",task->getId());
 	unsigned int* result = NULL;
@@ -33,11 +33,15 @@ bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed){
 	unsigned int pods_size = task->getPodsSize();
 	bool pod_allocated;
 
+	int interval_high = 0;
+	bool fit = false;
+
 	for(size_t pod_index=0; pod_index < pods_size; pod_index++) {
 		spdlog::debug("Naive - Will Iterate through pods {}",pod_index);
 		pod_allocated = false;
 		host=NULL;
 		for(size_t host_index=0; host_index<resultSize; host_index++ ) {
+			fit = false;
 			spdlog::debug("Naive - Will Iterate through hosts {}",host_index);
 			// printf("-----------------------------------------\n");
 			spdlog::debug("Naive - get host");
@@ -45,18 +49,25 @@ bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed){
 			spdlog::debug("Naive - get host[x]");
 
 			spdlog::debug("Naive - check if pod fit in host");
-			if(!checkFit(host,pods[pod_index])) continue;
+			for(interval_high = interval_low+1; interval_high < task->getDeadLine(); interval_high++) {
+				if(checkFit(host,pods[pod_index], interval_low, interval_high)) {
+					fit = true;
+					break;
+				}
+
+			}
+			if(!fit) continue;
 			spdlog::debug("Naive - check if pod fit in host[x]");
 
 			std::map<std::string,std::vector<float> > p_r = pods[pod_index]->getResources();
-			host->addPod(p_r);
+			host->addPod(interval_low, interval_high, p_r);
 
 			if(!host->getActive()) {
 				host->setActive(true);
 				consumed->active_servers++;
 			}
 
-			addToConsumed(consumed,pods[pod_index]);
+			addToConsumed(consumed,pods[pod_index], interval_low, interval_high);
 
 			pods[pod_index]->setHost(host);
 
@@ -67,7 +78,7 @@ bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed){
 		if(!pod_allocated) {
 			//need to desalocate all the allocated pods.
 			for(size_t i=0; i< pod_index; i++)
-				freeHostResource(pods[i],consumed,builder);
+				freeHostResource(pods[i], consumed, builder, interval_low, interval_high);
 
 			free(result);
 			result=NULL;

@@ -30,13 +30,13 @@ public:
 TOPSIS();
 ~TOPSIS();
 
-void getWeights(float*, unsigned int*,std::map<std::string,float>);
+void getWeights(float*, unsigned int*,std::map<std::string,Interval_Tree::Interval_Tree*>);
 
-void run(Host** alternatives={}, int size=0);
+void run(Host** alternatives={}, int size=0, int interval_low = 0, int interval_high = 0);
 
 unsigned int* getResult(unsigned int&);
 
-void setAlternatives(Host** host, int size);
+void setAlternatives(Host** alternatives, int size, int low, int high);
 
 void readJson();
 };

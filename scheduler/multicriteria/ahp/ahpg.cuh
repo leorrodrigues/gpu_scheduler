@@ -39,7 +39,7 @@ public:
 AHPG();
 ~AHPG();
 
-void run(Host** alternatives={}, int size=0);
+void run(Host** alternatives={}, int size=0, int interval_low = 0, int interval_high = 0);
 
 unsigned int* getResult(unsigned int&);
 
@@ -47,6 +47,6 @@ void parseAHPG(const rapidjson::Value &hierarchyData);
 
 void readJson();
 
-void setAlternatives(Host**host, int size);
+void setAlternatives(Host** alternatives, int size, int low, int high);
 };
 #endif

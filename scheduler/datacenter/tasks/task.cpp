@@ -62,6 +62,7 @@ void Task::setTask(const char* taskMessage){
 	//SUBMISSION
 	this->submission = task["submission"].GetFloat();
 
+	this->deadline = task["deadline"].GetFloat();
 	/**********************************************************/
 	/********              Pod   variables                    ********/
 	/*********************************************************/
@@ -267,6 +268,10 @@ unsigned int Task::getDelayDC(){
 
 unsigned int Task::getDelayLink(){
 	return this->delay_link;
+}
+
+unsigned int Task::getDeadLine(){
+	return this->deadline;
 }
 
 int* Task::getLinkPath(){

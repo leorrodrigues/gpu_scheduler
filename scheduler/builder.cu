@@ -84,7 +84,7 @@ void Builder::getClusteringResult(){
 
 }
 
-std::map<std::string, float> Builder::getResource(){
+std::map<std::string, Interval_Tree::Interval_Tree*> Builder::getResource(){
 	return this->resource;
 }
 
@@ -135,12 +135,12 @@ int Builder::getTotalActiveHosts(){
 	return total;
 }
 
-void Builder::printClusterResult(){
+void Builder::printClusterResult(int low, int high){
 	for(Host* it: this->clusterHosts) {
 		std::cout<<it->getId()<<"\n";
-		std::map<std::string, float> r=it->getResource();
+		std::map<std::string, Interval_Tree::Interval_Tree*> r=it->getResource();
 		for(auto a: r) {
-			std::cout<<"\t"<<a.first<<" "<<a.second<<"\n";
+			std::cout<<"\t"<<a.first<<" "<<a.second->getMinValueAvailable(low, high)<<"\n";
 		}
 	}
 }
@@ -229,9 +229,9 @@ void Builder::setDataCenterResources(total_resources_t* resource){
 	resource->servers = this->hosts.size();
 	resource->links=this->topology->getGraph()->get_num_edges(); //to simulate the 1GB of each link
 	for(size_t i=0; i<this->hosts.size(); i++) {
-		std::map<std::string,float> h_r = this->hosts[i]->getResource();
+		std::map<std::string, Interval_Tree::Interval_Tree*> h_r = this->hosts[i]->getResource();
 		for(auto it = resource->resource.begin(); it!=resource->resource.end(); it++) {
-			resource->resource[it->first] += h_r[it->first];
+			(*resource->resource[it->first]) += (*h_r[it->first]);
 		}
 	}
 	//As the DC is configured to have 1GB in all links, only multiply by the links bandwidth by the total ammount
@@ -307,7 +307,7 @@ void Builder::parserTopology(const rapidjson::Value &dataTopology){
 
 void Builder::parserHosts(const rapidjson::Value &dataHost) {
 	Host* host=NULL;
-	std::map<std::string,float> resource = main_resource_t ().resource;
+	std::map<std::string,Interval_Tree::Interval_Tree*> resource = main_resource_t ().resource;
 	for(size_t i=0; i<dataHost.Size(); i++) {
 		host = new Host();
 		this->hosts.push_back(host);
