@@ -21,7 +21,7 @@ typedef struct main_resource_t {
 
 		const rapidjson::Value &r_array = resourceData["resources"];
 
-		for(size_t i=0; i<r_array.Size(); i++) {
+		for(unsigned int i=0; i<r_array.Size(); i++) {
 			resource[r_array[i]["name"].GetString()]= new Interval_Tree::Interval_Tree();
 		}
 	}

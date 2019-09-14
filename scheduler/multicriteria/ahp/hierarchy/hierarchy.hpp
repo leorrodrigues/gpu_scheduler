@@ -111,7 +111,7 @@ Node* objective;        ///< The main objective pointer.
 
 H_Resource resource;        ///< The default resources of the hierarchy, all the alternatives uses this default resource variable to initiate their resource variable.
 
-void addEdgeObjective(Node*, Node*, float* weight = NULL, int size = 0);
+void addEdgeObjective(Node*, float* weight = NULL, int size = 0);
 void addEdgeCriteria(Node*, Node*, float* weight = NULL, int size = 0);
 void addEdgeAlternative(Node*, Node*, float* weight = NULL, int size = 0);
 

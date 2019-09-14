@@ -1,34 +1,17 @@
 #ifndef _TYPE_NOT_DEFINED_
 #define _TYPE_NOT_DEFINED_
 
-#include <chrono>
-#include <queue>
-#include <vector>
 #include <string>
+#include <vector>
+#include <queue>
 #include <map>
 
-#include "main_resources/main_resources_types.hpp"
-#include "datacenter/tasks/task.hpp"
+#include "task_ordering.hpp"
 
-#include "thirdparty/spdlog/spdlog.h"
-#include "thirdparty/spdlog/sinks/basic_file_sink.h"
-#include "thirdparty/spdlog/sinks/stdout_color_sinks.h"
+#include "../thirdparty/spdlog/spdlog.h"
+#include "../thirdparty/spdlog/sinks/basic_file_sink.h"
+#include "../thirdparty/spdlog/sinks/stdout_color_sinks.h"
 
-struct CompareTaskOnSubmission {
-	bool operator()( Task* lhs, Task* rhs) const {
-		if ((lhs->getSubmission()+lhs->getDelay()) == (rhs->getSubmission()+rhs->getDelay())) {
-			return (lhs->getId()>rhs->getId());
-		}else{
-			return (lhs->getSubmission()+lhs->getDelay()) > (rhs->getSubmission()+rhs->getDelay());
-		}
-	}
-};
-
-struct CompareTaskOnDelete {
-	bool operator()( Task* lhs, Task* rhs) const {
-		return (lhs->getAllocatedTime()+lhs->getDuration()) > (rhs->getAllocatedTime()+rhs->getDuration());
-	}
-};
 
 typedef struct {
 	std::string multicriteria_method;
@@ -43,23 +26,29 @@ typedef struct {
 	unsigned int bw=0;
 } options_t;
 
-typedef struct {
-	std::priority_queue<Task*, std::vector<Task*>, CompareTaskOnSubmission> tasks_to_allocate;
-	std::priority_queue<Task*, std::vector<Task*>, CompareTaskOnDelete> tasks_to_delete;
+struct scheduler_t {
+	AbstractPQ *tasks_to_allocate;
+	std::priority_queue<Task*, std::vector<Task*>, TaskOnDelete_CMP> tasks_to_delete;
 
 	std::chrono::high_resolution_clock::time_point start;
 	std::chrono::high_resolution_clock::time_point end;
-} scheduler_t;
+};
 
 typedef struct total_resources_t : public main_resource_t {
 	unsigned int links;
 	unsigned int servers;
-	float total_bandwidth=0;
+	float total_bandwidth;
+	unsigned int total_tasks;
+	unsigned int rejected_tasks;
+	unsigned int accepted_tasks;
 
 	explicit total_resources_t() : main_resource_t(){
 		links = 0;
-		servers=0;
-		total_bandwidth=0;
+		servers = 0;
+		total_bandwidth = 0;
+		total_tasks = 0;
+		rejected_tasks = 0;
+		accepted_tasks = 0;
 	}
 } total_resources_t;
 
@@ -87,7 +76,6 @@ typedef struct {
 	float link_footprint=0;
 	float fail_bandwidth=0;
 	unsigned int time=0;
-
 } objective_function_t;
 
 #endif

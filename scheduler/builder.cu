@@ -79,7 +79,10 @@ int Builder::getClusteringResultSize(){
 
 void Builder::getClusteringResult(){
 	//std::map<int,Host*> groups= this->clusteringMethod->getResult(this->topology,this->hosts);
+	printf("OLA GENTIII\n");
+	printf("SIZE %d\n", getClusteringResultSize());
 	this->clusterHosts =  this->clusteringMethod->getResult(this->topology,this->hosts);
+	printf("TCHAUU GENTIII\n");
 	//have to set the hosts group in the Clustering vector to use in Multicriteria.
 
 }
@@ -227,25 +230,32 @@ void Builder::setDcell(int nHosts,int nLevels){
 
 void Builder::setDataCenterResources(total_resources_t* resource){
 	resource->servers = this->hosts.size();
-	resource->links=this->topology->getGraph()->get_num_edges(); //to simulate the 1GB of each link
-	for(size_t i=0; i<this->hosts.size(); i++) {
-		std::map<std::string, Interval_Tree::Interval_Tree*> h_r = this->hosts[i]->getResource();
+	resource->links = this->topology->getGraph()->get_num_edges(); //to simulate the 1GB of each link
+	std::map<std::string, Interval_Tree::Interval_Tree*> h_r;
+	// spdlog::debug("Start iteration in data center resources\n");
+	for(size_t i = 0; i < this->hosts.size(); i++) {
+		h_r = this->hosts[i]->getResource();
 		for(auto it = resource->resource.begin(); it!=resource->resource.end(); it++) {
-			(*resource->resource[it->first]) += (*h_r[it->first]);
+			(*it->second) += h_r[it->first]->getCapacity();
 		}
 	}
+	//
+	// for(auto it = resource->resource.begin(); it!= resource->resource.end(); it++) {
+	// 	spdlog::debug("Name {}",it->first);
+	// 	it->second->show();
+	// }
 	//As the DC is configured to have 1GB in all links, only multiply by the links bandwidth by the total ammount
 	resource->total_bandwidth = 1000*resource->links;
 }
 
-void Builder::runMulticriteria(std::vector<Host*> alt){
+void Builder::runMulticriteria(std::vector<Host*> alt, int low, int high){
 	if(this->multicriteriaMethod!=NULL)
-		this->multicriteriaMethod->run(&alt[0], alt.size());
+		this->multicriteriaMethod->run(&alt[0], alt.size(), low, high);
 }
 
-void Builder::runMulticriteriaClustered(std::vector<Host*> alt){
+void Builder::runMulticriteriaClustered(std::vector<Host*> alt, int low, int high){
 	if(this->multicriteriaClusteredMethod!=NULL) {
-		this->multicriteriaClusteredMethod->run(&alt[0], alt.size());
+		this->multicriteriaClusteredMethod->run(&alt[0], alt.size(), low, high);
 	}
 }
 

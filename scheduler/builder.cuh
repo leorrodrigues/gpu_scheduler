@@ -1,7 +1,7 @@
 #ifndef _BUILDER_NOT_INCLUDED_
 #define _BUILDER_NOT_INCLUDED_
 
-#include "types.hpp"
+#include "main_resources/types.hpp"
 
 #include "multicriteria/ahp/ahp.hpp"
 #include "multicriteria/ahp/ahpg.cuh"
@@ -75,8 +75,8 @@ void setDcell(int,int);
 // Set All Resources Data Center
 void setDataCenterResources(total_resources_t*);
 //Run functions methods
-void runMulticriteria(std::vector<Host*> alt={});
-void runMulticriteriaClustered(std::vector<Host*> alt={});
+void runMulticriteria(std::vector<Host*> alt={},int low = 0, int high = 0);
+void runMulticriteriaClustered(std::vector<Host*> alt={},int low = 0, int high = 0);
 void runClustering(std::vector<Host*> alt);
 
 void listHosts();

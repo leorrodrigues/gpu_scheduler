@@ -44,16 +44,18 @@ SO_NAME:= $(shell cat /etc/os-release | grep "ID=" | egrep -v "*_ID_*" | cut -c4
 
 LIBS_PATH :=;
 
-CXXFLAGS = $(DEBUG_CXX) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security  -Wduplicated-branches  -Wlogical-op  -Wnull-dereference  -Wdouble-promotion  -Wshadow  -Wformat=2 -Wduplicated-cond -fconcepts -O2
+CXXFLAGS = $(DEBUG_CXX) -std=c++17 -Wall -Werror -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security  -Wduplicated-branches  -Wlogical-op  -Wnull-dereference  -Wdouble-promotion  -Wshadow  -Wformat=2 -Wduplicated-cond -fconcepts -O3
 
 #CXXFLAGS = -std=c++17 -Wall -fconcepts
 
-CXXFLAGS_W/BOOST = $(DEBUG_CXX) $(BOOSTFLAGS) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts  -O2
+CXXFLAGS_W/BOOST = $(DEBUG_CXX) $(BOOSTFLAGS) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -ffast-math -fno-signed-zeros -fno-trapping-math -Wconversion -Wextra -Werror -O3
+
+CXXFLAGS_W/BOOST2 = $(DEBUG_CXX) $(BOOSTFLAGS) -std=c++17 -Wall -D_GLIBCXX_ASSERTIONS -D_FORTIFY_SOURCE=2 -fasynchronous-unwind-tables -fstack-protector-strong  -pipe -Werror=format-security -fconcepts -O3
 
 #CXX_FLAGS_W/BOOST = $(BOOSTFLAGS) -std=c++17 -Wall -fconcepts
 
 #nvcc
-NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas -O2 -use_fast_math -lineinfo
+NVCCFLAGS = $(DEBUG_NVCC) -std=c++14 -Xptxas -O3 -use_fast_math -lineinfo
 
 #NVCCFLAGS = -std=c++14 -Xptxas -lineinfo
 
@@ -188,7 +190,7 @@ $(BUILD_GPUSCHEDULER)%.d : $(GPUSCHEDULER_PATH)%.cu
 .libs: $(BUILD_GPUSCHEDULER)pugixml$(OBJ);
 
 $(BUILD_GPUSCHEDULER)pugixml$(OBJ): $(VNE_PATH)libs/pugixml/src/pugixml.cpp
-	$(CXX) $(CXXFLAGS_W/BOOST) $(CXX_OBJ) $< $(COUT)"$@";
+	$(CXX) $(CXXFLAGS_W/BOOST2) $(CXX_OBJ) $< $(COUT)"$@";
 
 .json: $(BUILD_GPUSCHEDULER)json$(OBJ);
 

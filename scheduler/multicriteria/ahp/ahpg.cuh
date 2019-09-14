@@ -4,8 +4,6 @@
 #include "../multicriteria.hpp"
 #include "ahpg_kernel.cuh"
 
-#include "../../json.hpp"
-
 #include <unistd.h>
 #include <cstdlib>
 #include <cstring>

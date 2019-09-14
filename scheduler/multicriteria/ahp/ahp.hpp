@@ -7,8 +7,6 @@
 #include "hierarchy/edge.hpp"
 #include "../multicriteria.hpp"
 
-#include "../../json.hpp"
-
 #include <cstdlib>
 #include <cstring>
 #include <ctype.h>

@@ -19,25 +19,26 @@ class ContainerLink:
         self.name = name
         self.source = source
         self.destination = destination
-        self.bandwidth_min = float(bandwidth_min)
-        self.bandwidth_max = float(bandwidth_max)
+        self.bandwidth_min = round(float(bandwidth_min),5)
+        self.bandwidth_max = round(float(bandwidth_max),5)
 
 class Container:
     def __init__(self, name, vcpu_min, vcpu_max, ram_min, ram_max, epc_min, epc_max, pod):
         self.name = name
-        self.vcpu_min = float(vcpu_min)
-        self.vcpu_max = float(vcpu_max)
-        self.ram_min = float(ram_min)
-        self.ram_max = float(ram_max)
-        self.epc_min = float(epc_min)
-        self.epc_max = float(epc_max)
+        self.vcpu_min = round(float(vcpu_min),5)
+        self.vcpu_max = round(float(vcpu_max),5)
+        self.ram_min = round(float(ram_min),5)
+        self.ram_max = round(float(ram_max),5)
+        self.epc_min = round(float(epc_min),5)
+        self.epc_max = round(float(epc_max),5)
         self.pod = int(pod)
 
 class Task:
-    def __init__(self, name, submission, duration):
+    def __init__(self, name, submission, duration, deadline):
         self.id = name
         self.submission = float(submission)
         self.duration = float(duration)
+        self.deadline = float(deadline)
         self.containers = []
         self.links = []
 

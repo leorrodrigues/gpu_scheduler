@@ -7,6 +7,16 @@
 #include "utils.hpp"
 
 namespace Allocator {
+
+inline bool hostIsFreeInTime(Host *host, int low, int high){
+	for(auto const &r : host->resource) {
+		if(r.second->getMinValueAvailable(low, high) != r.second->getCapacity())
+			return false;
+	}
+	return true;
+}
+
+
 inline void  freeHostResource(Pod* pod, consumed_resource_t* consumed, Builder* builder, int low, int high){
 	Host* host=pod->getHost();
 
@@ -25,9 +35,10 @@ inline void  freeHostResource(Pod* pod, consumed_resource_t* consumed, Builder* 
 		}
 	}
 
-	subToConsumed(consumed, pod, low, high);
+	subToConsumed(consumed, pod);
 
-	if(host->getAllocatedResources()==0) {
+	//TODO A FUNCAO ESTA ERRADA, PARA VERIFICAR SE O HOST ESTÁ VAZIO, DEVE OLHAR EM UM INTERVALO LOW E HIGH E VER SE O GETMINVALUE DA ARVORE É IGUAL A CAPACIDADE (REPRESENTANDO QUE NAO TEM NENHUM RECURSO SENDO CONSUMIDO NO INTERVALO [LOW,HIGH] SE TODOS OS RECURSOS RETORNAREM TRUE, ENTAO O SERVIDOR ESTA INATIVO)
+	if(host->getActive() && hostIsFreeInTime(host, low, high)) {
 		host->setActive(false);
 		//Check if the server was on and now is off
 		if(active_status==true) {

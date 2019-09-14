@@ -12,7 +12,7 @@ if len(sys.argv)==4:
     level=int(str(sys.argv[3]))
 
 
-filename="datacenter/json/"+type+"/"+str(qnt)+".json"
+filename=type+"/"+str(qnt)+".json"
 
 file=open(filename,mode="w")
 

@@ -58,7 +58,7 @@ void H_Resource::addResource(char* name, float value){
 
 float H_Resource::getResource(int index){
 	if(this->data_size <= index) {
-		printf("H_RESOURCE Error invalid data acess, data_size %d , index %d\n", this->data_size, index);
+		SPDLOG_ERROR("H_RESOURCE Error invalid data acess, data_size {} , index {}\n", this->data_size, index);
 		exit(0);
 	}
 	return this->data[index];

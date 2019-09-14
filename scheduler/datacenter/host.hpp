@@ -6,7 +6,7 @@
 class Host : public main_resource_t {
 public:
 Host() : main_resource_t(){
-	allocated_resources=0;
+	this->resource["allocated_resources"] = new  Interval_Tree::Interval_Tree();
 	active = false;
 	id=0;
 	id_g=0;
@@ -25,16 +25,16 @@ void setActive(bool active){
 }
 
 void setAllocatedResources(unsigned int allocated){
-	this->allocated_resources = allocated;
+	this->resource["allocated_resources"]->setCapacity(static_cast<float>(allocated));
 }
 
 void addAllocatedResources(){
-	this->allocated_resources++;
+	this->resource["allocated_resources"]->addCapacity(1);
 }
 
 void removeAllocaredResource(){
-	if(this->allocated_resources>=1)
-		this->allocated_resources--;
+	if(this->resource["allocated_resources"]->getCapacity()>=1)
+		this->resource["allocated_resources"]->subtractCapacity(1);
 }
 
 std::map<std::string, Interval_Tree::Interval_Tree*> getResource(){
@@ -62,11 +62,10 @@ bool getActive(){
 }
 
 unsigned int getAllocatedResources(){
-	return this->allocated_resources;
+	return static_cast<unsigned int>(this->resource["allocated_resources"]->getCapacity(),0);
 }
 
 Host& operator+= (Host& rhs){
-	this->allocated_resources += rhs.allocated_resources;
 	for(auto it : rhs.resource) {
 		(*this->resource[it.first]) += (*it.second); // add the two tree
 	}
@@ -74,7 +73,6 @@ Host& operator+= (Host& rhs){
 }
 
 Host& operator-= (Host& rhs){
-	this->allocated_resources -= rhs.allocated_resources;
 	for(auto it : rhs.resource) {
 		(*this->resource[it.first]) -= (*it.second); // subtract the two trees
 	}
@@ -82,25 +80,24 @@ Host& operator-= (Host& rhs){
 }
 
 void  addPod(int interval_low, int interval_high, std::map<std::string,std::vector<float> > rhs){
+	spdlog::debug("adding a new pod into the host");
 	for(auto const& r : rhs) {
-		// this->resource[r.first] -= r.second[2];
-		// as the tree represents the total ammount of consumed resources, need to add from the tree to represent the pod insertion
+		if("allocated_resources" == r.first) continue;
 		this->resource[r.first]->insert(interval_low, interval_high, r.second[2]);
 	}
-	this->allocated_resources++;
+	this->resource["allocated_resources"]->addCapacity(1);
 }
 
 void removePod(int interval_low, int interval_high, std::map<std::string,std::vector<float> > rhs){
+	spdlog::debug("Removing the pod of the host");
 	for(auto const& r : rhs) {
-		// this->resource[r.first] += r.second[2];
-		// as the tree represents the total ammount of consumed resources, need to remove from the tree to represent the pod removal
+		if("allocated_resources" == r.first) continue;
 		this->resource[r.first]->remove(interval_low, interval_high, r.second[2]);
 	}
-	this->allocated_resources--;
+	this->resource["allocated_resources"]->subtractCapacity(1);
 }
 
 private:
-unsigned int allocated_resources;
 unsigned int id;
 unsigned int id_g;
 bool active;

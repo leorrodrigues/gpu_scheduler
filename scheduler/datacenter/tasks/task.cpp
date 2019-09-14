@@ -11,8 +11,6 @@ Task::Task() : Task_Resources(){
 	this->links_size=0;
 	this->allocated_time=0;
 	this->delay=0;
-	this->delay_dc=0;
-	this->delay_link=0;
 
 	this->path = NULL;
 	this->path_edge = NULL;
@@ -54,15 +52,19 @@ void Task::setTask(const char* taskMessage){
 	/*********************************************************/
 	spdlog::debug("Getting the task variables");
 	//Duration
-	this->duration = task["duration"].GetFloat();
+	this->duration = static_cast<unsigned int>(task["duration"].GetFloat());
 
 	//ID
 	this->id = task["id"].GetInt();
 
 	//SUBMISSION
-	this->submission = task["submission"].GetFloat();
+	this->submission = static_cast<unsigned int>(task["submission"].GetFloat());
 
-	this->deadline = task["deadline"].GetFloat();
+	if(task.HasMember("deadline")) {
+		this->deadline = static_cast<unsigned int>(task["deadline"].GetFloat());
+	}else{
+		this->deadline = this->submission+this->duration;
+	}
 	/**********************************************************/
 	/********              Pod   variables                    ********/
 	/*********************************************************/
@@ -77,7 +79,7 @@ void Task::setTask(const char* taskMessage){
 		this->containers=(Container**) malloc (sizeof(Container*)*this->containers_size);
 		Container *c=NULL;
 
-		for(size_t i=0; i < this->containers_size; i++) {
+		for(unsigned int i=0; i < this->containers_size; i++) {
 			spdlog::debug("Creating a new container");
 			c = new Container();
 			//CRIA UM CONTAINER E COLOCA OS VALORES DENTRO DELE, APOS ISSO ADICIONA ELE DENTRO DO ARRAY DE CONTAINERS =).
@@ -121,7 +123,7 @@ void Task::setTask(const char* taskMessage){
 			s_z=true;
 		}
 
-		this->pods_size = temp_pods.size();
+		this->pods_size = static_cast<unsigned int>(temp_pods.size());
 		//Create the pods array
 		this->pods = (Pod**) malloc (sizeof(Pod*)*this->pods_size);
 
@@ -159,7 +161,7 @@ void Task::setTask(const char* taskMessage){
 	unsigned int source=0;
 	if(this->links_size!=0) {
 		//Iterating through all the links in the request
-		for(size_t i=0; i < this->links_size; i++) {
+		for(unsigned int i=0; i < this->links_size; i++) {
 			spdlog::debug("\tGetting the link {}",i);
 			source = linksArray[i]["source"].GetInt();
 			spdlog::debug("\tsource get");
@@ -182,20 +184,8 @@ void Task::setTask(const char* taskMessage){
 	}
 }
 
-void Task::addDelay(){
-	this->delay++;
-}
-
 void Task::addDelay(unsigned int delay){
-	this->delay+=delay;
-}
-
-void Task::addDelayDC(unsigned int delay){
-	this->delay_dc+=delay;
-}
-
-void Task::addDelayLink(unsigned int delay){
-	this->delay_link+=delay;
+	this->delay += delay;
 }
 
 void Task::setAllocatedTime(unsigned int allocatedTime){
@@ -262,15 +252,7 @@ unsigned int Task::getDelay(){
 	return this->delay;
 }
 
-unsigned int Task::getDelayDC(){
-	return this->delay_dc;
-}
-
-unsigned int Task::getDelayLink(){
-	return this->delay_link;
-}
-
-unsigned int Task::getDeadLine(){
+unsigned int Task::getDeadline(){
 	return this->deadline;
 }
 
@@ -306,6 +288,7 @@ float Task::getBandwidthAllocated(){
 void Task::print() {
 	spdlog::debug("Task:{");
 	spdlog::debug("Duration {}",this->duration);
+	spdlog::debug("Deadline {}",this->deadline);
 	spdlog::debug("\tPods:[");
 	for(size_t i=0; i<this->pods_size; i++) {
 		this->pods[i]->print();

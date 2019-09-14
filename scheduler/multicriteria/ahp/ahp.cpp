@@ -2,19 +2,19 @@
 
 AHP::AHP() {
 	this->hierarchy = NULL;
-	IR[3] = 0.5245;
-	IR[4] = 0.8815;
-	IR[5] = 1.1086;
-	IR[6] = 1.1279;
-	IR[7] = 1.3417;
-	IR[8] = 1.4056;
-	IR[9] = 1.4499F;
-	IR[10] = 1.4854;
-	IR[11] = 1.5141;
-	IR[12] = 1.5365;
-	IR[13] = 1.5551;
-	IR[14] = 1.5713;
-	IR[15] = 1.5838;
+	IR[3] = 0.5245f;
+	IR[4] = 0.8815f;
+	IR[5] = 1.1086f;
+	IR[6] = 1.1279f;
+	IR[7] = 1.3417f;
+	IR[8] = 1.4056f;
+	IR[9] = 1.4499f;
+	IR[10] = 1.4854f;
+	IR[11] = 1.5141f;
+	IR[12] = 1.5365f;
+	IR[13] = 1.5551f;
+	IR[14] = 1.5713f;
+	IR[15] = 1.5838f;
 	char cwd[1024];
 	char* result;
 	result = getcwd(cwd, sizeof(cwd));
@@ -23,7 +23,7 @@ AHP::AHP() {
 	}
 	char* sub_path = (strstr(cwd, "ahp"));
 	if(sub_path!=NULL) {
-		int position = sub_path - cwd;
+		long int position = sub_path - cwd;
 		strncpy(this->path, cwd, position);
 		this->path[position-1] = '\0';
 	}else{
@@ -47,10 +47,10 @@ void AHP::setHierarchy(){
 }
 
 char* AHP::strToLower(const char* str) {
-	int i;
+	unsigned int i;
 	char* res = (char*) malloc( strlen(str)+1 );
-	for(i=0; (unsigned int) i<strlen(str); i++) {
-		res[i]=tolower(str[i]);
+	for(i=0; i < strlen(str); i++) {
+		res[i] = static_cast<char>(tolower(str[i]));
 	}
 	res[strlen(str)] = '\0';
 	return res;
@@ -205,9 +205,10 @@ void AHP::checkConsistency(Node* node) {
 		}
 		lambda += (p[i] / pml[i]);
 	}
-	lambda /= size;
+	float f_size = static_cast<float>(size);
+	lambda /= f_size;
 	if (IR[size] > 0) {
-		RC = (fabs(lambda - size) / (size - 1)) / IR[size];
+		RC = static_cast<float>((fabs(lambda - f_size) / (f_size - 1)) / IR[size]);
 	} else {
 		// according to AlonsoLamata 2006
 		// RC = CI/ RI , where
@@ -218,7 +219,7 @@ void AHP::checkConsistency(Node* node) {
 		// calculated through ~Lambda_max = 2.7699*n-4.3513, thus RC = (Lambda_max -
 		// n) / (2.7699 * n - 4.3513 - n ), simplifying RC = (Lambda_max - n) /
 		// (1.7699 * n - 4.3513)
-		RC = (abs(lambda - size) / (1.7699 * size - 4.3513));
+		RC = static_cast<float>((abs(lambda - f_size) / (1.7699 * size - 4.3513)));
 	}
 	if (RC > 0.1) {
 		SPDLOG_ERROR("Criteria {} is inconsistent", node->getName());
@@ -292,13 +293,13 @@ void AHP::hierarchyParser(const rapidjson::Value &hierarchyData) {
 	Node* criteria = NULL;
 
 	const rapidjson::Value &c_array = hierarchyData["childs"];
-	size_t c_size = c_array.Size();
+	unsigned int c_size = c_array.Size();
 	float weights[c_size];
 
-	for(size_t i=0; i< c_size; i++) {
+	for(unsigned int i=0; i< c_size; i++) {
 		criteria = this->hierarchy->addCriteria(c_array[i]["name"].GetString());
 		const rapidjson::Value & w_array = c_array[i]["weight"];
-		for(size_t j=0; j<w_array.Size(); j++) {
+		for(unsigned int j=0; j<w_array.Size(); j++) {
 			weights[j] = w_array[j].GetFloat();
 		}
 		this->hierarchy->addEdge(focus, criteria, weights, c_size);
@@ -348,6 +349,7 @@ void AHP::acquisition() {
 	const int sheetsSize = this->hierarchy->getCriteriasSize();
 	const int resourceSize = this->hierarchy->getResource()->getDataSize();
 
+	spdlog::debug("\tbuilding the min max values");
 	float* min_max_values = (float*) malloc (sizeof(float) * resourceSize);
 	{
 		float min, max, value;
@@ -367,29 +369,33 @@ void AHP::acquisition() {
 			if(min==0 && max==1) { // the value is boolean
 				min_max_values[i] = -1; //simulate boolean value
 			}else{
-				min_max_values[i] = (max-min)/ 9.0; // the other variables
+				min_max_values[i] = static_cast<float>((max-min)/ 9.0); // the other variables
 			}
 		}
 	}
 	// At this point, all the integers and float/float resources  has
 	// the max and min values discovered.
+	spdlog::debug("\tbuilding the criteria weights");
 	float** criteriasWeight = (float**) malloc (sizeof(float*) * altSize);
 	for(i=0; i<altSize; i++) {
 		criteriasWeight[i] = (float*) malloc (sizeof(float*) * altSize);
 	}
 
+	spdlog::debug("\tcalculating the results for {} sheets", sheetsSize);
 	float result;
 	for ( i=0; i< sheetsSize; i++) {
 		for ( j=0; j<altSize; j++) {
 			for ( k=0; k<altSize; k++) {
-				if(min_max_values[i]==0) result=0;
+				if(min_max_values[i]==0) {
+					result=0;
+				}
 				else if(min_max_values[i]!=-1) {
-					result = (alt[j]->getResource()->getResource(i) - alt[k]->getResource()->getResource(i)) / min_max_values[i];
-				}else{ // boolean resource
+					result = (alt[j]->getResource()->getResource(i) - alt[k]->getResource()->getResource(i)) /min_max_values[i];
+				}else{         // boolean resource
 					if(alt[j]->getResource()->getResource(i) == alt[k]->getResource()->getResource(i)) {
 						result = 1;
 					}else{
-						alt[j]->getResource()->getResource(i) ? result = 9 : result = 1 / 9.0;
+						alt[j]->getResource()->getResource(i) ? result = 9 : result = static_cast<float>(1 / 9.0);
 					}
 				}
 				if (result == 0) {
@@ -409,6 +415,7 @@ void AHP::acquisition() {
 		}
 	}
 
+	spdlog::debug("\tfree the allocated temp data");
 	for(i=0; i<altSize; i++) {
 		free(criteriasWeight[i]);
 	}
@@ -443,6 +450,7 @@ void AHP::consistency() {
 }
 
 void AHP::run(Host** alternatives, int size, int interval_low, int interval_high) {
+	spdlog::debug("AHP in [{},{}]", interval_low, interval_high);
 	this->hierarchy->clearAlternatives();
 	this->hierarchy->clearResource();
 
@@ -450,19 +458,23 @@ void AHP::run(Host** alternatives, int size, int interval_low, int interval_high
 	// float consimed = (high - low) * capacity (a area in 2D view)
 	std::map<std::string, Interval_Tree::Interval_Tree*> resource = alternatives[0]->getResource();
 
+	spdlog::debug("Adding resources into the hierarchy");
 	for (auto it : resource) {
 		this->hierarchy->addResource((char*)it.first.c_str());
 	}
 
+	spdlog::debug("Setting the alternatives");
 	this->setAlternatives(alternatives, size, interval_low, interval_high);
 	if(this->hierarchy->getCriteriasSize()==0) {
-		std::cerr<<"AHP Hierarchy with no sheets\n";
+		SPDLOG_ERROR("AHP Hierarchy with no sheets");
 		exit(0);
 	}
 
+	spdlog::debug("Running acquisition");
 	this->acquisition();
+	spdlog::debug("Running synthesis");
 	this->synthesis();
-	// this->consistency();
+	spdlog::debug("AHP[x]");
 }
 
 unsigned int* AHP::getResult(unsigned int& size) {
@@ -496,24 +508,31 @@ unsigned int* AHP::getResult(unsigned int& size) {
 
 void AHP::setAlternatives(Host** alternatives, int size, int low, int high) {
 	std::map<std::string, Interval_Tree::Interval_Tree*> resource;
-	Node* a = NULL;
+	Node* alt = NULL;
 	float temp_capacity = 0;
 	for ( size_t i=0; i < (size_t)size; i++) {
 		resource = alternatives[i]->getResource(); // Host resource
 
-		a = new Node(); // create the new node
+		alt = new Node(); // create the new node
 
-		a->setResource(this->hierarchy->getResource()); // set the default resources in the node
+		alt->setResource(this->hierarchy->getResource()); // set the default resources in the node
 
-		a->setName((char*) std::to_string(alternatives[i]->getId()).c_str()); // set the node name
+		alt->setName((char*) std::to_string(alternatives[i]->getId()).c_str()); // set the node name
 
 		// Update the node h_resource values by the host resource values
+		spdlog::debug("Looping resources");
 		for (auto it : resource) {
-			temp_capacity = (high - low) * it.second->getMinValueAvailable(low, high);
-			a->setResource((char*)it.first.c_str(), temp_capacity);
-		}
+			spdlog::debug("Configuring the temp capacity for {} in [{},{}] in the host {}", it.first, low, high, alternatives[i]->getId());
+			it.second->show();
+			temp_capacity = static_cast<float>((high - low)) * it.second->getMinValueAvailable(low, high);
+			spdlog::debug("Setting alt temp_capa: {}", temp_capacity);
+			alt->setResource((char*)it.first.c_str(), temp_capacity);
+			spdlog::debug("Alt set");
 
-		this->hierarchy->addAlternative(a);
+		}
+		spdlog::debug("Adding alternative");
+		this->hierarchy->addAlternative(alt);
+		spdlog::debug("Added");
 	}
 
 	this->hierarchy->addEdgeCriteriasAlternatives();

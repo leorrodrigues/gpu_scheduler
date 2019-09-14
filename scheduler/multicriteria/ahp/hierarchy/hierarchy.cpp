@@ -101,7 +101,7 @@ void Hierarchy::addEdge(const char* parentName, const char* childName, float* we
 
 void Hierarchy::addEdge(Node* parent, Node* child, float* weight, int size){
 	if(parent->getType()==node_t::FOCUS && child->getType()==node_t::CRITERIA) {
-		addEdgeObjective(parent, child, weight, size);
+		addEdgeObjective(child, weight, size);
 	}else if(parent->getType()==node_t::CRITERIA && child->getType()==node_t::CRITERIA) {
 		addEdgeCriteria(parent, child, weight, size);
 	}else if(parent->getType()==node_t::CRITERIA && child->getType()==node_t::ALTERNATIVE) {
@@ -119,7 +119,7 @@ void Hierarchy::addEdge(Node* parent, Node* child, float* weight, int size){
     \param child: Criteria pointer.
     \param w: the edge weight. Default 0.
  */
-void Hierarchy::addEdgeObjective(Node *objective, Node *child, float* weight, int size) {
+void Hierarchy::addEdgeObjective(Node *child, float* weight, int size) {
 	//Call the edge constructor (i.e., creates a new edge).
 	Edge *edge = new Edge(child, weight, size);
 	//Add this edge in the Focus edges list.
@@ -210,11 +210,11 @@ Node* Hierarchy::addAlternative(Node* alternative) {
 void Hierarchy::addEdgeCriteriasAlternatives() {
 	//Iterate through all the sheets.
 	float temp[this->alternatives_size] = {0}; //initiate all elements with 0
-	for(size_t i=0,j=0; i<this->criterias_size; i++) {
+	for(unsigned int i=0,j=0; i<this->criterias_size; i++) {
 		//Iterate through all the alternatives.
 		for(j=0; j<this->alternatives_size; j++) {
 			//Create an edge between them.
-			this->addEdgeAlternative(this->criterias[i], this->alternatives[j], temp, alternatives_size);
+			this->addEdgeAlternative(this->criterias[i], this->alternatives[j], temp, static_cast<int>(alternatives_size));
 		}
 	}
 }
@@ -248,7 +248,7 @@ void Hierarchy::listCriteria() {
     The function will check the size of each map and if their size is bigger than 0, the variable name and value will be printed.
  */
 void Hierarchy::listResources() {
-	for(size_t i=0; i<(size_t)this->resource.getDataSize(); i++) {
+	for(int i=0; i < this->resource.getDataSize(); i++) {
 		printf("%s: %lf\n",  this->resource.getResourceName(i), this->resource.getResource(i));
 	}
 }
@@ -342,7 +342,7 @@ Node* Hierarchy::getFocus() {
     \return Nodes size.
  */
 int Hierarchy::getNodesSize(){
-	return this->criterias_size+this->alternatives_size+1;
+	return static_cast<int>(this->criterias_size+this->alternatives_size+1);
 }
 
 /**
@@ -350,7 +350,7 @@ int Hierarchy::getNodesSize(){
     \return Criterias size.
  */
 int Hierarchy::getCriteriasSize(){
-	return this->criterias_size;
+	return static_cast<int>(this->criterias_size);
 }
 
 /**
@@ -358,7 +358,7 @@ int Hierarchy::getCriteriasSize(){
     \return Alternatives size.
  */
 int Hierarchy::getAlternativesSize()  {
-	return this->alternatives_size;
+	return static_cast<int>(this->alternatives_size);
 }
 
 /**

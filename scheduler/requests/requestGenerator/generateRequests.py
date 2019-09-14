@@ -35,6 +35,7 @@ def parse_args():
     parser.add_argument('-l','--duration',type=int,action='store',dest='duration',
                         default='100',
                         help='max duration of a task')
+    parser.add_argument('-t','--deadline', type=int, action='store', dest='deadline', default='110', help='task deadline')
     parser.add_argument('-o','--output',type=str,action='store',dest='output',
                         default='requests.json',
                         help='output file')
@@ -63,13 +64,17 @@ if __name__ == '__main__':
         if args.distribution == 'uniform':
             submission = get_uniform_int(1, args.intervals)
         elif args.distribution == 'poisson':
-            print 'Please someone implement me'
+            print('Please someone implement me')
             break
         else:
-            print 'Invalid distribution!'
+            print('Invalid distribution!')
             break
         duration = get_uniform_int(1, args.duration)
-        t = Task(task_id, submission, duration)
+
+        
+        deadline = get_uniform_int(submission+duration+1, submission+duration+1+args.deadline)
+
+        t = Task(task_id, submission, duration, deadline)
 
         cont_id = 1
         cpods = math.ceil(args.size * args.pod)
@@ -80,7 +85,7 @@ if __name__ == '__main__':
             max_memory = get_uniform_float(min_memory, args.RAM)
             pod = abs(cpods)
             cpods = cpods - 1
-                
+
             if cpods == 0:
                 pod_id = pod_id + 1
                 cpods = math.ceil(args.size * args.pod)

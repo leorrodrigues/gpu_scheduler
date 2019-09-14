@@ -24,5 +24,5 @@ rapidjson::Document* generateDocumentP(const char *path);
 rapidjson::SchemaDocument generateSchema(const char* path);
 void jsonError(rapidjson::SchemaValidator* validator);
 void writeJson(const char* path,std::string text);
-};
+}
 #endif

@@ -36,16 +36,36 @@ float getResource(std::string key, bool type){
 	return this->resources[key][0];
 }
 
-bool getFit(std::string key){
-	return this->resources[key][2]==0 ? false : true;
-}
-
 unsigned int getId(){
 	return this->id;
 }
 
 float getMaxResource(std::string key){
 	return this->resources[key][1];
+}
+
+float getAllMinResource(){
+	float min = 0;
+	for(auto const&it : this->resources) {
+		min += it.second[0];
+	}
+	return min;
+}
+
+float getAllMaxResource(){
+	float max = 0;
+	for(auto const&it : this->resources) {
+		max += it.second[0];
+	}
+	return max;
+}
+
+float getAllDiffResource(){
+	float diff = 0;
+	for(auto const&it : this->resources) {
+		diff += (it.second[1] - it.second[0]);
+	}
+	return diff;
 }
 
 float getTotalAllocated(std::string key){
@@ -73,6 +93,10 @@ void addValue(std::string key, float value, bool type){
 void setFit(std::string key, float value){
 	this->resources[key][2] = value;
 	this->total_allocated[key] = value;
+}
+
+float getFit(std::string key){
+	return this->resources[key][2];
 }
 
 void setId(unsigned int id){

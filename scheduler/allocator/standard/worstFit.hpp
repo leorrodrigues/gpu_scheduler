@@ -30,7 +30,7 @@ static size_t get_max_element(std::vector<Host*> hosts, bool *visited, int low, 
 }
 
 namespace Allocator {
-bool worstFit(Builder* builder,  Task* task, consumed_resource_t* consumed, int interval_low){
+bool worstFit(Builder* builder,  Task* task, consumed_resource_t* consumed, int current_time){
 	std::vector<Host*> aux = builder->getHosts();
 	size_t hosts_size = aux.size();
 	size_t visited_qnt=0;
@@ -40,54 +40,58 @@ bool worstFit(Builder* builder,  Task* task, consumed_resource_t* consumed, int 
 	Pod** pods = task->getPods();
 	unsigned int pods_size = task->getPodsSize();
 	bool pod_allocated;
-	int interval_high = 0;
+	int interval_low = 0, interval_high = 0;
 	bool fit = false;
+	size_t pod_index = 0;
 
-	for(size_t pod_index=0; pod_index < pods_size; pod_index++) {
-		bool visited [aux.size()];
-		pod_allocated = false;
-		host=NULL;
-		while(visited_qnt<hosts_size) {
-			fit = false;
-			host_index = get_max_element(aux,visited, interval_low, interval_high);
+	for(interval_low = current_time; interval_low < task->getDeadline(); interval_low++) {
+		interval_high = interval_low + task->getDuration();
+		for(pod_index=0; pod_index < pods_size; pod_index++) {
+			bool visited [aux.size()];
+			pod_allocated = false;
+			host=NULL;
+			while(visited_qnt<hosts_size) {
+				fit = false;
+				host_index = get_max_element(aux,visited, interval_low, interval_high);
 
-			host =  aux[host_index]; //get the iterator element
-			visited[host_index]=true; //remove the element from vector
-			visited_qnt++;
+				host =  aux[host_index];//get the iterator element
+				visited[host_index]=true; //remove the element from vector
+				visited_qnt++;
 
-			for(interval_high = interval_low+1; interval_high < task->getDeadLine(); interval_high++) {
-				if(checkFit(host,pods[pod_index], interval_low, interval_high)) {
+				if(checkFit(host,pods[pod_index], interval_low, interval_low + task->getDuration()))
 					fit = true;
-					break;
+
+				if(!fit) continue;
+
+				std::map<std::string,std::vector<float> > p_r = pods[pod_index]->getResources();
+				host->addPod(interval_low, interval_high, p_r);
+
+				if(!host->getActive()) {
+					host->setActive(true);
+					consumed->active_servers++;
 				}
 
-			}
-			if(!fit) continue;
+				addToConsumed(consumed,pods[pod_index]);
 
-			std::map<std::string,std::vector<float> > p_r = pods[pod_index]->getResources();
-			host->addPod(interval_low, interval_high, p_r);
+				pods[pod_index]->setHost(host);
 
-			if(!host->getActive()) {
-				host->setActive(true);
-				consumed->active_servers++;
+				pod_allocated=true;
+				break;
 			}
 
-			addToConsumed(consumed,pods[pod_index], interval_low, interval_high);
-
-			pods[pod_index]->setHost(host);
-
-			pod_allocated=true;
-			break;
+			if(!pod_allocated) {
+				//need to desalocate all the allocated pods.
+				for(size_t i=0; i< pod_index; i++) {
+					freeHostResource(pods[i],consumed,builder, interval_low, interval_high);
+				}
+				break;
+			}
 		}
-
-		if(!pod_allocated) {
-			//need to desalocate all the allocated pods.
-			for(size_t i=0; i< pod_index; i++)
-				freeHostResource(pods[i],consumed,builder, interval_low, interval_high);
-			return false;
-		}
-
+		if(pod_allocated) break;
 	}
+	if(!pod_allocated)
+		return false;
+	task->addDelay(interval_low - current_time);
 	return true;
 }
 
