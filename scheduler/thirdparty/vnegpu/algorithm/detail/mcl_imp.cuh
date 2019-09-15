@@ -7,10 +7,10 @@
 
 #include <limits>
 
-#include <vnegpu/graph.cuh>
+#include "../../graph.cuh"
 
-#include <vnegpu/util/util.cuh>
-#include <vnegpu/util/matrix.cuh>
+#include "../../util/util.cuh"
+#include "../../util/matrix.cuh"
 
 #include <cublas_v2.h>
 

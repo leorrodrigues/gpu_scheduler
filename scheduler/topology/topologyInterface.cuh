@@ -6,7 +6,8 @@
 
 #include "../main_resources/interval_tree.hpp"
 
-#include <vnegpu/graph.cuh>
+#include "../thirdparty/vnegpu/graph.cuh"
+
 #include <iostream>
 #include <iomanip>
 

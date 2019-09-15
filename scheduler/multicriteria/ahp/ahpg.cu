@@ -339,14 +339,14 @@ void AHPG::readJson() {
 	strcpy(hierarchy_schema, this->path);
 	strcpy(hierarchy_data, this->path);
 
-	strcat(hierarchy_schema, "multicriteria/ahp/json/hierarchySchema.json");
+	strcat(hierarchy_schema, "ahp/hierarchySchema.json");
 
 	if(this->type==0)
-		strcat(hierarchy_data, "multicriteria/ahp/json/hierarchyData.json");
+		strcat(hierarchy_data, "ahp/hierarchyData.json");
 	else if(this->type==1)
-		strcat(hierarchy_data, "multicriteria/ahp/json/hierarchyDataFrag.json");
+		strcat(hierarchy_data, "ahp/hierarchyDataFrag.json");
 	else if(this->type==2)
-		strcat(hierarchy_data, "multicriteria/ahp/json/hierarchyDataBW.json");
+		strcat(hierarchy_data, "ahp/hierarchyDataBW.json");
 	else
 		SPDLOG_ERROR("Hierarchy data type error");
 

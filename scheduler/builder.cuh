@@ -83,8 +83,8 @@ void listHosts();
 void listResources();
 void listCluster();
 void parser(
-	const char* hostsDataPath = "datacenter/json/fat_tree/20.json",
-	const char* hostsSchemaPath = "datacenter/json/hostsSchema.json"
+	const char* hostsDataPath = "datacenter/fat_tree/20.json",
+	const char* hostsSchemaPath = "datacenter/hostsSchema.json"
 	);
 
 };

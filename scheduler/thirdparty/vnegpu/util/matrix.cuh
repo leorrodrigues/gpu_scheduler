@@ -2,7 +2,7 @@
 #define _MATRIX_CUH
 
 #include <stdio.h>
-#include <vnegpu/config.cuh>
+#include "../config.cuh"
 
 /*! \file
  *  \brief Personalised Matrix data struct.

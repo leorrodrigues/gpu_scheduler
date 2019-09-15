@@ -202,7 +202,7 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 
 	options->current_time=0;
 	// Load the Topology
-	std::string path="datacenter/json/"+topology+"/" + std::to_string(topology_size) + ".json";
+	std::string path="datacenter/"+topology+"/" + std::to_string(topology_size) + ".json";
 	builder->parser(path.c_str());
 }
 

@@ -12,9 +12,9 @@ typedef struct main_resource_t {
 
 	explicit main_resource_t(){
 		rapidjson::SchemaDocument resourceSchema =
-			JSON::generateSchema("main_resources/resourcesSchema.json");
+			JSON::generateSchema("resourcesSchema.json");
 		rapidjson::Document resourceData =
-			JSON::generateDocument("main_resources/resourcesData.json");
+			JSON::generateDocument("resourcesData.json");
 		rapidjson::SchemaValidator resourceValidator(resourceSchema);
 		if (!resourceData.Accept(resourceValidator))
 			JSON::jsonError(&resourceValidator);

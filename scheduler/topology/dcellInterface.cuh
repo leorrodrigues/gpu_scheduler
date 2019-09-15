@@ -1,7 +1,7 @@
 #ifndef _DCEL_NOT_INCLUDED_
 #define _DCEL_NOT_INCLUDED_
 
-#include <vnegpu/generator/dcell.cuh>
+#include "../thirdparty/vnegpu/generator/dcell.cuh"
 
 #include "topologyInterface.cuh"
 

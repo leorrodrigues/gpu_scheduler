@@ -6,7 +6,7 @@
  */
 
 //LIB for XML.
-#define XML_LIB_INC <vnegpu/libs/pugixml/src/pugixml.hpp>
+#define XML_LIB_INC "libs/pugixml/src/pugixml.hpp"
 
 //In case there is not a lib for XML
 //#define NO_XML_LIB

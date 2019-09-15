@@ -1,7 +1,7 @@
 #ifndef _FATTREE_NOT_INCLUDED_
 #define _FATTREE_NOT_INCLUDED_
 
-#include <vnegpu/generator/fat_tree.cuh>
+#include "../thirdparty/vnegpu/generator/fat_tree.cuh"
 
 #include "topologyInterface.cuh"
 

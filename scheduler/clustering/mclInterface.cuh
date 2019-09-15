@@ -4,7 +4,7 @@
 
 #include "clustering.cuh"
 
-#include <vnegpu/algorithm/mcl.cuh>
+#include "../thirdparty/vnegpu/algorithm/mcl.cuh"
 
 class MCLInterface : public Clustering {
 private:
