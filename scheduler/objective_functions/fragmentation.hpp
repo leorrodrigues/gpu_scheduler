@@ -4,6 +4,8 @@
 #ifndef _FRAGMENTATION_FUNCTION_
 #define _FRAGMENTATION_FUNCTION_
 
+#include "../main_resources/types.hpp"
+
 namespace ObjectiveFunction {
 
 namespace Fragmentation {

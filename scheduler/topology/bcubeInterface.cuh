@@ -1,7 +1,7 @@
 #ifndef _BCUBE_NOT_INCLUDED_
 #define _BCUBE_NOT_INCLUDED_
 
-#include <vnegpu/generator/bcube.cuh>
+#include "../thirdparty/vnegpu/generator/bcube.cuh"
 
 #include "topologyInterface.cuh"
 

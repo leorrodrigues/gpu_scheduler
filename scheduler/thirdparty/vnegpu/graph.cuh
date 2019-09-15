@@ -8,9 +8,9 @@
 #include <string>
 #include <vector>
 
-#include <vnegpu/config.cuh>
+#include "config.cuh"
 
-#include <vnegpu/util/matrix.cuh>
+#include "util/matrix.cuh"
 
 #ifndef NO_XML_LIB
 #include XML_LIB_INC

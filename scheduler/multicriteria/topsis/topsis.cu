@@ -26,7 +26,7 @@ TOPSIS::TOPSIS(){
 		this->path[position] = '\0';
 	}else{
 		strcpy(this->path, cwd);
-		strcat(this->path,"/multicriteria/\0");
+		strcat(this->path,"/\0");
 	}
 	this->hosts_value = NULL;
 	this->hosts_size = 0;
@@ -47,14 +47,14 @@ void TOPSIS::getWeights(float* weights, unsigned int* types, std::map<std::strin
 	strcpy(weights_schema_path, path);
 	strcpy(weights_data_path, path);
 
-	strcat(weights_schema_path, "topsis/json/weightsSchema.json");
+	strcat(weights_schema_path, "topsis/weightsSchema.json");
 
 	if(this->type==0)
-		strcat(weights_data_path, "topsis/json/weightsData.json");
+		strcat(weights_data_path, "topsis/weightsData.json");
 	else if(this->type==1)
-		strcat(weights_data_path, "topsis/json/weightsDataFrag.json");
+		strcat(weights_data_path, "topsis/weightsDataFrag.json");
 	else if(this->type==2)
-		strcat(weights_data_path, "topsis/json/weightsDataBW.json");
+		strcat(weights_data_path, "topsis/weightsDataBW.json");
 	else
 		SPDLOG_ERROR("Weights data type error");
 
