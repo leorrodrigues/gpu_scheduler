@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <cstdio>
 
-#include "../../../thirdparty/spdlog/spdlog.h"
+#include "../../../../../thirdparty/spdlog/spdlog.h"
 
 class H_Resource {
 private:

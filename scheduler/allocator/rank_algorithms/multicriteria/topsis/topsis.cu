@@ -74,7 +74,8 @@ void TOPSIS::getWeights(float* weights, unsigned int* types, std::map<std::strin
 	}
 }
 
-void TOPSIS::run(Host** alternatives, int alt_size, int interval_low, int interval_high){
+void TOPSIS::run(std::vector<Host*> alt, int alt_size, int interval_low, int interval_high){
+	Host **alternatives = &alt[0];
 	// spdlog::debug("Running topsis");
 	int devID;
 	cudaDeviceProp props;

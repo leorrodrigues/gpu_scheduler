@@ -2,19 +2,19 @@
 #include <assert.h>
 
 Builder::Builder() : main_resource_t() {
-	this->multicriteriaMethod=NULL;
-	this->multicriteriaClusteredMethod=NULL;
+	this->rankMethod=NULL;
+	this->rankClusteredMethod=NULL;
 	this->clusteringMethod=NULL;
 	this->topology=NULL;
 }
 
 Builder::~Builder(){
 	// printf("1\n");
-	if(this->multicriteriaMethod)
-		delete(this->multicriteriaMethod);
+	if(this->rankMethod)
+		delete(this->rankMethod);
 	// printf("2\n");
-	if(this->multicriteriaClusteredMethod!=NULL)
-		delete(this->multicriteriaClusteredMethod);
+	if(this->rankClusteredMethod!=NULL)
+		delete(this->rankClusteredMethod);
 	// printf("3\n");
 	if(this->clusteringMethod!=NULL)
 		delete(this->clusteringMethod);
@@ -22,9 +22,9 @@ Builder::~Builder(){
 	if(this->topology!=NULL)
 		delete(this->topology);
 	// printf("5\n");
-	this->multicriteriaMethod=NULL;
+	this->rankMethod=NULL;
 	// printf("6\n");
-	this->multicriteriaClusteredMethod=NULL;
+	this->rankClusteredMethod=NULL;
 	// printf("7\n");
 	this->clusteringMethod=NULL;
 	// printf("8\n");
@@ -49,12 +49,12 @@ Builder::~Builder(){
 
 }
 
-Multicriteria* Builder::getMulticriteria(){
-	return this->multicriteriaMethod;
+Rank* Builder::getRank(){
+	return this->rankMethod;
 }
 
-Multicriteria* Builder::getMulticriteriaClustered(){
-	return this->multicriteriaClusteredMethod;
+Rank* Builder::getRankClustered(){
+	return this->rankClusteredMethod;
 }
 
 Clustering* Builder::getClustering(){
@@ -65,12 +65,12 @@ Topology* Builder::getTopology(){
 	return this->topology;
 }
 
-unsigned int* Builder::getMulticriteriaResult(unsigned int& size){
-	return this->multicriteriaMethod->getResult(size);
+unsigned int* Builder::getRankResult(unsigned int& size){
+	return this->rankMethod->getResult(size);
 }
 
-unsigned int* Builder::getMulticriteriaClusteredResult(unsigned int& size){
-	return this->multicriteriaClusteredMethod->getResult(size);
+unsigned int* Builder::getRankClusteredResult(unsigned int& size){
+	return this->rankClusteredMethod->getResult(size);
 }
 
 int Builder::getClusteringResultSize(){
@@ -79,10 +79,7 @@ int Builder::getClusteringResultSize(){
 
 void Builder::getClusteringResult(){
 	//std::map<int,Host*> groups= this->clusteringMethod->getResult(this->topology,this->hosts);
-	printf("OLA GENTIII\n");
-	printf("SIZE %d\n", getClusteringResultSize());
 	this->clusterHosts =  this->clusteringMethod->getResult(this->topology,this->hosts);
-	printf("TCHAUU GENTIII\n");
 	//have to set the hosts group in the Clustering vector to use in Multicriteria.
 
 }
@@ -152,47 +149,16 @@ void Builder::printTopologyType(){
 	std::cout<<this->topology->getTopology();
 }
 
-void Builder::setMulticriteria(Multicriteria* method){
-	this->multicriteriaMethod=method;
+void Builder::setRank(Rank* method){
+	this->rankMethod=method;
 }
 
-void Builder::setAHP(){
-	AHP *ahp=new AHP();
-	this->setMulticriteria(ahp);
-}
-
-void Builder::setAHPG(){
-	AHPG *ahpg=new AHPG();
-	this->setMulticriteria(ahpg);
-}
-
-void Builder::setTOPSIS(){
-	TOPSIS *topsis = new TOPSIS();
-	this->setMulticriteria(topsis);
-}
-
-void Builder::setClusteredAHP(){
-	AHP *ahp=new AHP();
-	this->multicriteriaClusteredMethod=ahp;
-}
-
-void Builder::setClusteredAHPG(){
-	AHPG *ahpg=new AHPG();
-	this->multicriteriaClusteredMethod=ahpg;
-}
-
-void Builder::setClusteredTOPSIS(){
-	TOPSIS *topsis= new TOPSIS();
-	this->multicriteriaClusteredMethod=topsis;
+void Builder::setClusteredRank(Rank* method){
+	this->rankClusteredMethod=method;
 }
 
 void Builder::setClustering(Clustering* method){
 	this->clusteringMethod=method;
-}
-
-void Builder::setMCL(){
-	MCLInterface *mcl= new MCLInterface();
-	this->setClustering(mcl);
 }
 
 void Builder::setTopology(Topology* topology){
@@ -248,14 +214,14 @@ void Builder::setDataCenterResources(total_resources_t* resource){
 	resource->total_bandwidth = 1000*resource->links;
 }
 
-void Builder::runMulticriteria(std::vector<Host*> alt, int low, int high){
-	if(this->multicriteriaMethod!=NULL)
-		this->multicriteriaMethod->run(&alt[0], alt.size(), low, high);
+void Builder::runRank(std::vector<Host*> alt, int low, int high){
+	if(this->rankMethod!=NULL)
+		this->rankMethod->run(alt, alt.size(), low, high);
 }
 
-void Builder::runMulticriteriaClustered(std::vector<Host*> alt, int low, int high){
-	if(this->multicriteriaClusteredMethod!=NULL) {
-		this->multicriteriaClusteredMethod->run(&alt[0], alt.size(), low, high);
+void Builder::runRankClustered(std::vector<Host*> alt, int low, int high){
+	if(this->rankClusteredMethod!=NULL) {
+		this->rankClusteredMethod->run(alt, alt.size(), low, high);
 	}
 }
 

@@ -3,9 +3,7 @@
 
 #include "main_resources/types.hpp"
 
-#include "multicriteria/ahp/ahp.hpp"
-#include "multicriteria/ahp/ahpg.cuh"
-#include "multicriteria/topsis/topsis.cuh"
+#include "allocator/rank_algorithms/rank.hpp"
 
 #include "clustering/mclInterface.cuh"
 
@@ -17,16 +15,12 @@
 
 class Builder : public main_resource_t {
 private:
-Multicriteria* multicriteriaMethod;
-Multicriteria* multicriteriaClusteredMethod;
+Rank* rankMethod;
+Rank* rankClusteredMethod;
 Clustering* clusteringMethod;
 Topology* topology;
 std::vector<Host*> hosts;
 std::vector<Host*> clusterHosts;
-
-void setMulticriteria(Multicriteria*);
-void setClustering(Clustering*);
-void setTopology(Topology*);
 
 void parserHosts(const rapidjson::Value &);
 void parserTopology(const rapidjson::Value &);
@@ -35,12 +29,12 @@ public:
 Builder();
 ~Builder();
 
-Multicriteria* getMulticriteria();
-Multicriteria* getMulticriteriaClustered();
+Rank* getRank();
+Rank* getRankClustered();
 Clustering* getClustering();
 Topology* getTopology();
-unsigned int* getMulticriteriaResult(unsigned int&);
-unsigned int* getMulticriteriaClusteredResult(unsigned int&);
+unsigned int* getRankResult(unsigned int&);
+unsigned int* getRankClusteredResult(unsigned int&);
 int getClusteringResultSize();
 void getClusteringResult();
 std::map<std::string,Interval_Tree::Interval_Tree*> getResource();
@@ -56,16 +50,12 @@ int getTotalActiveHosts();
 
 void printClusterResult(int low, int high);
 void printTopologyType();
-//Multicriteria set functions
-void setAHP();
-void setAHPG();
-void setTOPSIS();
-void setClusteredAHP();
-void setClusteredAHPG();
-void setClusteredTOPSIS();
 
 //Clustering set functions
-void setMCL();
+void setRank(Rank*);
+void setClusteredRank(Rank*);
+void setClustering(Clustering*);
+void setTopology(Topology*);
 
 //Topology set functions
 void setFatTree(int);
@@ -75,8 +65,8 @@ void setDcell(int,int);
 // Set All Resources Data Center
 void setDataCenterResources(total_resources_t*);
 //Run functions methods
-void runMulticriteria(std::vector<Host*> alt={},int low = 0, int high = 0);
-void runMulticriteriaClustered(std::vector<Host*> alt={},int low = 0, int high = 0);
+void runRank(std::vector<Host*> alt={},int low = 0, int high = 0);
+void runRankClustered(std::vector<Host*> alt={},int low = 0, int high = 0);
 void runClustering(std::vector<Host*> alt);
 
 void listHosts();

@@ -449,7 +449,9 @@ void AHP::consistency() {
 	iterateFunc( &AHP::checkConsistency, hierarchy->getFocus() );
 }
 
-void AHP::run(Host** alternatives, int size, int interval_low, int interval_high) {
+void AHP::run(std::vector<Host*> alt, int alt_size, int interval_low, int interval_high) {
+	Host **alternatives = &alt[0];
+
 	spdlog::debug("AHP in [{},{}]", interval_low, interval_high);
 	this->hierarchy->clearAlternatives();
 	this->hierarchy->clearResource();
@@ -464,7 +466,7 @@ void AHP::run(Host** alternatives, int size, int interval_low, int interval_high
 	}
 
 	spdlog::debug("Setting the alternatives");
-	this->setAlternatives(alternatives, size, interval_low, interval_high);
+	this->setAlternatives(alternatives, alt_size, interval_low, interval_high);
 	if(this->hierarchy->getCriteriasSize()==0) {
 		SPDLOG_ERROR("AHP Hierarchy with no sheets");
 		exit(0);

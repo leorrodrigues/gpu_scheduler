@@ -19,7 +19,7 @@ add_subdirectory(main_resources)
 add_subdirectory(objective_functions)
 add_subdirectory(topology)
 add_subdirectory(clustering)
-add_subdirectory(multicriteria)
+# add_subdirectory(multicriteria)
 add_subdirectory(datacenter)
 add_subdirectory(allocator)
 
@@ -30,7 +30,7 @@ target_link_libraries(${PROJECT_NAME}.out
     -lcusparse
     -lboost_program_options
     "sub::spdlog"
-    "sub::main_resources"
+    # "sub::main_resources"
     "sub::obj_func"
     "sub::topology"
     "sub::clustering"
@@ -52,13 +52,15 @@ configure_file(datacenter/json/hostsSchema.json ${CMAKE_RUNTIME_OUTPUT_DIRECTORY
 
 message("-- Copying the json files")
 
+set(MULTICRITERIA_PATH "allocator/rank_algorithms/multicriteria")
+
 file(GLOB AHP_JSON
-  "multicriteria/ahp/json/*.json"
+  "${MULTICRITERIA_PATH}/ahp/json/*.json"
 )
 file(COPY ${AHP_JSON} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ahp)
 
 file(GLOB TOPSIS_JSON
-  "multicriteria/topsis/json/*.json"
+  "${MULTICRITERIA_PATH}/topsis/json/*.json"
 )
 file(COPY ${TOPSIS_JSON} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/topsis)
 

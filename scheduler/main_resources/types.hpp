@@ -14,10 +14,9 @@
 
 
 typedef struct {
-	std::string multicriteria_method;
+	std::string rank_method;
 	std::string clustering_method;
 	std::string topology_type;
-	std::string standard;
 	unsigned int data_type = 0;
 	unsigned int topology_size=0;
 	unsigned int current_time=0;
