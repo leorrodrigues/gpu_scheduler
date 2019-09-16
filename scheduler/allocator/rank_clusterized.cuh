@@ -7,7 +7,7 @@
 namespace Allocator {
 
 // Run the group one time and all the others executions are only with the MULTICRITERIA
-bool multicriteria_clusterized(Builder* builder,  Task* task, consumed_resource_t* consumed, int current_time){
+bool rank_clusterized(Builder* builder,  Task* task, consumed_resource_t* consumed, int current_time){
 	spdlog::debug("Multicriteria Clusterized - Init [{},{}]",current_time, task->getDeadline());
 	// Create the result variables
 	unsigned int* result = NULL;
@@ -17,17 +17,17 @@ bool multicriteria_clusterized(Builder* builder,  Task* task, consumed_resource_
 	unsigned int* ranked_hosts = NULL;
 	unsigned int ranked_hosts_size = 0;
 
-	// If the number of groups are bigger than 1, the multicriteria method has run to select the most suitable group
-	spdlog::debug("Multicriteria Clusterized - run multicriteria[ ]");
+	// If the number of groups are bigger than 1, the rank method has run to select the most suitable group
+	spdlog::debug("Multicriteria Clusterized - run rank clustered[ ]");
 	builder->runRankClustered( builder->getClusterHosts(), current_time, task->getDeadline());
-	spdlog::debug("Multicriteria Clusterized - run multicriteria[x]");
+	spdlog::debug("Multicriteria Clusterized - run rank clustered[x]");
 
 	// Get the results
-	spdlog::debug("Multicriteria Clusterized - get multicriteria result[ ]");
+	spdlog::debug("Multicriteria Clusterized - get rank clustered result[ ]");
 	result = builder->getRankClusteredResult(resultSize);
-	spdlog::debug("Multicriteria Clusterized - get multicriteria result[x]");
+	spdlog::debug("Multicriteria Clusterized - get rank clustered result[x]");
 
-	// After the MULTICRITERIA_CLUSTERIZED groups are made and the Multicriteria method selected the most suitable group in the MULTICRITERIA_CLUSTERIZED, the selected group is opened ah their hosts selected by the multicriteria method to select the host for the request.
+	// After the MULTICRITERIA_CLUSTERIZED groups are made and the Multicriteria method selected the most suitable group in the MULTICRITERIA_CLUSTERIZED, the selected group is opened ah their hosts selected by the rank method to select the host for the request.
 	// Create the empty host
 	Host* host=NULL;
 	Pod** pods = task->getPods();

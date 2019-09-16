@@ -515,11 +515,11 @@ double getCapacity(){
 }
 
 void show(){
-	spdlog::debug("The Bottleneck Interval Tree ");
+	spdlog::debug("The Bottleneck Interval Tree has {} capacity", tree->capacity);
 	if(tree->root==NULL) {
-		spdlog::debug("don't has any elements.");
+		spdlog::debug("Don't has any elements.");
 	}else{
-		spdlog::debug("has {} elements.", tree->root->size+1);
+		spdlog::debug("Has {} elements.", tree->root->size+1);
 		show_bf(tree->root, 0);
 	}
 }
@@ -606,9 +606,12 @@ inline bool empty(){
 }
 
 Interval_Tree& operator+= (Interval_Tree& rhs){
+	this->tree->capacity += rhs.tree->capacity;
+
+	if(rhs.tree->root == NULL) return *this;
+
 	int index=-1,aux=0, size = rhs.tree->root->size+1;
 	node_t** queue = (node_t**)calloc(size, sizeof(node_t*));         //malloc the tree's size (worst case).
-	this->tree->capacity += rhs.tree->capacity;
 	queue[0] = rhs.tree->root;
 
 	while(++index < size) {
@@ -629,13 +632,16 @@ Interval_Tree& operator+= (Interval_Tree& rhs){
 }
 
 Interval_Tree& operator-= (Interval_Tree& rhs){
-	int index=-1,aux=0, size = rhs.tree->root->size+1;
-	node_t** queue = (node_t**)calloc(size, sizeof(node_t*));         //malloc the tree's size (worst case).
 	if(rhs.tree->capacity > this->tree->capacity) {
 		SPDLOG_ERROR("The tree can't has capacity less than 0");
 		return *this;
 	}
+
+	if(rhs.tree->root == NULL) return *this;
+
 	this->tree->capacity -= rhs.tree->capacity;
+	int index=-1,aux=0, size = rhs.tree->root->size+1;
+	node_t** queue = (node_t**)calloc(size, sizeof(node_t*));         //malloc the tree's size (worst case).
 	queue[0] = rhs.tree->root;
 
 	while(++index < size) {
@@ -649,7 +655,6 @@ Interval_Tree& operator-= (Interval_Tree& rhs){
 
 		if(queue[index]->right!=NULL)
 			queue[++aux] = queue[index]->right;
-
 	}
 	free(queue);
 	return *this;

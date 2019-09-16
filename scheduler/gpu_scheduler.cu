@@ -9,7 +9,7 @@
 #include "reader.hpp"
 #include "thirdparty/clara.hpp"
 
-#include "allocator/multicriteria_clusterized.cuh"
+#include "allocator/rank_clusterized.cuh"
 #include "allocator/pure_mcl.hpp"
 #include "allocator/naive.hpp"
 #include "allocator/utils.hpp"
@@ -116,8 +116,8 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 	builder->setClustering(clustering_ptr);
 	options->clustering_method=clustering_method;
 
-	rank = NULL;
 	if(cluster) {
+		std::cout<<"CLUSTERED METHOD "<<rank_method<<"\n";
 		builder->setClusteredRank(rank);
 	}
 
@@ -324,7 +324,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			spdlog::debug("Naive[x]");
 		} else if ( options->clustering_method == "mcl") {
 			spdlog::debug("MCL + MULTICRITERIA");
-			allocation_success=Allocator::multicriteria_clusterized(builder, current, consumed, options->current_time);
+			allocation_success=Allocator::rank_clusterized(builder, current, consumed, options->current_time);
 			spdlog::debug("MCL + MULTICRITERIA [X]");
 		} else if ( options->clustering_method == "all") {
 			// allocation_success=Allocator::all();
@@ -524,12 +524,12 @@ int main(int argc, char **argv){
 	std::chrono::high_resolution_clock::time_point cluster_time_end;
 
 	if(options.clustering_method!="none") {
-		builder->runClustering(builder->getHosts());
+		builder->runClustering();
+		builder->getClusteringResult();
 		if(builder->getClusteringResultSize() == 0) {
 			SPDLOG_ERROR("There aren't any groups formed! --> Error in {} algorithm",options.clustering_method);
 			exit(0);
 		}
-		builder->getClusteringResult();
 	}
 
 	if(options.test_type==1 && options.clustering_method == "pure_mcl") {

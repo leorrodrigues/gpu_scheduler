@@ -67,7 +67,7 @@ void setDataCenterResources(total_resources_t*);
 //Run functions methods
 void runRank(std::vector<Host*> alt={},int low = 0, int high = 0);
 void runRankClustered(std::vector<Host*> alt={},int low = 0, int high = 0);
-void runClustering(std::vector<Host*> alt);
+void runClustering();
 
 void listHosts();
 void listResources();

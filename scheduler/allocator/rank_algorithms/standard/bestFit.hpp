@@ -30,6 +30,7 @@ public:
 BestFit(){
 	index_result = NULL;
 }
+
 ~BestFit(){
 	index_result = NULL;
 	result.clear();

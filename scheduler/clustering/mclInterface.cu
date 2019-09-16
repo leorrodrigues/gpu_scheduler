@@ -18,12 +18,9 @@ void MCLInterface::run(Topology* topology){
 	vnegpu::graph<float>* dataCenter=topology->getGraph();
 	dataCenter->update_gpu();
 	vnegpu::algorithm::mcl(dataCenter, 1 /*the bandwidth variable in the edge*/, 2,1.2,0);
-
 	dataCenter->update_cpu();
 }
 
-
-//std::map<int,Host*> MCLInterface::getResult(Topology* topology,std::vector<Host*> hosts){
 std::vector<Host*> MCLInterface::getResult(Topology* topology,std::vector<Host*> hosts){
 	std::map<int,Host*> groups;
 	std::map<int,std::vector<Host*> > host_groups;
@@ -31,7 +28,7 @@ std::vector<Host*> MCLInterface::getResult(Topology* topology,std::vector<Host*>
 	std::vector<Host*> vGroups;
 	int* graph_groups=topology->getGraph()->get_group_ptr();
 	int group_index=0;
-	for(int i=0; i<topology->getGraph()->get_hosts(); i++) {
+	for(int i=0; i < topology->getGraph()->get_hosts(); i++) {
 		if ( convertion.find(graph_groups[i]) == convertion.end() ) {
 			convertion[graph_groups[i]]=group_index++;
 			groups[convertion[graph_groups[i]]]=new Host();

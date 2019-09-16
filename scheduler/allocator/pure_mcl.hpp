@@ -6,7 +6,7 @@
 namespace Allocator {
 
 bool mcl_pure(Builder* builder){
-	builder->runClustering(builder->getHosts());
+	builder->runClustering();
 	builder->getClusteringResult();
 	return true;
 }
