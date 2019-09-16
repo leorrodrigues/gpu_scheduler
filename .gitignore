@@ -49,3 +49,4 @@ scheduler/requests/requestGenerator/dataModel.pyc
 build/
 bin/
 logs*/
+docker/
