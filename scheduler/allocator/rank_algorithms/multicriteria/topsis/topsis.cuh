@@ -32,7 +32,7 @@ TOPSIS();
 
 void getWeights(float*, unsigned int*,std::map<std::string,Interval_Tree::Interval_Tree*>);
 
-void run(Host** alternatives={}, int size=0, int interval_low = 0, int interval_high = 0);
+void run(std::vector<Host*> alt, int alt_size, int interval_low, int interval_high);
 
 unsigned int* getResult(unsigned int&);
 

@@ -9,10 +9,6 @@
 #include "reader.hpp"
 #include "thirdparty/clara.hpp"
 
-#include "allocator/standard/bestFit.hpp"
-#include "allocator/standard/firstFit.hpp"
-#include "allocator/standard/worstFit.hpp"
-
 #include "allocator/multicriteria_clusterized.cuh"
 #include "allocator/pure_mcl.hpp"
 #include "allocator/naive.hpp"
@@ -22,14 +18,22 @@
 
 #include "allocator/links/links_allocator.cuh"
 
+#include "allocator/rank_algorithms/multicriteria/topsis/topsis.cuh"
+#include "allocator/rank_algorithms/multicriteria/ahp/ahpg.cuh"
+#include "allocator/rank_algorithms/multicriteria/ahp/ahp.hpp"
+#include "allocator/rank_algorithms/standard/worstFit.hpp"
+#include "allocator/rank_algorithms/standard/bestFit.hpp"
+
+#include "clustering/mclInterface.cuh"
+
 #include "objective_functions/fragmentation.hpp"
 #include "objective_functions/footprint.hpp"
 
 void setup(int argc, char** argv, Builder* builder, options_t* options, scheduler_t *scheduler){
 	std::string topology = "fat_tree";
-	std::string multicriteria_method = "ahpg";
+	std::string rank_method = "ahpg";
+	std::string rank_clustering_method = "ahpg";
 	std::string clustering_method = "mcl";
-	std::string standard = "none";
 	std::string debug="info";
 	std::string data_type="flat";
 	std::string cmp = "fcfs";
@@ -42,14 +46,13 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 	auto cli = clara::detail::Help(showHelp)
 	           | clara::detail::Opt( topology, "topology" )["-t"]["--topology"]("What is the topology type? [ (default) fat_tree | dcell | bcube ]")
 	           | clara::detail::Opt( topology_size, "topology size") ["-s"] ["--topology_size"] ("What is the size of the topology? ( default 10 )")
-	           | clara::detail::Opt( multicriteria_method, "multicriteria method") ["-m"]["--multicriteria"] ("What is the multicriteria method? [ ahp | (default) ahpg | topsis]")
+	           | clara::detail::Opt( rank_method, "rank method") ["-r"]["--rank"] ("What is the rank method? [ ahp | (default) ahpg | topsis | best-fit (bf) | worst-fit (wf)")
 	           | clara::detail::Opt( clustering_method,"clustering method") ["-c"]["--clustering"] ("What is the clustering method? [ (default) mcl | pure_mcl | none ]")
 	           // 0 For no Test
 	           // 1 For Pod Test
 	           // 2 For Consolidation Test
 	           | clara::detail::Opt( test_type, "Type Test")["--test"]("Which type of test you want?")
 	           | clara::detail::Opt( request_size, "Request Size")["--request-size"]("Which is the request size?")
-	           | clara::detail::Opt( standard, "Standard Allocation")["--standard-allocation"]("What is the standard allocation method? [best_fit (bf) | worst_fit (wf) | first_fit (ff) ]")
 	           | clara::detail::Opt( debug, "Debug option")["--debug"]("info | warning | error | debug")
 	           | clara::detail::Opt( data_type, "Data Type")["--data-type"]("flat | frag | bw")
 	           | clara::detail::Opt( bw, "bandwidth")["--bw"]("Only used in test 4")
@@ -81,44 +84,41 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 		options->topology_size=topology_size;
 	}
 
-	if( multicriteria_method == "ahpg") {
-		builder->setAHPG();
-	}else if(multicriteria_method == "ahp" ) {
-		builder->setAHP();
-	}else if(multicriteria_method=="topsis") {
-		builder->setTOPSIS();
+	Rank *rank = NULL;
+	if( rank_method == "ahpg") {
+		rank = new AHPG();
+	}else if(rank_method == "ahp" ) {
+		rank = new AHP();
+	}else if(rank_method=="topsis") {
+		rank = new TOPSIS();
+	} else if(rank_method=="bf" || rank_method=="best-fit") {
+		rank = new BestFit();
+	} else if(rank_method=="wf" || rank_method=="worst-fit") {
+		rank = new WorstFit();
 	} else{
-		SPDLOG_ERROR("Invalid multicriteria method");
+		SPDLOG_ERROR("Invalid rank method");
 		exit(0);
 	}
-	options->multicriteria_method=multicriteria_method;
+	builder->setRank(rank);
+	options->rank_method = rank_method;
 
 	bool cluster = false;
-	if( clustering_method == "mcl" ) {
-		builder->setMCL();
+	Clustering *clustering_ptr = NULL;
+	if( clustering_method == "mcl" || clustering_method == "pure_mcl") {
+		clustering_ptr = new MCLInterface();
 		cluster= true;
-	}else if( clustering_method == "pure_mcl") {
-		builder->setMCL();
-		cluster = true;
 	}else if( clustering_method == "none") {
 		cluster = false;
 	}else{
 		SPDLOG_ERROR("Invalid clustering method");
 		exit(0);
 	}
+	builder->setClustering(clustering_ptr);
 	options->clustering_method=clustering_method;
 
+	rank = NULL;
 	if(cluster) {
-		if(multicriteria_method=="ahp") {
-			builder->setClusteredAHP();
-		}else if(multicriteria_method=="ahpg") {
-			builder->setClusteredAHPG();
-		}else if(multicriteria_method=="topsis") {
-			builder->setClusteredTOPSIS();
-		}else{
-			SPDLOG_ERROR("Invalid multicriteria method");
-			exit(0);
-		}
+		builder->setClusteredRank(rank);
 	}
 
 	if(test_type >0 && test_type<=5) {
@@ -133,13 +133,6 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 		exit(0);
 	}else{
 		options->request_size=request_size;
-	}
-
-	if(standard=="none" || standard=="ff" || standard=="first_fit" || standard=="bf" || standard=="best_fit"  || standard=="wf" || standard=="worst_fit") {
-		options->standard=standard;
-	}else{
-		SPDLOG_ERROR("Invalid Type of standard allocation");
-		exit(0);
 	}
 
 	if(debug=="info") {
@@ -157,30 +150,30 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 	}
 
 	if(data_type=="flat") {
-		if(builder->getMulticriteria()!=NULL)
-			builder->getMulticriteria()->setType(0);
-		if(builder->getMulticriteriaClustered()!=NULL)
-			builder->getMulticriteriaClustered()->setType(0);
+		if(builder->getRank()!=NULL)
+			builder->getRank()->setType(0);
+		if(builder->getRankClustered()!=NULL)
+			builder->getRankClustered()->setType(0);
 		options->data_type = 0;
 	}else if(data_type=="frag" | data_type=="fragmentation") {
-		if(builder->getMulticriteria()!=NULL)
-			builder->getMulticriteria()->setType(1);
-		if(builder->getMulticriteriaClustered()!=NULL)
-			builder->getMulticriteriaClustered()->setType(1);
+		if(builder->getRank()!=NULL)
+			builder->getRank()->setType(1);
+		if(builder->getRankClustered()!=NULL)
+			builder->getRankClustered()->setType(1);
 		options->data_type = 1;
 	}else if(data_type=="bw" | data_type=="bandwidth") {
-		if(builder->getMulticriteria()!=NULL)
-			builder->getMulticriteria()->setType(2);
-		if(builder->getMulticriteriaClustered()!=NULL)
-			builder->getMulticriteriaClustered()->setType(2);
+		if(builder->getRank()!=NULL)
+			builder->getRank()->setType(2);
+		if(builder->getRankClustered()!=NULL)
+			builder->getRankClustered()->setType(2);
 		options->data_type = 2;
 	}else{
 		SPDLOG_ERROR("Invalid data type");
 	}
-	if(builder->getMulticriteria()!=NULL)
-		builder->getMulticriteria()->readJson();
-	if(builder->getMulticriteriaClustered()!=NULL)
-		builder->getMulticriteriaClustered()->readJson();
+	if(builder->getRank()!=NULL)
+		builder->getRank()->readJson();
+	if(builder->getRankClustered()!=NULL)
+		builder->getRankClustered()->readJson();
 
 	if(cmp == "fcfs") {
 		scheduler->tasks_to_allocate = new FCFS();
@@ -223,11 +216,11 @@ inline void calculateObjectiveFunction(objective_function_t *obj, consumed_resou
 	obj->footprint = ObjectiveFunction::Footprint::footprint(consumed, total, low, high);
 }
 
-inline void logTask(scheduler_t* scheduler,Task* task, std::string multicriteria, total_resources_t* total_resources){
+inline void logTask(scheduler_t* scheduler,Task* task, std::string rank, total_resources_t* total_resources){
 	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
 
 	std::chrono::duration<double> time_span =  std::chrono::duration_cast<std::chrono::duration<double> >( now - scheduler->start);
-	spdlog::get("task_logger")->info("{} {} {} {} {} {} {} {} {}", multicriteria, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count(), task->getDelay(), task->getBandwidthAllocated()/total_resources->total_bandwidth);
+	spdlog::get("task_logger")->info("{} {} {} {} {} {} {} {} {}", rank, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count(), task->getDelay(), task->getBandwidthAllocated()/total_resources->total_bandwidth);
 }
 
 inline void logDC(objective_function_t *objective,std::string method, float total_bandwidth, total_resources_t *total){
@@ -322,41 +315,28 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 		spdlog::debug("Check if request {} fit in DC",current->getId());
 		// allocate the new task in the data center.
 		std::chrono::high_resolution_clock::time_point allocator_start = std::chrono::high_resolution_clock::now();
-		if(options->standard=="none") {
-			if( options->clustering_method=="pure_mcl") {
-				spdlog::debug("Pure MCL");
-				allocation_success=Allocator::mcl_pure(builder);
-			} else if( options->clustering_method == "none") {
-				spdlog::debug("Naive");
-				allocation_success=Allocator::naive(builder, current, consumed, options->current_time);
-				spdlog::debug("Naive[x]");
-			} else if ( options->clustering_method == "mcl") {
-				spdlog::debug("MCL + MULTICRITERIA");
-				allocation_success=Allocator::multicriteria_clusterized(builder, current, consumed, options->current_time);
-				spdlog::debug("MCL + MULTICRITERIA [X]");
-			} else if ( options->clustering_method == "all") {
-				// allocation_success=Allocator::all();
-			} else {
-				SPDLOG_ERROR("Invalid type of allocation method");
-				exit(1);
-			}
-		}else{
-			if(options->standard=="ff" || options->standard=="first_fit") {
-				allocation_success=Allocator::firstFit(builder, current, consumed, options->current_time);
-			}else if(options->standard=="bf" || options->standard=="best_fit") {
-				allocation_success=Allocator::bestFit(builder, current, consumed, options->current_time);
-			}else if(options->standard=="wf" || options->standard=="worst_fit") {
-				allocation_success=Allocator::worstFit(builder, current, consumed, options->current_time);
-			}else{
-				SPDLOG_ERROR("Invalid type of standard allocation method");
-				exit(1);
-			}
+		if( options->clustering_method=="pure_mcl") {
+			spdlog::debug("Pure MCL");
+			allocation_success=Allocator::mcl_pure(builder);
+		} else if( options->clustering_method == "none") {
+			spdlog::debug("Naive");
+			allocation_success=Allocator::naive(builder, current, consumed, options->current_time);
+			spdlog::debug("Naive[x]");
+		} else if ( options->clustering_method == "mcl") {
+			spdlog::debug("MCL + MULTICRITERIA");
+			allocation_success=Allocator::multicriteria_clusterized(builder, current, consumed, options->current_time);
+			spdlog::debug("MCL + MULTICRITERIA [X]");
+		} else if ( options->clustering_method == "all") {
+			// allocation_success=Allocator::all();
+		} else {
+			SPDLOG_ERROR("Invalid type of allocation method");
+			exit(1);
 		}
+
 		std::chrono::high_resolution_clock::time_point allocator_end = std::chrono::high_resolution_clock::now();
 
 		time_span_allocator =  std::chrono::duration_cast<std::chrono::duration<double> >(allocator_end - allocator_start);
 
-		//if(allocation_success && options->standard=="none") {
 		if(allocation_success && options->test_type==4) {
 			std::chrono::high_resolution_clock::time_point links_start = std::chrono::high_resolution_clock::now();
 
@@ -387,15 +367,9 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			scheduler->tasks_to_delete.push(current);
 			objective->fail_bandwidth += current->getBandwidthAllocated();
 			// spdlog::info("Generating the logs");
-			if(options->standard=="none") {
-				spdlog::get("mb_logger")->info("ALLOCATOR {} {}",options->multicriteria_method,time_span_allocator.count());
-				spdlog::get("mb_logger")->info("LINKS {} {}",options->multicriteria_method,time_span_links.count());
-				logTask(scheduler, current, options->multicriteria_method,total_dc);
-			}else{
-				spdlog::get("mb_logger")->info("ALLOCATOR {} {}",options->standard,time_span_allocator.count());
-				spdlog::get("mb_logger")->info("LINKS {} {}",options->standard,time_span_links.count());
-				logTask(scheduler, current, options->standard,total_dc);
-			}
+			spdlog::get("mb_logger")->info("ALLOCATOR {} {}",options->rank_method,time_span_allocator.count());
+			spdlog::get("mb_logger")->info("LINKS {} {}",options->rank_method,time_span_links.count());
+			logTask(scheduler, current, options->rank_method,total_dc);
 		}
 		// spdlog::info("ending the while loop");
 	}
@@ -435,11 +409,7 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		spdlog::debug("Objective functions calculated with success");
 
 		if(options->test_type == 2 || options->test_type == 4 || options->test_type == 5) {
-			if(options->standard=="none") {
-				logDC(&objective, options->multicriteria_method, total_resources.total_bandwidth, &total_resources);
-			}else{
-				logDC(&objective, options->standard, total_resources.total_bandwidth, &total_resources);
-			}
+			logDC(&objective, options->rank_method, total_resources.total_bandwidth, &total_resources);
 		}
 		//************************************************//
 		//************************************************//
@@ -582,14 +552,14 @@ int main(int argc, char **argv){
 
 	std::chrono::duration<double> time_span =  std::chrono::duration_cast<std::chrono::duration<double> >(scheduler.end - scheduler.start);
 
-	spdlog::info("Finished the scheduler: method {}, topology size {}, seconds {}",options.multicriteria_method, options.topology_size, time_span.count());
+	spdlog::info("Finished the scheduler: method {}, topology size {}, seconds {}",options.rank_method, options.topology_size, time_span.count());
 
 	if(options.test_type==1) {
 		cluster_time_end = std::chrono::high_resolution_clock::now();
 
 		cluster_time_span =  std::chrono::duration_cast<std::chrono::duration<double> >(cluster_time_end - cluster_time_start);
 
-		spdlog::get("dc_logger")->info("{};{};{};{};{}", options.multicriteria_method,options.topology_size, options.request_size, time_span.count(), cluster_time_span.count());
+		spdlog::get("dc_logger")->info("{};{};{};{};{}", options.rank_method,options.topology_size, options.request_size, time_span.count(), cluster_time_span.count());
 	}
 	// Free the allocated pointers
 	delete(builder);

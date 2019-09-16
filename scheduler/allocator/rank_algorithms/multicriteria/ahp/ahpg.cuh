@@ -37,7 +37,7 @@ public:
 AHPG();
 ~AHPG();
 
-void run(Host** alternatives={}, int size=0, int interval_low = 0, int interval_high = 0);
+void run(std::vector<Host*> alt, int alt_size, int interval_low, int interval_high);
 
 unsigned int* getResult(unsigned int&);
 

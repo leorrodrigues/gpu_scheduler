@@ -19,12 +19,12 @@ bool multicriteria_clusterized(Builder* builder,  Task* task, consumed_resource_
 
 	// If the number of groups are bigger than 1, the multicriteria method has run to select the most suitable group
 	spdlog::debug("Multicriteria Clusterized - run multicriteria[ ]");
-	builder->runMulticriteriaClustered( builder->getClusterHosts(), current_time, task->getDeadline());
+	builder->runRankClustered( builder->getClusterHosts(), current_time, task->getDeadline());
 	spdlog::debug("Multicriteria Clusterized - run multicriteria[x]");
 
 	// Get the results
 	spdlog::debug("Multicriteria Clusterized - get multicriteria result[ ]");
-	result = builder->getMulticriteriaClusteredResult(resultSize);
+	result = builder->getRankClusteredResult(resultSize);
 	spdlog::debug("Multicriteria Clusterized - get multicriteria result[x]");
 
 	// After the MULTICRITERIA_CLUSTERIZED groups are made and the Multicriteria method selected the most suitable group in the MULTICRITERIA_CLUSTERIZED, the selected group is opened ah their hosts selected by the multicriteria method to select the host for the request.
@@ -77,13 +77,13 @@ bool multicriteria_clusterized(Builder* builder,  Task* task, consumed_resource_
 
 				// Run the Multicriteria in the hosts
 				spdlog::debug("Multicriteria Clusterized - group loop - run mcdm[ ]");
-				builder->runMulticriteria(hostsInGroup, interval_low, interval_high);
+				builder->runRank(hostsInGroup, interval_low, interval_high);
 				spdlog::debug("Multicriteria Clusterized - group loop - run mcdm[ ]");
 
 				// Get the result
 				ranked_hosts_size = 0;
 				spdlog::debug("Multicriteria Clusterized - group loop - get mcdm[ ]");
-				ranked_hosts = builder->getMulticriteriaResult(ranked_hosts_size);
+				ranked_hosts = builder->getRankResult(ranked_hosts_size);
 				spdlog::debug("Multicriteria Clusterized - group loop - get mcdm[ ]");
 
 				// Iterate through all the hosts in the selected group

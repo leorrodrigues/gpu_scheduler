@@ -53,7 +53,8 @@ AHPG::~AHPG(){
 	this->pg=NULL;
 }
 
-void AHPG::run(Host** alternatives, int alt_size, int interval_low, int interval_high){
+void AHPG::run(std::vector<Host*> alt, int alt_size, int interval_low, int interval_high){
+	Host **alternatives = &alt[0];
 	int devID;
 	cudaDeviceProp props;
 	cudaGetDevice(&devID);

@@ -14,12 +14,12 @@ bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed, int cur
 
 	// printf("Running multicriteria\n");
 	// spdlog::info("Naive - run multicriteria");
-	builder->runMulticriteria( builder->getHosts(), current_time, task->getDeadline() );
+	builder->runRank( builder->getHosts(), current_time, task->getDeadline() );
 	// spdlog::info("Naive - run multicriteria[x]");
 
-	// printf("Get Multicriteria Result\n");
+	// printf("Get Rank Result\n");
 	// spdlog::info("Naive - get multicriteria result");
-	result = builder->getMulticriteriaResult(resultSize);
+	result = builder->getRankResult(resultSize);
 	// spdlog::info("Naive - get multicriteria result[x]");
 
 	//With the hosts ranking made, we iterate through the pods in the specific task
