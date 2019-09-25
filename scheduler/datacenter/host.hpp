@@ -7,7 +7,6 @@ class Host : public main_resource_t {
 public:
 Host() : main_resource_t(){
 	this->resource["allocated_resources"] = new  Interval_Tree::Interval_Tree();
-	active = false;
 	id=0;
 	id_g=0;
 }
@@ -18,10 +17,6 @@ Host() : main_resource_t(){
 
 void setResource(std::string resourceName, float value) {
 	this->resource[resourceName]->setCapacity(value);
-}
-
-void setActive(bool active){
-	this->active = active;
 }
 
 void setAllocatedResources(unsigned int allocated){
@@ -55,10 +50,6 @@ void setId(unsigned int id){
 
 void setIdg(unsigned int id_g){
 	this->id_g = id_g;
-}
-
-bool getActive(){
-	return this->active;
 }
 
 unsigned int getAllocatedResources(){
@@ -97,10 +88,23 @@ void removePod(int interval_low, int interval_high, std::map<std::string,std::ve
 	this->resource["allocated_resources"]->subtractCapacity(1);
 }
 
+float getUsedResource(int low, int high, std::string name){
+	float value = resource[name]->getConsumed(low, high);
+	return value;
+}
+
+bool isActive(int low, int high){
+	for(auto const& r : this->resource) {
+		if(r.second->getConsumed(low, high) != 0) {//if any resource is consumed in given time
+			return true;
+		}
+	}
+	return false;
+}
+
 private:
 unsigned int id;
 unsigned int id_g;
-bool active;
 };
 
 #endif

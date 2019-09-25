@@ -60,10 +60,7 @@ int Builder::getClusteringResultSize(){
 }
 
 void Builder::getClusteringResult(){
-	//std::map<int,Host*> groups= this->clusteringMethod->getResult(this->topology,this->hosts);
 	this->clusterHosts =  this->clusteringMethod->getResult(this->topology,this->hosts);
-	//have to set the hosts group in the Clustering vector to use in Multicriteria.
-
 }
 
 std::map<std::string, Interval_Tree::Interval_Tree*> Builder::getResource(){
@@ -74,16 +71,37 @@ std::vector<Host*> Builder::getHosts(){
 	return this->hosts;
 }
 
+float Builder::getUsedResource(int low, int high, std::string name){
+	float v = 0;
+	for(Host* h : this->hosts) {
+		v += h->getUsedResource(low, high, name);
+	}
+	return v;
+}
+
+float Builder::getUsedResources(int low, int high){
+	float v = 0;
+	for (auto it : this->resource) {
+		v += getUsedResource(low, high, it.first);
+	}
+	return v;
+}
+
+int Builder::getTotalActiveHosts(int low, int high){
+	int active = 0;
+	for(Host* h : this->hosts) {
+		if(h->isActive(low, high))
+			++active;
+	}
+	return active;
+}
 
 Host* Builder::getHost(unsigned int id){
-	// std::cout << "Looking for "<<name<<"\n";
 	for(Host* h : this->hosts) {
 		if(id == h->getId()) {
-			// std::cout<<" Name Found!\n";
 			return h;
 		}
 	}
-	// std::cout<<" Name Not Found!\n";
 	return NULL;
 }
 
@@ -105,16 +123,6 @@ std::vector<Host*> Builder::getHostsInGroup(unsigned int group_index){
 
 bool Builder::findHostInGroup(unsigned int group_index, unsigned int host_id){
 	return this->clusteringMethod->findHostInGroup(group_index, host_id);
-}
-
-int Builder::getTotalActiveHosts(){
-	int total=0;
-	int i, size = hosts.size();
-	for(i=0; i<size; i++) {
-		if(hosts[i]->getActive())
-			total++;
-	}
-	return total;
 }
 
 void Builder::printClusterResult(int low, int high){
@@ -180,18 +188,12 @@ void Builder::setDataCenterResources(total_resources_t* resource){
 	resource->servers = this->hosts.size();
 	resource->links = this->topology->getGraph()->get_num_edges(); //to simulate the 1GB of each link
 	std::map<std::string, Interval_Tree::Interval_Tree*> h_r;
-	// spdlog::debug("Start iteration in data center resources\n");
 	for(size_t i = 0; i < this->hosts.size(); i++) {
 		h_r = this->hosts[i]->getResource();
 		for(auto it = resource->resource.begin(); it!=resource->resource.end(); it++) {
 			(*it->second) += h_r[it->first]->getCapacity();
 		}
 	}
-	//
-	// for(auto it = resource->resource.begin(); it!= resource->resource.end(); it++) {
-	// 	spdlog::debug("Name {}",it->first);
-	// 	it->second->show();
-	// }
 	//As the DC is configured to have 1GB in all links, only multiply by the links bandwidth by the total ammount
 	resource->total_bandwidth = 1000*resource->links;
 }
@@ -213,7 +215,6 @@ void Builder::runClustering(){
 }
 
 /*List Functions*/
-
 std::string strLower(std::string s) {
 	std::transform(s.begin(), s.end(), s.begin(),[](unsigned char c){
 		return std::tolower(c);
@@ -243,7 +244,6 @@ void Builder::listCluster(){
 }
 
 /*Parser Functions*/
-
 void Builder::parserTopology(const rapidjson::Value &dataTopology){
 	std::string topologyType (dataTopology["type"].GetString());
 	unsigned int size = dataTopology["size"].GetInt();

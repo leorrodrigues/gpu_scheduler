@@ -26,21 +26,6 @@ Task::~Task(){
 
 	free(containers); // dont free each container (containers[i]), because it is freed by cascade when you call delete(pod). Free only the array of pointers.
 	this->containers=NULL;
-
-	// if(this->path!=NULL) {
-	//      for(size_t i=0; i<this->links_size; i++) {
-	//              free(this->path[i]);
-	//              free(this->path_edge[i]);
-	//      }
-	//      free(this->path);
-	//      free(this->path_edge);
-	//      free(this->destination);
-	//      free(this->values);
-	//      this->path=NULL;
-	//      this->path_edge=NULL;
-	//      this->destination=NULL;
-	//      this->values=NULL;
-	// }
 }
 
 void Task::setTask(const char* taskMessage){
@@ -53,7 +38,7 @@ void Task::setTask(const char* taskMessage){
 	spdlog::debug("Getting the task variables");
 	//Duration
 	this->duration = static_cast<unsigned int>(task["duration"].GetFloat());
-
+	if(this->duration==0) ++this->duration;
 	//ID
 	this->id = task["id"].GetInt();
 
@@ -82,9 +67,8 @@ void Task::setTask(const char* taskMessage){
 		for(unsigned int i=0; i < this->containers_size; i++) {
 			spdlog::debug("Creating a new container");
 			c = new Container();
-			//CRIA UM CONTAINER E COLOCA OS VALORES DENTRO DELE, APOS ISSO ADICIONA ELE DENTRO DO ARRAY DE CONTAINERS =).
+			// Creates a container and insert the values inside it. After, it'll be added into the container's array.
 
-			// for(size_t r_s=0; r_s < this->resources.size(); r_s++) {
 			spdlog::debug("Reading the information of this container");
 			for(auto [key, val] : this->resources) {
 				spdlog::debug("Gettin the values of {}", key);
@@ -287,15 +271,15 @@ float Task::getBandwidthAllocated(){
 
 void Task::print() {
 	spdlog::debug("Task:{");
-	spdlog::debug("Duration {}",this->duration);
-	spdlog::debug("Deadline {}",this->deadline);
+	spdlog::debug("\tId: {}",this->id);
+	spdlog::debug("\tSubmission: {}",this->submission);
+	spdlog::debug("\tDuration {}",this->duration);
+	spdlog::debug("\tDeadline {}",this->deadline);
 	spdlog::debug("\tPods:[");
 	for(size_t i=0; i<this->pods_size; i++) {
 		this->pods[i]->print();
 	}
 	spdlog::debug("\t]");
-	spdlog::debug("\tId: {}",this->id);
-	spdlog::debug("\tSubmission: {}",this->submission);
 	spdlog::debug("\tTotal Resources");
 	for(auto const& [key, val] : this->resources) {
 		spdlog::debug("\t\t\t{} - {}; {}; {}",key, val[0], val[1], val[2]);

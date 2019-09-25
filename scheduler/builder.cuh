@@ -45,8 +45,10 @@ std::vector<Host*> getClusterHosts();
 int getHostsMedianInGroup();
 std::vector<Host*> getHostsInGroup(unsigned int);
 bool findHostInGroup(unsigned int, unsigned int);
-int getTotalActiveHosts();
 
+float getUsedResource (int, int, std::string);
+float getUsedResources(int, int);
+int getTotalActiveHosts(int, int);
 
 void printClusterResult(int low, int high);
 void printTopologyType();
@@ -76,7 +78,6 @@ void parser(
 	const char* hostsDataPath = "datacenter/fat_tree/20.json",
 	const char* hostsSchemaPath = "datacenter/hostsSchema.json"
 	);
-
 };
 
 #endif

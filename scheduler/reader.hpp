@@ -45,6 +45,10 @@ std::string getNextTask(){
 	return std::string(buffer.GetString());
 }
 
+int getTasksSize(){
+	return (*this->doc)["tasks"].Size();
+}
+
 };
 
 #endif

@@ -6,6 +6,8 @@
 
 namespace Allocator {
 
+//TODO PRECISA ATUALIZAR PARA EXECUTAR O CORE DA ALOCACAO COM TEMPO, PARECIDO COM O NAIVE
+
 // Run the group one time and all the others executions are only with the MULTICRITERIA
 bool rank_clusterized(Builder* builder,  Task* task, consumed_resource_t* consumed, int current_time){
 	spdlog::debug("Multicriteria Clusterized - Init [{},{}]",current_time, task->getDeadline());
@@ -42,7 +44,6 @@ bool rank_clusterized(Builder* builder,  Task* task, consumed_resource_t* consum
 	spdlog::debug("Multicriteria Clusterized - getClusterHosts[x]");
 
 	int interval_low = 0, interval_high = 0;
-	bool fit = false;
 
 	spdlog::debug("Multicriteria Clusterized - time loop[ ]");
 	for(interval_low = current_time; interval_low < task->getDeadline(); interval_low++) {
@@ -54,7 +55,6 @@ bool rank_clusterized(Builder* builder,  Task* task, consumed_resource_t* consum
 			spdlog::debug("Multicriteria Clusterized - group loop[ ]");
 			for( i=0; i<resultSize; i++) {
 				pod_allocated = false;
-				fit = false;
 
 				host=NULL;
 				//Get the group Index
@@ -68,10 +68,9 @@ bool rank_clusterized(Builder* builder,  Task* task, consumed_resource_t* consum
 
 				spdlog::debug("Multicriteria Clusterized - group loop - check fit[ ]");
 				if(checkFit(groups[group_index],pods[pod_index], interval_low, interval_high))
-					fit = true;
+					continue;
 				spdlog::debug("Multicriteria Clusterized - group loop - check fit[x]");
 
-				if(!fit) continue;
 
 				std::vector<Host*> hostsInGroup = builder->getHostsInGroup(result[i]);
 
@@ -89,25 +88,15 @@ bool rank_clusterized(Builder* builder,  Task* task, consumed_resource_t* consum
 				// Iterate through all the hosts in the selected group
 				spdlog::debug("Multicriteria Clusterized - hosts loop[ ]");
 				for( j=0; j<ranked_hosts_size; j++) {
-					fit = false;
 					// Get the host pointer
 					host=builder->getHost(ranked_hosts[j]);
 					// Check if the host can support the resource
 
-					if(checkFit(host,pods[pod_index], interval_low, interval_high))
-						fit = true;
-
-					if(!fit) continue;
+					if(!checkFit(host,pods[pod_index], interval_low, interval_high))
+						continue;
 
 					std::map<std::string,std::vector<float> > p_r = pods[pod_index]->getResources();
 					host->addPod(interval_low, interval_high, p_r);
-
-					if(!host->getActive()) {
-						host->setActive(true);
-						consumed->active_servers++;
-					}
-
-					addToConsumed(consumed,pods[pod_index]);
 
 					// Update the allocated tasks map
 					pods[pod_index]->setHost(host);
@@ -128,7 +117,8 @@ bool rank_clusterized(Builder* builder,  Task* task, consumed_resource_t* consum
 			if(!pod_allocated) {
 				//need to desalocate all the allocated pods.
 				for(size_t i=0; i< pod_index; i++) {
-					freeHostResource(pods[i],consumed,builder, interval_low, interval_high);
+					freeHostResource(pods[i], builder, interval_low, interval_high);
+					pods[i]->setHost(NULL);
 				}
 				break;
 			}

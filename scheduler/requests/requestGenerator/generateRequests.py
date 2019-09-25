@@ -71,7 +71,7 @@ if __name__ == '__main__':
             break
         duration = get_uniform_int(1, args.duration)
 
-        
+
         deadline = get_uniform_int(submission+duration+1, submission+duration+1+args.deadline)
 
         t = Task(task_id, submission, duration, deadline)

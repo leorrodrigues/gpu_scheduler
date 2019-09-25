@@ -222,7 +222,7 @@ bool links_allocator_cuda(Builder* builder,  Task* task, consumed_resource_t* co
 				result[initial_index]=links[i].bandwidth_min;
 			}else{
 				spdlog::debug("Link dont set, free the allocated links");
-				freeHostResource(task, consumed, builder, interval_low, interval_high);
+				freeHostResource(task, builder, interval_low, interval_high);
 				freeLinks(task, consumed, builder, link_index);
 				spdlog::debug("Links removed\n");
 				spdlog::info("Link has less resources than pod asked");

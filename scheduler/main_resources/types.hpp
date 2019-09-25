@@ -17,6 +17,8 @@ typedef struct {
 	std::string rank_method;
 	std::string clustering_method;
 	std::string topology_type;
+	std::string test_file_name;
+	std::string queue_type;
 	unsigned int data_type = 0;
 	unsigned int topology_size=0;
 	unsigned int current_time=0;
@@ -51,15 +53,15 @@ typedef struct total_resources_t : public main_resource_t {
 	}
 } total_resources_t;
 
-typedef struct consumed_resource_t : public main_resource_t {
+typedef struct consumed_resource_t {
 	unsigned int time;
-	unsigned int active_servers;
+	// unsigned int active_servers;
 	unsigned int active_links;
 	float total_bandwidth_consumed;
 
-	explicit consumed_resource_t() : main_resource_t(){
+	explicit consumed_resource_t() {
 		time=0;
-		active_servers=0;
+		// active_servers=0;
 		active_links=0;
 		total_bandwidth_consumed=0;
 	}
