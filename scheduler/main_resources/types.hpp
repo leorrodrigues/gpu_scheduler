@@ -21,10 +21,10 @@ typedef struct {
 	std::string queue_type;
 	unsigned int data_type = 0;
 	unsigned int topology_size=0;
-	unsigned int current_time=0;
 	unsigned int test_type=0;
 	unsigned int request_size=0;
 	unsigned int bw=0;
+	bool automatic_start_time;
 } options_t;
 
 struct scheduler_t {
@@ -33,6 +33,8 @@ struct scheduler_t {
 
 	std::chrono::high_resolution_clock::time_point start;
 	std::chrono::high_resolution_clock::time_point end;
+
+	unsigned int current_time=0;
 };
 
 typedef struct total_resources_t : public main_resource_t {

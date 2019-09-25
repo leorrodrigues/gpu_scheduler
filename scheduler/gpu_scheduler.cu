@@ -41,6 +41,7 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 	int topology_size=10;
 	// dont show the help by default. Use `-h or `--help` to enable it.
 	bool showHelp = false;
+	bool automatic_start_time = false;
 	unsigned int test_type=0;
 	unsigned int request_size=0;
 	unsigned int bw = 0;
@@ -58,7 +59,8 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 	           | clara::detail::Opt( data_type, "Data Type")["--data-type"]("flat | frag | bw")
 	           | clara::detail::Opt( bw, "bandwidth")["--bw"]("Only used in test 4")
 	           | clara::detail::Opt( cmp, "comparator")["--cmp"]("Comparator used in tasks [(default) fcfs | spf | sqfmin | sqfmax | safmin | safmax | sdafmin]")
-	           | clara::detail::Opt( test_file_name, "test_file_name")["--file_name"]("File name to run the test5 [grenoble | lyon | nancy | nantes]");
+	           | clara::detail::Opt( test_file_name, "test_file_name")["--file_name"]("File name to run the test5 [grenoble | lyon | nancy | nantes]")
+	           | clara::detail::Opt( automatic_start_time, "automatic_time")["-a"]["--automatic_time"]("Calculate the start time automaticaly or start from time 0 [true | (default) false]");
 
 	auto result = cli.parse( clara::detail::Args( argc, argv ) );
 
@@ -79,11 +81,15 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 		options->topology_type=topology;
 	}
 
-	if( (topology_size<2 || topology_size>48) && topology_size!=0) {
-		SPDLOG_ERROR("Invalid topology size ( must be between 4 and 48 )");
-		exit(0);
-	}else{
-		options->topology_size=topology_size;
+	if(test_file_name != "") {
+		options->topology_size = 0; // if the test_file was set, do not use the topology size explicity
+	} else{
+		if((topology_size<2 || topology_size>48) && topology_size!=0) {
+			SPDLOG_ERROR("Invalid topology size ( must be between 4 and 48 )");
+			exit(0);
+		}else{
+			options->topology_size = topology_size;
+		}
 	}
 
 	Rank *rank = NULL;
@@ -196,11 +202,18 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 
 	options->bw = bw;
 
-	options->current_time=0;
+	scheduler->current_time=0;
 
 	options->test_file_name = test_file_name;
+
+	options->automatic_start_time = automatic_start_time;
 	// Load the Topology
-	std::string path="datacenter/"+topology+"/" + std::to_string(topology_size) + ".json";
+	std::string path;
+	if(test_file_name == "") {
+		path="datacenter/"+topology+"/" + std::to_string(topology_size) + ".json";
+	} else {
+		path="datacenter/grid5000/"+test_file_name+".json";
+	}
 	builder->parser(path.c_str());
 }
 
@@ -234,12 +247,12 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 			break;
 		}
 		current=scheduler->tasks_to_delete.top();
-		if( current->getDuration() + current->getAllocatedTime() != options->current_time) {
+		if( current->getDuration() + current->getAllocatedTime() != scheduler->current_time) {
 			break;
 		}
 		scheduler->tasks_to_delete.pop();
 		//Iterate through the PODs of the TASK, and erase each of one.
-		spdlog::debug("Scheduler Time {}. Deleting task {}", options->current_time, current->getId());
+		spdlog::debug("Scheduler Time {}. Deleting task {}", scheduler->current_time, current->getId());
 		objective->fail_bandwidth-=current->getBandwidthAllocated();
 		if(options->test_type==4) {
 			Allocator::freeAllResources(
@@ -280,8 +293,8 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			break;
 		}
 		current = scheduler->tasks_to_allocate->top();
-		if( current->getSubmission()+current->getDelay() != options->current_time) {
-			spdlog::debug("request in advance time submission {} delay {} scheduler time {}",current->getSubmission(), current->getDelay(),options->current_time);
+		if( current->getSubmission()+current->getDelay() != scheduler->current_time) {
+			spdlog::debug("request in advance time submission {} delay {} scheduler time {}",current->getSubmission(), current->getDelay(),scheduler->current_time);
 			break;
 		}
 		scheduler->tasks_to_allocate->pop();
@@ -294,11 +307,11 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			allocation_success=Allocator::mcl_pure(builder);
 		} else if( options->clustering_method == "none") {
 			spdlog::debug("Naive [ ]");
-			allocation_success=Allocator::naive(builder, current, consumed, options->current_time);
+			allocation_success=Allocator::naive(builder, current, consumed, scheduler->current_time);
 			spdlog::debug("Naive [x]");
 		} else if ( options->clustering_method == "mcl") {
 			spdlog::debug("MCL + Rank [ ]");
-			allocation_success=Allocator::rank_clusterized(builder, current, consumed, options->current_time);
+			allocation_success=Allocator::rank_clusterized(builder, current, consumed, scheduler->current_time);
 			spdlog::debug("MCL + Rank [x]");
 		} else if ( options->clustering_method == "all") {
 			// allocation_success=Allocator::all();
@@ -313,7 +326,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
 		if(allocation_success && options->test_type==4) {
 			std::chrono::high_resolution_clock::time_point links_start = std::chrono::high_resolution_clock::now();
-			allocation_link_success=Allocator::links_allocator_cuda(builder, current, consumed, options->current_time, options->current_time + current->getDuration());
+			allocation_link_success=Allocator::links_allocator_cuda(builder, current, consumed, scheduler->current_time, scheduler->current_time + current->getDuration());
 			std::chrono::high_resolution_clock::time_point links_end = std::chrono::high_resolution_clock::now();
 			time_span_links =  std::chrono::duration_cast<std::chrono::duration<double> >(links_end - links_start);
 		}
@@ -346,10 +359,10 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		!scheduler->tasks_to_allocate->empty() ||
 		!scheduler->tasks_to_delete.empty()
 		) {
-		spdlog::info("Scheduler Time {}", options->current_time);
+		spdlog::info("Scheduler Time {}", scheduler->current_time);
 		spdlog::info("Tasks to allocate {} and to delete {}", scheduler->tasks_to_allocate->size(), scheduler->tasks_to_delete.size());
 
-		consumed_resources.time = options->current_time;
+		consumed_resources.time = scheduler->current_time;
 		// Search the containers to delete
 		delete_tasks(scheduler, builder, options, &consumed_resources, &objective);
 		// Search the containers in the vector to allocate in the DC
@@ -361,7 +374,7 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		//************************************************//
 		spdlog::info("Calculating the objective functions");
 		//First update the active servers
-		calculateObjectiveFunction(builder, &objective,consumed_resources, total_resources, options->current_time);
+		calculateObjectiveFunction(builder, &objective,consumed_resources, total_resources, scheduler->current_time);
 		spdlog::debug("Objective functions calculated with success");
 
 		if(options->test_type == 2 || options->test_type == 4 || options->test_type == 5) {
@@ -371,8 +384,8 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		//************************************************//
 		//************************************************//
 
-		options->current_time++;
-		spdlog::debug("Scheduler time {} end\n",options->current_time);
+		scheduler->current_time++;
+		spdlog::debug("Scheduler time {} end\n",scheduler->current_time);
 	}
 	spdlog::info("Tasks rejected {} of {}, Reject percentage {}%",total_resources.rejected_tasks, total_resources.total_tasks, (total_resources.rejected_tasks/(total_resources.total_tasks*1.0))*100);
 }
@@ -477,6 +490,12 @@ int main(int argc, char **argv){
 	}
 	message.clear();
 	delete(reader);
+
+	// After get the tasks, move the start time of the scheduler to the first request to allocate minus 1
+	if(options.automatic_start_time) {
+		scheduler.current_time = scheduler.tasks_to_allocate->top()->getSubmission()-1;
+	}
+
 
 	std::chrono::high_resolution_clock::time_point cluster_time_start = std::chrono::high_resolution_clock::now();
 
