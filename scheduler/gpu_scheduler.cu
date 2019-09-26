@@ -38,6 +38,7 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 	std::string data_type="flat";
 	std::string cmp = "fcfs";
 	std::string test_file_name = "";
+	std::string scheduling_type = "online";
 	int topology_size=10;
 	// dont show the help by default. Use `-h or `--help` to enable it.
 	bool showHelp = false;
@@ -60,7 +61,8 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 	           | clara::detail::Opt( bw, "bandwidth")["--bw"]("Only used in test 4")
 	           | clara::detail::Opt( cmp, "comparator")["--cmp"]("Comparator used in tasks [(default) fcfs | spf | sqfmin | sqfmax | safmin | safmax | sdafmin]")
 	           | clara::detail::Opt( test_file_name, "test_file_name")["--file_name"]("File name to run the test5 [grenoble | lyon | nancy | nantes]")
-	           | clara::detail::Opt( automatic_start_time, "automatic_time")["-a"]["--automatic_time"]("Calculate the start time automaticaly or start from time 0 [true | (default) false]");
+	           | clara::detail::Opt( automatic_start_time, "automatic_time")["-a"]["--automatic_time"]("Calculate the start time automaticaly or start from time 0 [true | (default) false]")
+	           | clara::detail::Opt(scheduling_type, "scheduling_type")["--scheduling_type"]("Select the scheduling type will be used [(default) online | offline ]");
 
 	auto result = cli.parse( clara::detail::Args( argc, argv ) );
 
