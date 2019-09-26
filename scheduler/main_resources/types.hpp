@@ -19,6 +19,7 @@ typedef struct {
 	std::string topology_type;
 	std::string test_file_name;
 	std::string queue_type;
+	std::string scheduling_type;
 	unsigned int data_type = 0;
 	unsigned int topology_size=0;
 	unsigned int test_type=0;
