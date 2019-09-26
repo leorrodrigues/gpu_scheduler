@@ -65,7 +65,7 @@ file(GLOB TOPSIS_JSON
 file(COPY ${TOPSIS_JSON} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/topsis)
 
 file(GLOB DATACENTER_JSON
-  "datacenter/json/fat_tree"
+  "datacenter/json/*"
 )
 file(COPY ${DATACENTER_JSON} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/datacenter/)
 
