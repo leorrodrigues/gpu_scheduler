@@ -209,6 +209,8 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 	options->test_file_name = test_file_name;
 
 	options->automatic_start_time = automatic_start_time;
+
+	options->scheduling_type = scheduling_type;
 	// Load the Topology
 	std::string path;
 	if(test_file_name == "") {
@@ -284,6 +286,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 	bool allocation_success = false;
 	bool allocation_link_success = false;
 	Task* current = NULL;
+	int delay = 0;
 
 	std::chrono::duration<double> time_span_links;
 	std::chrono::duration<double> time_span_allocator;
@@ -333,7 +336,21 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			time_span_links =  std::chrono::duration_cast<std::chrono::duration<double> >(links_end - links_start);
 		}
 		if(!allocation_success || (!allocation_link_success && options->test_type==4)) {
-			++total_dc->rejected_tasks;
+			// If the request is not suitable in the DC, check the scheduling type to make the right decision about the task
+			if(options->scheduling_type == "online") {
+				++total_dc->rejected_tasks;
+			} else if(options->scheduling_type == "offline") {
+				++total_dc->rejected_tasks;
+				if(!scheduler->tasks_to_delete.empty()) {
+					Task* first_to_delete = scheduler->tasks_to_delete.top();
+					delay = ((first_to_delete->getDuration() + first_to_delete->getAllocatedTime()) - ( current->getSubmission() + current->getDelay() ));
+				}
+				current->addDelay(delay);
+				scheduler->tasks_to_allocate->push(current);
+			} else {
+				SPDLOG_ERROR("Wrong scheduling type selected!\nExiting...");
+				exit(0);
+			}
 		} else {
 			++total_dc->accepted_tasks;
 			scheduler->tasks_to_delete.push(current);
