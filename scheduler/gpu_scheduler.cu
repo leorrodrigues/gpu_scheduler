@@ -505,7 +505,6 @@ int main(int argc, char **argv){
 		// Put the container in the vector
 		scheduler.tasks_to_allocate->push(current);
 		spdlog::info("Read {} task of {} tasks", ++current_task_index, total_tasks);
-		if(current_task_index == 5000) break;
 	}
 	message.clear();
 	delete(reader);
