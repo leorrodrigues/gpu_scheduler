@@ -9,8 +9,11 @@ namespace Allocator {
 //TODO PRECISA ATUALIZAR PARA EXECUTAR O CORE DA ALOCACAO COM TEMPO, PARECIDO COM O NAIVE
 
 // Run the group one time and all the others executions are only with the MULTICRITERIA
-bool rank_clusterized(Builder* builder,  Task* task, consumed_resource_t* consumed, int current_time){
-	spdlog::debug("Multicriteria Clusterized - Init [{},{}]",current_time, task->getDeadline());
+bool rank_clusterized(Builder* builder,  Task* task, consumed_resource_t* consumed, int current_time, std::string scheduling_type){
+	int task_deadline = task->getDeadline();
+	if(task_deadline == 0) task_deadline = current_time+1;
+
+	spdlog::debug("Multicriteria Clusterized - Init [{},{}]",current_time, task_deadline);
 	// Create the result variables
 	unsigned int* result = NULL;
 	unsigned int resultSize = 0;
@@ -21,7 +24,7 @@ bool rank_clusterized(Builder* builder,  Task* task, consumed_resource_t* consum
 
 	// If the number of groups are bigger than 1, the rank method has run to select the most suitable group
 	spdlog::debug("Multicriteria Clusterized - run rank clustered[ ]");
-	builder->runRankClustered( builder->getClusterHosts(), current_time, task->getDeadline());
+	builder->runRankClustered( builder->getClusterHosts(), current_time, task_deadline);
 	spdlog::debug("Multicriteria Clusterized - run rank clustered[x]");
 
 	// Get the results
@@ -46,7 +49,7 @@ bool rank_clusterized(Builder* builder,  Task* task, consumed_resource_t* consum
 	int interval_low = 0, interval_high = 0;
 
 	spdlog::debug("Multicriteria Clusterized - time loop[ ]");
-	for(interval_low = current_time; interval_low < task->getDeadline(); interval_low++) {
+	for(interval_low = current_time; interval_low < task_deadline; interval_low++) {
 		interval_high = interval_low + task->getDuration();
 
 		spdlog::debug("Multicriteria Clusterized - pod loop[ ]");
@@ -125,6 +128,7 @@ bool rank_clusterized(Builder* builder,  Task* task, consumed_resource_t* consum
 		}
 		spdlog::debug("Multicriteria Clusterized - pod loop[x]");
 		if(pod_allocated) break;
+		if(scheduling_type == "offline") break; //if is an offline allocation, the scheduler only run the first iteration of time
 	}
 	spdlog::debug("Multicriteria Clusterized - time loop[x]");
 	free(result);

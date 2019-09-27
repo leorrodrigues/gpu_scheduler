@@ -312,14 +312,12 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			allocation_success=Allocator::mcl_pure(builder);
 		} else if( options->clustering_method == "none") {
 			spdlog::debug("Naive [ ]");
-			allocation_success=Allocator::naive(builder, current, consumed, scheduler->current_time);
+			allocation_success=Allocator::naive(builder, current, consumed, scheduler->current_time, options->scheduling_type);
 			spdlog::debug("Naive [x]");
 		} else if ( options->clustering_method == "mcl") {
 			spdlog::debug("MCL + Rank [ ]");
-			allocation_success=Allocator::rank_clusterized(builder, current, consumed, scheduler->current_time);
+			allocation_success=Allocator::rank_clusterized(builder, current, consumed, scheduler->current_time, options->scheduling_type);
 			spdlog::debug("MCL + Rank [x]");
-		} else if ( options->clustering_method == "all") {
-			// allocation_success=Allocator::all();
 		} else {
 			SPDLOG_ERROR("Invalid type of allocation method");
 			exit(1);
@@ -340,13 +338,18 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			if(options->scheduling_type == "online") {
 				++total_dc->rejected_tasks;
 			} else if(options->scheduling_type == "offline") {
-				++total_dc->rejected_tasks;
+				// At first, we need to calculate the new delay to apply to the request
 				if(!scheduler->tasks_to_delete.empty()) {
 					Task* first_to_delete = scheduler->tasks_to_delete.top();
 					delay = ((first_to_delete->getDuration() + first_to_delete->getAllocatedTime()) - ( current->getSubmission() + current->getDelay() ));
 				}
 				current->addDelay(delay);
-				scheduler->tasks_to_allocate->push(current);
+				// With the calculated delay, check if the new applyed time to the task + the execution time is higher than the task deadline sum the rejected_tasks, reinsert it on the queue otherwise.
+				if(current->getDeadline() != 0 && current->getSubmission() + current->getDelay() + current->getDuration() > current->getDeadline()) {
+					++total_dc->rejected_tasks; //to reject the task
+				} else {
+					scheduler->tasks_to_allocate->push(current); // try to allocate the task again in the future
+				}
 			} else {
 				SPDLOG_ERROR("Wrong scheduling type selected!\nExiting...");
 				exit(0);

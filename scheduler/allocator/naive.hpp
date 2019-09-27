@@ -6,13 +6,15 @@
 
 namespace Allocator {
 
-bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed, int current_time){
-	spdlog::debug("Naive - Init [{},{}]",current_time, task->getDeadline());
+bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed, int current_time, std::string scheduling_type){
+	int task_deadline = task->getDeadline();
+	if(task_deadline == 0) task_deadline = current_time+1;
+	spdlog::debug("Naive - Init [{},{}]",current_time, task_deadline);
 	unsigned int* result = NULL;
 	unsigned int resultSize = 0;
 
 	spdlog::debug("Naive - run rank [ ]");
-	builder->runRank( builder->getHosts(), current_time, task->getDeadline() );
+	builder->runRank( builder->getHosts(), current_time, task_deadline );
 	spdlog::debug("Naive - run rank [x]");
 
 	spdlog::debug("Naive - get rank result[ ]");
@@ -32,8 +34,8 @@ bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed, int cur
 	bool pod_allocated;
 
 	size_t i, host_index;
-	spdlog::debug("Naive - Iterating through the time {} until {}", current_time, task->getDeadline());
-	for(interval_low = current_time; interval_low < task->getDeadline(); interval_low++) {
+	spdlog::debug("Naive - Iterating through the time {} until {}", current_time, task_deadline);
+	for(interval_low = current_time; interval_low < task_deadline; interval_low++) {
 		interval_high = interval_low + task->getDuration();
 		for(pod_index=0; pod_index < pods_size; pod_index++) {
 			spdlog::debug("Naive - Will Iterate through pods {}",pod_index);
@@ -67,6 +69,7 @@ bool naive(Builder* builder,  Task* task, consumed_resource_t* consumed, int cur
 			}
 		}
 		if(pod_allocated) break;
+		if(scheduling_type == "offline") break; //if is an offline allocation, the scheduler only run the first iteration of time
 	}
 	free(result);
 	result = NULL;

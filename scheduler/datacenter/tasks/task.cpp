@@ -48,7 +48,7 @@ void Task::setTask(const char* taskMessage){
 	if(task.HasMember("deadline")) {
 		this->deadline = static_cast<unsigned int>(task["deadline"].GetFloat());
 	}else{
-		this->deadline = this->submission+this->duration;
+		this->deadline = 0;
 	}
 	/**********************************************************/
 	/********              Pod   variables                    ********/
