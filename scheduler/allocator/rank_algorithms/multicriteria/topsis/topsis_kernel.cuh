@@ -341,7 +341,7 @@ static void testMaxKernel(){
 
 		if(d_result!=resultado) {
 			printf("RESULTS NOT MATCH! MAX FUNCTION NOT WORKS\n");
-			printf("%d $ %f\n",resultado, d_result);
+			printf("%lf $ %lf\n",resultado, d_result);
 		}
 	}
 }
@@ -413,7 +413,7 @@ static void testMinKernel(){
 
 		if(d_result!=resultado) {
 			printf("RESULTS NOT MATCH! MAX FUNCTION NOT WORKS\n");
-			printf("%d $ %f\n",resultado, d_result);
+			printf("%lf $ %lf\n",resultado, d_result);
 			for(int i=0; i< blocks_amount; i++) {
 				printf("%f - ", blocks[i]);
 			}
