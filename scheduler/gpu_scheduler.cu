@@ -147,14 +147,15 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 
 	if(debug=="info") {
 		spdlog::set_level(spdlog::level::info);
-	}else if(debug=="warning") {
+	} else if(debug=="warning") {
 		spdlog::set_level(spdlog::level::warn);
-	}else if(debug=="error") {
+	} else if(debug=="error") {
 		spdlog::set_level(spdlog::level::err);
-	}else if(debug=="debug") {
+	} else if(debug=="debug") {
 		spdlog::set_level(spdlog::level::debug);
-
-	}else{
+	} else if(debug=="critical") {
+		spdlog::set_level(spdlog::level::critical);
+	} else {
 		SPDLOG_ERROR("Invalid Type of Debug Level");
 		exit(0);
 	}
@@ -236,12 +237,12 @@ inline void logTask(scheduler_t* scheduler,Task* task, std::string rank, total_r
 	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
 
 	std::chrono::duration<double> time_span =  std::chrono::duration_cast<std::chrono::duration<double> >( now - scheduler->start);
-	spdlog::get("task_logger")->info("{} {} {} {} {} {} {} {} {}", rank, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count(), task->getDelay(), task->getBandwidthAllocated()/total_resources->total_bandwidth);
+	spdlog::get("task_logger")->critical("{} {} {} {} {} {} {} {} {}", rank, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count(), task->getDelay(), task->getBandwidthAllocated()/total_resources->total_bandwidth);
 }
 
 inline void logDC(objective_function_t *objective,std::string method, float total_bandwidth, total_resources_t *total){
 	float task_percentage = total->total_tasks == 0 ? 0 : (total->accepted_tasks-total->rejected_tasks)/(total->total_tasks*1.0);
-	spdlog::get("dc_logger")->info("{} {} {} {} {} {} {} {} {} {} {}", method, objective->time,    objective->dc_fragmentation,  objective->vcpu_footprint, objective->ram_footprint, objective->link_fragmentation, objective->link_footprint, (objective->fail_bandwidth/total_bandwidth), total->rejected_tasks, total->accepted_tasks, task_percentage*100);
+	spdlog::get("dc_logger")->critical("{} {} {} {} {} {} {} {} {} {} {}", method, objective->time,    objective->dc_fragmentation,  objective->vcpu_footprint, objective->ram_footprint, objective->link_fragmentation, objective->link_footprint, (objective->fail_bandwidth/total_bandwidth), total->rejected_tasks, total->accepted_tasks, task_percentage*100);
 }
 
 inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed, objective_function_t* objective){
