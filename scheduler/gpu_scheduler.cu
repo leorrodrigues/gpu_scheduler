@@ -212,12 +212,18 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 	options->automatic_start_time = automatic_start_time;
 
 	options->scheduling_type = scheduling_type;
+
+	std::string dt;
+	{
+		std::istringstream f(test_file_name);
+		getline(f, dt, '-');
+	}
 	// Load the Topology
 	std::string path;
 	if(test_file_name == "") {
 		path="datacenter/"+topology+"/" + std::to_string(topology_size) + ".json";
 	} else {
-		path="datacenter/grid5000/"+test_file_name+".json";
+		path="datacenter/grid5000/"+dt+".json";
 	}
 	builder->parser(path.c_str());
 }
