@@ -349,7 +349,6 @@ void AHP::acquisition() {
 	const int sheetsSize = this->hierarchy->getCriteriasSize();
 	const int resourceSize = this->hierarchy->getResource()->getDataSize();
 
-	spdlog::debug("\tbuilding the min max values");
 	float* min_max_values = (float*) malloc (sizeof(float) * resourceSize);
 	{
 		float min, max, value;
@@ -375,13 +374,11 @@ void AHP::acquisition() {
 	}
 	// At this point, all the integers and float/float resources  has
 	// the max and min values discovered.
-	spdlog::debug("\tbuilding the criteria weights");
 	float** criteriasWeight = (float**) malloc (sizeof(float*) * altSize);
 	for(i=0; i<altSize; i++) {
 		criteriasWeight[i] = (float*) malloc (sizeof(float*) * altSize);
 	}
 
-	spdlog::debug("\tcalculating the results for {} sheets", sheetsSize);
 	float result;
 	for ( i=0; i< sheetsSize; i++) {
 		for ( j=0; j<altSize; j++) {
@@ -415,7 +412,6 @@ void AHP::acquisition() {
 		}
 	}
 
-	spdlog::debug("\tfree the allocated temp data");
 	for(i=0; i<altSize; i++) {
 		free(criteriasWeight[i]);
 	}
@@ -522,19 +518,12 @@ void AHP::setAlternatives(Host** alternatives, int size, int low, int high) {
 		alt->setName((char*) std::to_string(alternatives[i]->getId()).c_str()); // set the node name
 
 		// Update the node h_resource values by the host resource values
-		spdlog::debug("Looping resources");
 		for (auto it : resource) {
-			spdlog::debug("Configuring the temp capacity for {} in [{},{}] in the host {}", it.first, low, high, alternatives[i]->getId());
 			it.second->show();
 			temp_capacity = static_cast<float>((high - low)) * it.second->getMinValueAvailable(low, high);
-			spdlog::debug("Setting alt temp_capa: {}", temp_capacity);
 			alt->setResource((char*)it.first.c_str(), temp_capacity);
-			spdlog::debug("Alt set");
-
 		}
-		spdlog::debug("Adding alternative");
 		this->hierarchy->addAlternative(alt);
-		spdlog::debug("Added");
 	}
 
 	this->hierarchy->addEdgeCriteriasAlternatives();
