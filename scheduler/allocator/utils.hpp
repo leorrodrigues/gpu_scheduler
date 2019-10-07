@@ -10,7 +10,7 @@ inline bool checkFit(Host* host, Pod* pod, int low, int high){
 		if(r.first == "allocated_resources") continue;
 		if(h_r[r.first]->checkFit(low,high, r.second[1])) {
 			pod->setFit(r.first, r.second[1]);
-		} else if(h_r[r.first]->checkFit(low,high, r.second[0])) {
+		} else if(r.second[0] != r.second[1] && h_r[r.first]->checkFit(low,high, r.second[0])) {
 			pod->setFit(r.first, r.second[0]);
 		} else {
 			return false;
