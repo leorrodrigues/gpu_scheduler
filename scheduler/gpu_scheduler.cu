@@ -460,9 +460,9 @@ int main(int argc, char **argv){
 		log_str+=".log";
 	}
 	spdlog::info("Generating the loggers");
-	auto dc_logger = spdlog::basic_logger_mt("dc_logger","logs/test"+std::to_string(options.test_type)+"/dc-"+log_str);
-	auto task_logger =spdlog::basic_logger_mt("task_logger", "logs/test"+std::to_string(options.test_type)+"/request-"+log_str);
-	auto micro_bench_logger = spdlog::basic_logger_mt("mb_logger", "logs/test"+std::to_string(options.test_type)+"/micro-bench"+log_str);
+	auto dc_logger = spdlog::basic_logger_mt("dc_logger","logs/test"+std::to_string(options.test_type)+"/dc-"+log_str+"-"+options.scheduling_type+"-"+test_file_name);
+	auto task_logger =spdlog::basic_logger_mt("task_logger", "logs/test"+std::to_string(options.test_type)+"/request-"+log_str+"-"+options.scheduling_type+"-"+test_file_name);
+	auto micro_bench_logger = spdlog::basic_logger_mt("mb_logger", "logs/test"+std::to_string(options.test_type)+"/micro-bench"+log_str+"-"+options.scheduling_type+"-"+test_file_name);
 
 	spdlog::flush_every(std::chrono::seconds(180));
 
