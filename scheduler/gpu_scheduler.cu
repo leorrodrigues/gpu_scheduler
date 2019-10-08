@@ -460,8 +460,8 @@ int main(int argc, char **argv){
 		log_str+=".log";
 	}
 	spdlog::info("Generating the loggers");
-	auto dc_logger = spdlog::basic_logger_mt("dc_logger","logs/test"+std::to_string(options.test_type)+"/dc-"+log_str+"-"+options.scheduling_type+"-"+options.test_file_name);
-	auto task_logger =spdlog::basic_logger_mt("task_logger", "logs/test"+std::to_string(options.test_type)+"/request-"+log_str+"-"+options.scheduling_type+"-"+options.test_file_name);
+	auto dc_logger = spdlog::basic_logger_mt("dc_logger","logs/test"+std::to_string(options.test_type)+"/dc-"+log_str+"-"+options.scheduling_type+"-"+options.test_file_name+".log");
+	auto task_logger =spdlog::basic_logger_mt("task_logger", "logs/test"+std::to_string(options.test_type)+"/request-"+log_str+"-"+options.scheduling_type+"-"+options.test_file_name+".log");
 
 	spdlog::flush_every(std::chrono::seconds(180));
 
