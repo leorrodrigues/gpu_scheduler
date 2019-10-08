@@ -462,13 +462,11 @@ int main(int argc, char **argv){
 	spdlog::info("Generating the loggers");
 	auto dc_logger = spdlog::basic_logger_mt("dc_logger","logs/test"+std::to_string(options.test_type)+"/dc-"+log_str+"-"+options.scheduling_type+"-"+options.test_file_name);
 	auto task_logger =spdlog::basic_logger_mt("task_logger", "logs/test"+std::to_string(options.test_type)+"/request-"+log_str+"-"+options.scheduling_type+"-"+options.test_file_name);
-	auto micro_bench_logger = spdlog::basic_logger_mt("mb_logger", "logs/test"+std::to_string(options.test_type)+"/micro-bench"+log_str+"-"+options.scheduling_type+"-"+options.test_file_name);
 
 	spdlog::flush_every(std::chrono::seconds(180));
 
 	dc_logger->set_pattern("%v");
 	task_logger->set_pattern("%v");
-	micro_bench_logger->set_pattern("%v");
 
 	spdlog::info("Creating the reader");
 	Reader* reader = new Reader();
