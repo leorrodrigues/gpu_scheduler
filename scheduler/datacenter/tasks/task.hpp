@@ -1,11 +1,18 @@
 #ifndef  _TASK_NOT_INCLUDED_
 #define _TASK_NOT_INCLUDED_
 
+#include <chrono>
+
 #include "task_resources.hpp"
 #include "pod.hpp"
 
 class Task : public Task_Resources {
 private:
+//Time metrics variables
+std::chrono::high_resolution_clock::time_point requested_time;
+std::chrono::high_resolution_clock::time_point start_time;
+std::chrono::high_resolution_clock::time_point stop_time;
+
 //Pod variables
 Pod** pods;
 Container **containers;
@@ -37,6 +44,10 @@ Task();
 
 void setTask(const char*);
 
+void setRequestedTime();
+void setStartTime();
+void setStopTime();
+
 void addDelay(unsigned int);
 void setAllocatedTime(unsigned int);
 void setSubmission(unsigned int);
@@ -46,6 +57,10 @@ void setLinkPathEdge(int*);
 void setLinkDestination(int*);
 void setLinkInit(int*);
 void setLinkValues(float*);
+
+std::chrono::high_resolution_clock::time_point getRequestedTime();
+std::chrono::high_resolution_clock::time_point getStartTime();
+std::chrono::high_resolution_clock::time_point getStopTime();
 
 Pod** getPods();
 Container** getContainers();

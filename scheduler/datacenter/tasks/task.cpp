@@ -174,6 +174,18 @@ void Task::setTask(const char* taskMessage){
 	}
 }
 
+void Task::setRequestedTime(){
+	this->requested_time = std::chrono::high_resolution_clock::now();
+}
+
+void Task::setStartTime(){
+	this->start_time = std::chrono::high_resolution_clock::now();
+}
+
+void Task::setStopTime(){
+	this->stop_time = std::chrono::high_resolution_clock::now();
+}
+
 void Task::addDelay(unsigned int delay){
 	this->delay += delay;
 }
@@ -204,6 +216,18 @@ void Task::setLinkInit(int* init){
 
 void Task::setLinkValues(float* values){
 	this->values=values;
+}
+
+std::chrono::high_resolution_clock::time_point Task::getRequestedTime(){
+	return this->requested_time;
+}
+
+std::chrono::high_resolution_clock::time_point Task::getStartTime(){
+	return this->start_time;
+}
+
+std::chrono::high_resolution_clock::time_point Task::getStopTime(){
+	return this->stop_time;
 }
 
 Pod** Task::getPods(){

@@ -242,16 +242,24 @@ inline void calculateObjectiveFunction(Builder *builder, objective_function_t *o
 inline void logTask(scheduler_t* scheduler,Task* task, std::string rank, total_resources_t* total_resources){
 	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
 
+	// calculate the spent time using the start scheduler time as epoch time.
+	std::chrono::duration<double> requested_time = std::chrono::duration_cast<std::chrono::duration<double> >(task->getRequestedTime() - scheduler->start);
+	std::chrono::duration<double> start_time = std::chrono::duration_cast<std::chrono::duration<double> >(task->getStartTime() - scheduler->start);
+	std::chrono::duration<double> stop_time = std::chrono::duration_cast<std::chrono::duration<double> >(task->getStopTime() - scheduler->start);
+	//represents the time needed to run the task since the scheduler initiates
 	std::chrono::duration<double> time_span =  std::chrono::duration_cast<std::chrono::duration<double> >( now - scheduler->start);
-	spdlog::get("task_logger")->critical("{} {} {} {} {} {} {} {}", rank, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count(), task->getBandwidthAllocated()/total_resources->total_bandwidth);
+
+	spdlog::get("task_logger")->critical("{} {} {} {} {} {} {} {} {} {} {}", rank, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), task->getBandwidthAllocated()/total_resources->total_bandwidth, requested_time.count(), start_time.count(), stop_time.count(), time_span.count());
 }
 
-inline void logDC(objective_function_t *objective,std::string method, float total_bandwidth, total_resources_t *total){
-	float task_percentage = total->total_tasks == 0 ? 0 : (total->accepted_tasks-total->rejected_tasks)/(total->total_tasks*1.0);
-	spdlog::get("dc_logger")->critical("{} {} {} {} {} {} {} {} {} {} {}", method, objective->time,    objective->dc_fragmentation,  objective->vcpu_footprint, objective->ram_footprint, objective->link_fragmentation, objective->link_footprint, (objective->fail_bandwidth/total_bandwidth), total->rejected_tasks, total->accepted_tasks, task_percentage*100);
+inline void logDC(scheduler_t* scheduler, objective_function_t *objective,std::string method, float total_bandwidth, total_resources_t *total){
+	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> time_span =  std::chrono::duration_cast<std::chrono::duration<double> >( now - scheduler->start);
+
+	spdlog::get("dc_logger")->critical("{} {} {} {} {} {} {} {} {} {} {}", method, objective->time,    objective->dc_fragmentation,  objective->vcpu_footprint, objective->ram_footprint, objective->link_fragmentation, objective->link_footprint, (objective->fail_bandwidth/total_bandwidth), total->rejected_tasks, total->accepted_tasks, time_span.count());
 }
 
-inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed, objective_function_t* objective){
+inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* options, consumed_resource_t* consumed, objective_function_t* objective, total_resources_t* total_dc){
 	Task* current = NULL;
 	while(true) {
 		if(scheduler->tasks_to_delete.empty()) {
@@ -262,6 +270,8 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 			break;
 		}
 		scheduler->tasks_to_delete.pop();
+		//At this moment, the task has already been stopped, so update the corresponding time
+		current->setStopTime();
 		//Iterate through the PODs of the TASK, and erase each of one.
 		spdlog::debug("Scheduler Time {}. Deleting task {}", scheduler->current_time, current->getId());
 		objective->fail_bandwidth-=current->getBandwidthAllocated();
@@ -283,6 +293,9 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 				current->getAllocatedTime() + current->getDuration()
 				);
 		}
+		//After remove the task from the DC log their informations
+		logTask(scheduler, current, options->rank_method,total_dc);
+		//Delete the task completly
 		delete(current);
 	}
 	current = NULL;
@@ -303,6 +316,11 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			break;
 		}
 		current = scheduler->tasks_to_allocate->top();
+		if(current->getSubmission() == scheduler->current_time) {
+			//this means that is the first time that this task is checked, set the requested_time.
+			current->setRequestedTime();
+		}
+
 		if( current->getSubmission()+current->getDelay() != scheduler->current_time) {
 			spdlog::debug("request in advance time submission {} delay {} scheduler time {}",current->getSubmission(), current->getDelay(),scheduler->current_time);
 			break;
@@ -311,7 +329,6 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 		++total_dc->total_tasks;
 		spdlog::debug("Check if request {} fit in DC",current->getId());
 		// allocate the new task in the data center.
-		std::chrono::high_resolution_clock::time_point allocator_start = std::chrono::high_resolution_clock::now();
 		if( options->clustering_method=="pure_mcl") {
 			spdlog::debug("Pure MCL");
 			allocation_success=Allocator::mcl_pure(builder);
@@ -328,12 +345,8 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			exit(1);
 		}
 
-		std::chrono::high_resolution_clock::time_point allocator_end = std::chrono::high_resolution_clock::now();
-
 		if(allocation_success && options->test_type==4) {
-			std::chrono::high_resolution_clock::time_point links_start = std::chrono::high_resolution_clock::now();
 			allocation_link_success=Allocator::links_allocator_cuda(builder, current, consumed, scheduler->current_time, scheduler->current_time + current->getDuration());
-			std::chrono::high_resolution_clock::time_point links_end = std::chrono::high_resolution_clock::now();
 		}
 		if(!allocation_success || (!allocation_link_success && options->test_type==4)) {
 			// If the request is not suitable in the DC, check the scheduling type to make the right decision about the task
@@ -357,10 +370,11 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				exit(0);
 			}
 		} else {
+			// The task was successfully allocated, so update the metrics
+			current->setStartTime();
 			++total_dc->accepted_tasks;
 			scheduler->tasks_to_delete.push(current);
 			objective->fail_bandwidth += current->getBandwidthAllocated();
-			logTask(scheduler, current, options->rank_method,total_dc);
 		}
 	}
 }
@@ -386,7 +400,7 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 
 		consumed_resources.time = scheduler->current_time;
 		// Search the containers to delete
-		delete_tasks(scheduler, builder, options, &consumed_resources, &objective);
+		delete_tasks(scheduler, builder, options, &consumed_resources, &objective, &total_resources);
 		// Search the containers in the vector to allocate in the DC
 		allocate_tasks(scheduler, builder, options, &consumed_resources, &total_resources, &objective);
 
@@ -400,7 +414,7 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		spdlog::debug("Objective functions calculated with success");
 
 		if(options->test_type == 2 || options->test_type == 4 || options->test_type == 5) {
-			logDC(&objective, options->rank_method, total_resources.total_bandwidth, &total_resources);
+			logDC(scheduler, &objective, options->rank_method, total_resources.total_bandwidth, &total_resources);
 		}
 		//************************************************//
 		//************************************************//
