@@ -10,6 +10,7 @@ private:
 Pod** pods;
 Container **containers;
 unsigned int duration;
+unsigned int early_duration;
 unsigned int submission;
 
 //Management variables
@@ -50,6 +51,7 @@ Pod** getPods();
 Container** getContainers();
 unsigned int getPodsSize();
 unsigned int getDuration();
+unsigned int getEarlyDuration();
 unsigned int getSubmission();
 unsigned int getContainersSize();
 unsigned int getLinksSize();
