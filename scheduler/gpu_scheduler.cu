@@ -243,7 +243,7 @@ inline void logTask(scheduler_t* scheduler,Task* task, std::string rank, total_r
 	std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
 
 	std::chrono::duration<double> time_span =  std::chrono::duration_cast<std::chrono::duration<double> >( now - scheduler->start);
-	spdlog::get("task_logger")->critical("{} {} {} {} {} {} {} {} {}", rank, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count(), task->getDelay(), task->getBandwidthAllocated()/total_resources->total_bandwidth);
+	spdlog::get("task_logger")->critical("{} {} {} {} {} {} {} {}", rank, task->getSubmission(), task->getId(), task->getDelay(), task->taskUtility(), task->linkUtility(), time_span.count(), task->getBandwidthAllocated()/total_resources->total_bandwidth);
 }
 
 inline void logDC(objective_function_t *objective,std::string method, float total_bandwidth, total_resources_t *total){
