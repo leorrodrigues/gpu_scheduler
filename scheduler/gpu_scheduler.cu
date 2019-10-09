@@ -258,7 +258,7 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 			break;
 		}
 		current=scheduler->tasks_to_delete.top();
-		if( current->getDuration() + current->getAllocatedTime() > scheduler->current_time) {
+		if( (current->getDuration()-current->getEarlyDuration()) + current->getAllocatedTime() > scheduler->current_time) {
 			break;
 		}
 		scheduler->tasks_to_delete.pop();

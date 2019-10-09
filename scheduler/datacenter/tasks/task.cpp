@@ -39,6 +39,12 @@ void Task::setTask(const char* taskMessage){
 	//Duration
 	this->duration = static_cast<unsigned int>(task["duration"].GetFloat());
 	if(this->duration==0) ++this->duration;
+	//Early Duration
+	if(task.HasMember("early")) {
+		this->early_duration = static_cast<unsigned int>(task["early"].GetFloat());
+	} else {
+		this->early_duration = 0;
+	}
 	//ID
 	this->id = task["id"].GetInt();
 
@@ -218,6 +224,10 @@ unsigned int Task::getLinksSize(){
 
 unsigned int Task::getDuration(){
 	return this->duration;
+}
+
+unsigned int Task::getEarlyDuration(){
+	return this->early_duration;
 }
 
 unsigned int Task::getSubmission(){
