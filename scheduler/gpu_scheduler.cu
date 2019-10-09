@@ -295,8 +295,6 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 	Task* current = NULL;
 	int delay = 0;
 
-	std::chrono::duration<double> time_span_links;
-	std::chrono::duration<double> time_span_allocator;
 	while(true) {
 		allocation_success=false;
 		allocation_link_success=false;
@@ -332,13 +330,10 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 
 		std::chrono::high_resolution_clock::time_point allocator_end = std::chrono::high_resolution_clock::now();
 
-		time_span_allocator =  std::chrono::duration_cast<std::chrono::duration<double> >(allocator_end - allocator_start);
-
 		if(allocation_success && options->test_type==4) {
 			std::chrono::high_resolution_clock::time_point links_start = std::chrono::high_resolution_clock::now();
 			allocation_link_success=Allocator::links_allocator_cuda(builder, current, consumed, scheduler->current_time, scheduler->current_time + current->getDuration());
 			std::chrono::high_resolution_clock::time_point links_end = std::chrono::high_resolution_clock::now();
-			time_span_links =  std::chrono::duration_cast<std::chrono::duration<double> >(links_end - links_start);
 		}
 		if(!allocation_success || (!allocation_link_success && options->test_type==4)) {
 			// If the request is not suitable in the DC, check the scheduling type to make the right decision about the task
@@ -365,8 +360,6 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			++total_dc->accepted_tasks;
 			scheduler->tasks_to_delete.push(current);
 			objective->fail_bandwidth += current->getBandwidthAllocated();
-			spdlog::get("mb_logger")->info("ALLOCATOR {} {}",options->rank_method,time_span_allocator.count());
-			spdlog::get("mb_logger")->info("LINKS {} {}",options->rank_method,time_span_links.count());
 			logTask(scheduler, current, options->rank_method,total_dc);
 		}
 	}
