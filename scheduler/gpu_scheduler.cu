@@ -327,7 +327,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 		}
 		scheduler->tasks_to_allocate->pop();
 		++total_dc->total_tasks;
-		spdlog::debug("Check if request {} fit in DC",current->getId());
+		spdlog::critical("Check if request {} fit in DC, submission {} delay {} duration {} early {} deadline {}",current->getId(), current->getSubmission(), current->getDelay(), current->getDuration(), current->getEarlyDuration(), current->getDeadline());
 		// allocate the new task in the data center.
 		if( options->clustering_method=="pure_mcl") {
 			spdlog::debug("Pure MCL");
@@ -354,13 +354,15 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 				++total_dc->rejected_tasks;
 			} else if(options->scheduling_type == "offline") {
 				// At first, we need to calculate the new delay to apply to the request
+				delay=1;
 				if(!scheduler->tasks_to_delete.empty()) {
 					Task* first_to_delete = scheduler->tasks_to_delete.top();
 					delay = ((first_to_delete->getDuration() + first_to_delete->getAllocatedTime()) - ( current->getSubmission() + current->getDelay() ));
 				}
+				if(delay<=0) delay=1; //to be sure that the delay will be at least plus 1
 				current->addDelay(delay);
 				// With the calculated delay, check if the new applyed time to the task + the execution time is higher than the task deadline sum the rejected_tasks, reinsert it on the queue otherwise.
-				if(current->getDeadline() != 0 && current->getSubmission() + current->getDelay() + current->getDuration() > current->getDeadline()) {
+				if(current->getDeadline() != 0 && (current->getSubmission() + current->getDelay() + current->getDuration() - current->getEarlyDuration()) > current->getDeadline()) {
 					++total_dc->rejected_tasks; //to reject the task
 				} else {
 					scheduler->tasks_to_allocate->push(current); // try to allocate the task again in the future
@@ -395,8 +397,8 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		!scheduler->tasks_to_allocate->empty() ||
 		!scheduler->tasks_to_delete.empty()
 		) {
-		spdlog::info("Scheduler Time {}", scheduler->current_time);
-		spdlog::info("Tasks to allocate {} and to delete {}", scheduler->tasks_to_allocate->size(), scheduler->tasks_to_delete.size());
+		spdlog::critical("Scheduler Time {}", scheduler->current_time);
+		spdlog::critical("Tasks to allocate {} and to delete {}", scheduler->tasks_to_allocate->size(), scheduler->tasks_to_delete.size());
 
 		consumed_resources.time = scheduler->current_time;
 		// Search the containers to delete
