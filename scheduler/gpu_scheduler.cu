@@ -327,7 +327,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 		}
 		scheduler->tasks_to_allocate->pop();
 		++total_dc->total_tasks;
-		spdlog::critical("Check if request {} fit in DC, submission {} delay {} duration {} early {} deadline {}",current->getId(), current->getSubmission(), current->getDelay(), current->getDuration(), current->getEarlyDuration(), current->getDeadline());
+		spdlog::info("Check if request {} fit in DC, submission {} delay {} duration {} early {} deadline {}",current->getId(), current->getSubmission(), current->getDelay(), current->getDuration(), current->getEarlyDuration(), current->getDeadline());
 		// allocate the new task in the data center.
 		if( options->clustering_method=="pure_mcl") {
 			spdlog::debug("Pure MCL");
@@ -397,8 +397,8 @@ void schedule(Builder* builder,  scheduler_t* scheduler, options_t* options, int
 		!scheduler->tasks_to_allocate->empty() ||
 		!scheduler->tasks_to_delete.empty()
 		) {
-		spdlog::critical("Scheduler Time {}", scheduler->current_time);
-		spdlog::critical("Tasks to allocate {} and to delete {}", scheduler->tasks_to_allocate->size(), scheduler->tasks_to_delete.size());
+		spdlog::info("Scheduler Time {}", scheduler->current_time);
+		spdlog::info("Tasks to allocate {} and to delete {}", scheduler->tasks_to_allocate->size(), scheduler->tasks_to_delete.size());
 
 		consumed_resources.time = scheduler->current_time;
 		// Search the containers to delete
