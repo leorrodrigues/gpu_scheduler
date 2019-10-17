@@ -223,7 +223,7 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 	if(test_file_name == "") {
 		path="datacenter/"+topology+"/" + std::to_string(topology_size) + ".json";
 	} else {
-		path="datacenter/grid5000/"+dt+".json";
+		path="datacenter/genericDC/"+dt+".json";
 	}
 	builder->parser(path.c_str());
 }
@@ -469,8 +469,8 @@ int main(int argc, char **argv){
 		log_str+=".log";
 	}
 	spdlog::info("Generating the loggers");
-	auto dc_logger = spdlog::basic_logger_mt("dc_logger","logs/test"+std::to_string(options.test_type)+"/dc-"+log_str+"-"+options.scheduling_type+"-"+options.test_file_name+".log");
-	auto task_logger =spdlog::basic_logger_mt("task_logger", "logs/test"+std::to_string(options.test_type)+"/request-"+log_str+"-"+options.scheduling_type+"-"+options.test_file_name+".log");
+	auto dc_logger = spdlog::basic_logger_mt("dc_logger","logs/test"+std::to_string(options.test_type)+"/dc-"+log_str+"-"+options.scheduling_type+".log");
+	auto task_logger =spdlog::basic_logger_mt("task_logger", "logs/test"+std::to_string(options.test_type)+"/request-"+log_str+"-"+options.scheduling_type+".log");
 
 	spdlog::flush_every(std::chrono::seconds(180));
 
