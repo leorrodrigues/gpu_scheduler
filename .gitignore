@@ -47,6 +47,7 @@ scheduler/requests/requestGenerator/dataModel.pyc
 *.pyc
 
 *.RData
+*.Rhistory
 
 build/
 bin/
