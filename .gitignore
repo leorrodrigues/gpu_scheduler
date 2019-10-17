@@ -46,6 +46,8 @@ scheduler/requests/container_link/*old*/
 scheduler/requests/requestGenerator/dataModel.pyc
 *.pyc
 
+*.RData
+
 build/
 bin/
 logs*/
