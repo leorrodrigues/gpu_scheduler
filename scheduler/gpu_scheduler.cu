@@ -223,7 +223,7 @@ void setup(int argc, char** argv, Builder* builder, options_t* options, schedule
 	if(test_file_name == "") {
 		path="datacenter/"+topology+"/" + std::to_string(topology_size) + ".json";
 	} else {
-		path="datacenter/genericDC/"+dt+".json";
+		path="datacenter/generic/"+dt+".json";
 	}
 	builder->parser(path.c_str());
 }
