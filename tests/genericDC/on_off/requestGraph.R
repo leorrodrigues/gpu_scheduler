@@ -20,12 +20,15 @@ is.nan.data.frame <- function(x)
 
 # sizes = c("50k")
 sizes = c("50k","100k","150k")
+sites = c("LLNL_Thunder")
+type = c("online","offline")
+gpus = c("gtx1070ti","titanXP","rtx2080ti")
 for(size in sizes){
     #######################################
     ## 1070 TI ##
     #######################################
-    gtxDataOnline <- read.table(sprintf("data/gtx1070ti/request-none-lyon-%s-fcfs-online-lyon-%s.log",size,size),header=FALSE,sep=" ")
-    gtxDataOffline <- read.table(sprintf("data/gtx1070ti/request-none-lyon-%s-fcfs-offline-lyon-%s.log",size,size),header=FALSE,sep=" ")
+    gtxDataOnline <- read.table(sprintf("data/gtx1070ti/request-none-%s-%s-fcfs-online.log",size,site),header=FALSE,sep=" ")
+    gtxDataOffline <- read.table(sprintf("data/gtx1070ti/request-none-lyon-%s-fcfs-offline.log",size,site),header=FALSE,sep=" ")
     
     gtxDataOnline$type = "Leo w/o resubmission"
     gtxDataOffline$type = "Leo w/ resubmission"
