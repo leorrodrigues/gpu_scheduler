@@ -50,6 +50,10 @@ scheduler/requests/requestGenerator/dataModel.pyc
 *.Rhistory
 *.R
 
+*.tiff
+*.png
+*.pdf
+
 build/
 bin/
 logs*/
