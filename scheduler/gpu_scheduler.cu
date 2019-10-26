@@ -275,7 +275,7 @@ inline void delete_tasks(scheduler_t* scheduler, Builder* builder, options_t* op
 		//Iterate through the PODs of the TASK, and erase each of one.
 		spdlog::debug("Scheduler Time {}. Deleting task {}", scheduler->current_time, current->getId());
 		objective->fail_bandwidth-=current->getBandwidthAllocated();
-		if(options->test_type==4) {
+		if(options->bw > 0) { //represents that the tests use bw
 			Allocator::freeAllResources(
 				/* The task to be removed*/
 				current,
@@ -321,7 +321,7 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			current->setRequestedTime();
 		}
 
-		if( current->getSubmission()+current->getDelay() != scheduler->current_time) {
+		if( current->getSubmission()+current->getDelay() > scheduler->current_time) {
 			spdlog::debug("request in advance time submission {} delay {} scheduler time {}",current->getSubmission(), current->getDelay(),scheduler->current_time);
 			break;
 		}
@@ -345,10 +345,10 @@ inline void allocate_tasks(scheduler_t* scheduler, Builder* builder, options_t* 
 			exit(1);
 		}
 
-		if(allocation_success && options->test_type==4) {
+		if(allocation_success && options->bw>0) {
 			allocation_link_success=Allocator::links_allocator_cuda(builder, current, consumed, scheduler->current_time, scheduler->current_time + current->getDuration());
 		}
-		if(!allocation_success || (!allocation_link_success && options->test_type==4)) {
+		if(!allocation_success || (!allocation_link_success && options->bw>0)) {
 			// If the request is not suitable in the DC, check the scheduling type to make the right decision about the task
 			if(options->scheduling_type == "online") {
 				++total_dc->rejected_tasks;
