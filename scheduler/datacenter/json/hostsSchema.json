@@ -1,3 +1,43 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:fdf608cffec0acbb70e98f8ffbcd2febba8216ce29032dc4deb3b2bfb8c90128
-size 1064
+{
+    "$schema":"http://json-schema.org/draft-04/schema#",
+    "definitions":{
+        "topology": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "number"
+                },
+                "level": {
+                    "type": "number"
+                }
+            },
+            "required": ["type","size"]
+        },
+        "host": {
+            "type": "array",
+            "minItems": 0,
+            "items":{
+                "properties": {
+                },
+                "additionalProperties": true
+            }
+        }
+    },
+    "type": "object",
+    "minProperties": 1,
+    "additionalProperties": false,
+    "properties": {
+        "topology": {
+            "$ref": "#/definitions/topology"
+        },
+        "hosts": {
+            "$ref": "#/definitions/host"
+        }
+    },
+    "required": ["topology","hosts"]
+}

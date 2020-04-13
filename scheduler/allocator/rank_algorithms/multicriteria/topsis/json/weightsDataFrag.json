@@ -1,3 +1,24 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:2902b570ac83816858a0441e2e9593b5434c510f8e9f12e961c0851720729f89
-size 477
+{
+    "weights":[
+        {
+            "value"  : 0.1,
+            "name"   : "vcpu",
+            "prop"   : false
+        },
+        {
+            "value"  : 0.1,
+            "name"   : "ram",
+            "prop"   : true
+        },
+        {
+            "value"  : 0.1,
+            "name"   : "bandwidth",
+            "prop"   : true
+        },
+        {
+            "value"  : 0.7,
+            "name"   : "allocated_resources",
+            "prop"   : true
+        }
+    ]
+}

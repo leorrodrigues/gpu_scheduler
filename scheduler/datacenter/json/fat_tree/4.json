@@ -1,3 +1,17 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:937c312e27cb951cc583da5eb58685ac68f9f8c0f2bf7abae94d5b8a92ba61c6
-size 827
+{"topology":{"type":"fat_tree","size":4},"hosts":[{"id":1,"vcpu": 24,"ram":256,"bandwidth":1000}
+,{"id":2,"vcpu": 24,"ram":256,"bandwidth":1000}
+,{"id":3,"vcpu": 24,"ram":256,"bandwidth":1000}
+,{"id":4,"vcpu": 24,"ram":256,"bandwidth":1000}
+,{"id":5,"vcpu": 24,"ram":256,"bandwidth":1000}
+,{"id":6,"vcpu": 24,"ram":256,"bandwidth":1000}
+,{"id":7,"vcpu": 24,"ram":256,"bandwidth":1000}
+,{"id":8,"vcpu": 24,"ram":256,"bandwidth":1000}
+,{"id":9,"vcpu": 24,"ram":256,"bandwidth":1000}
+,{"id":10,"vcpu": 24,"ram":256,"bandwidth":1000}
+,{"id":11,"vcpu": 24,"ram":256,"bandwidth":1000}
+,{"id":12,"vcpu": 24,"ram":256,"bandwidth":1000}
+,{"id":13,"vcpu": 24,"ram":256,"bandwidth":1000}
+,{"id":14,"vcpu": 24,"ram":256,"bandwidth":1000}
+,{"id":15,"vcpu": 24,"ram":256,"bandwidth":1000}
+,{"id":16,"vcpu": 24,"ram":256,"bandwidth":1000}
+]}

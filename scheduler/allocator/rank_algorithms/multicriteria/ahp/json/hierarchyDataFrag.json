@@ -1,3 +1,23 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:0152ce18ba999df5ea2b9d13901d799f7321835bf9da98b50e17f231a8d59ea8
-size 483
+{
+  "objective": {
+    "name": "Qual o Host que melhor comporta a requisição Xi do usuário?",
+    "childs": [
+        {
+            "name": "vcpu",
+            "weight":[1,1,1,0.142857]
+        },
+        {
+            "name": "ram",
+            "weight":[1,1,1,0.142857]
+        },
+        {
+            "name": "bandwidth",
+            "weight":[1,1,1,0.142857]
+        },
+        {
+            "name":"allocated_resources",
+            "weight":[7,7,7,1]
+        }
+    ]
+  }
+}

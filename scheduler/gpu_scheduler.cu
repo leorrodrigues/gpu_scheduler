@@ -14,7 +14,6 @@
 #include "allocator/naive.hpp"
 #include "allocator/utils.hpp"
 #include "allocator/free.hpp"
-#include "allocator/all.cuh"
 
 #include "allocator/links/links_allocator.cuh"
 
