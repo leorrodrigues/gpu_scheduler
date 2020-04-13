@@ -95,4 +95,4 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 Please make sure to update the tests as appropriate.
 
 ## License
-This software is under Mozilla Public License 2.0 license
+This software is under MPL-2 license
